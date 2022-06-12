@@ -2,29 +2,31 @@
 
 set -e
 
-CC_FLAGS="-3 -oh -ol -ol+ -os -om -or -t=2 -ecc -zl -s -ms -bt=dos"
+CC_FLAGS="-3 -oh -ol -ol+ -os -om -or -t=2 -zl -s -ms -bt=dos"
 CXX_FLAGS="$CC_FLAGS -xd"
 ASM_FLAGS="-3 -mt"
 
 function cc() {
   for arg do
+    printf "\nProcessing \033[31;1;4m%s\033[0m\n\n" $arg
     wcc $CC_FLAGS $arg -fo=$BUILD_ROOT/$arg.o -fr=$BUILD_ROOT/$arg.err
-    printf "\n\n"
+    printf "\n"
   done
 }
 
 function cxx() {
   for arg do
+    printf "\nProcessing \033[31;1;4m%s\033[0m\n\n" $arg
     wpp $CXX_FLAGS $arg -fo=$BUILD_ROOT/$arg.o -fr=$BUILD_ROOT/$arg.err
-    printf "\n\n"
+    printf "\n"
   done
 }
 
 function asm() {
   for arg do 
-    printf "%s\n\n" "wasm $ASM_FLAGS $arg -fo=$BUILD_ROOT/$arg.o -fr=$BUILD_ROOT/$arg.err"
+    printf "\nProcessing \033[31;1;4m%s\033[0m\n\n" $arg
     wasm $ASM_FLAGS $arg -fo=$BUILD_ROOT/$arg.o -fr=$BUILD_ROOT/$arg.err
-    printf "\n\n"
+    printf "\n"
   done
 }
 
@@ -42,10 +44,13 @@ function ld() {
 
 rm    -rf $BUILD_ROOT/*
 
-asm   init.asm
-cxx   main.cpp bios.cpp linea20.cpp memory.cpp
-ld    init.asm.o      \
+asm   startup.asm int32.asm
+cxx   main.cpp bios.cpp linea20.cpp memory.cpp termio.cpp charconv.cpp
+ld    startup.asm.o   \
+      int32.asm.o     \
       bios.cpp.o      \
       main.cpp.o      \
       memory.cpp.o    \
-      linea20.cpp.o
+      linea20.cpp.o   \
+      termio.cpp.o    \
+      charconv.cpp.o  

@@ -6,12 +6,27 @@
 #include "bios.hpp"
 #include "linea20.hpp"
 #include "memory.hpp"
+#include "assert.hpp"
+#include "termio.hpp"
 
 extern "C" 
 {
 void __cdecl coloader_main()
 {
   tty_put_string("Starting Cornel DOS ...\n");
+
+  tty_put_integer(987654321);
+  tty_put_string("\n");
+  tty_put_integer(123456789);
+  tty_put_string("\n"); 
+  tty_put_integer(0);
+  tty_put_string("\n"); 
+  tty_put_integer(-987654321); 
+  tty_put_string("\n"); 
+  tty_put_integer(-123456789);
+  tty_put_string("\n"); 
+  tty_put_integer(0x123456789ABCDEF0, 16);
+  tty_put_string("\n");   
 
   // Initialize A20
   if (!line_a20_is_enabled ())
@@ -30,8 +45,6 @@ void __cdecl coloader_main()
      tty_put_string("Line A20 is enabled, continuing...\n");
   }
  
-  memory_load_map();
-
   irq_enable();
   for(;;) 
   {

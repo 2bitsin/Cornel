@@ -1,5 +1,5 @@
-#ifndef __CHIPSET_HPP__
-#define __CHIPSET_HPP__
+#ifndef __LINEA20_HPP__
+#define __LINEA20_HPP__
 
 
 void line_a20_enable();

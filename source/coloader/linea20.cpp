@@ -1,6 +1,6 @@
 #include "linea20.hpp"
 #include "inlasm.hpp"
-#include "utils.hpp"
+#include "utility.hpp"
 
 const ubyte KBCTRL_COMMAND_PORT         = 0x64;
 const ubyte KBCTRL_STATUS_PORT          = 0x64;

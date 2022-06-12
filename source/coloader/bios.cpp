@@ -1,12 +1,21 @@
 #include "bios.hpp"
 
 
-void tty_put_string(const char *str, ubyte color, ubyte page)
+#pragma pack(push, 1)
+
+struct e820_entry_type 
 {
-  for(int i =0; str[i] != 0; i++)
-  {
-    if (str[i] == '\n')
-      tty_put_char('\r', color, page);
-    tty_put_char(str[i], color, page);
-  }
+  uint64 base;
+  uint64 size;
+  uint32 type;
+};
+
+#pragma pack(pop)
+
+
+
+
+
+void memory_init()
+{
 }
