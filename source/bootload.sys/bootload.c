@@ -1,6 +1,5 @@
 #include "x86assembly.h"
 
-
 extern int G_stack_top;
 
 __declspec(noreturn) 

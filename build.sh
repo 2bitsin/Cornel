@@ -12,11 +12,11 @@ mkdir -p workspace/boot
 pushd source/bootload.sys
 wcc -3 -ms -ox -d0 bootload.c -fo=$BUILD_ROOT/bootload/bootload.o
 wasm -3 -mt smallcode.asm -fo=$BUILD_ROOT/bootload/smallcode.o
-wasm -3 -mt stacksegment.asm -fo=$BUILD_ROOT/bootload/stacksegment.o
+wasm -3 -mt stackseg.asm -fo=$BUILD_ROOT/bootload/stackseg.o
 popd 
 
 pushd $BUILD_ROOT/bootload
-wlink name bootload.sys format raw bin option offset=0x0000, nodefaultlibs, start=bootload_, map=bootload.sys.map file { bootload.o smallcode.o stacksegment.o } 
+wlink name bootload.sys format raw bin option offset=0x0000, nodefaultlibs, start=bootload_, map=bootload.sys.map file { bootload.o smallcode.o stackseg.o } 
 popd
 
 cp $BUILD_ROOT/bootload/bootload.sys workspace/boot
