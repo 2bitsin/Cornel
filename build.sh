@@ -10,11 +10,11 @@ mkdir -p $BUILD_ROOT/bootload
 mkdir -p workspace/boot
 
 pushd source/bootload.sys
-wcc -3 -ms -ox -d0 bootload.c -fo=$BUILD_ROOT/bootload/bootload.o
-wcc -3 -ms -ox -d0 print.c -fo=$BUILD_ROOT/bootload/print.o
-wasm -3 -mt memquery.asm -fo=$BUILD_ROOT/bootload/memquery.o
-wasm -3 -mt smallcode.asm -fo=$BUILD_ROOT/bootload/smallcode.o
-wasm -3 -mt stackseg.asm -fo=$BUILD_ROOT/bootload/stackseg.o
+wcc -3 -mc -ox -d0 bootload.c -fo=$BUILD_ROOT/bootload/bootload.o
+wcc -3 -mc -ox -d0 print.c -fo=$BUILD_ROOT/bootload/print.o
+wasm -3 -mc memquery.asm -fo=$BUILD_ROOT/bootload/memquery.o
+wasm -3 -mc smallcode.asm -fo=$BUILD_ROOT/bootload/smallcode.o
+wasm -3 -mc stackseg.asm -fo=$BUILD_ROOT/bootload/stackseg.o
 popd 
 
 pushd $BUILD_ROOT/bootload

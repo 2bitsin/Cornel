@@ -31,7 +31,8 @@ void bootload_probe_memory()
   params.next = 0;
   do
   {
-    MQ_e820(&params);
+    if (MQ_e820(&params) != 0)
+      break;
     print_hex64(params.entry.base);
     print_string(" | ");
     print_hex64(params.entry.size);
