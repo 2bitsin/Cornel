@@ -2,7 +2,7 @@
 #include "print.h"
 #include "error.h"
 
-void print_e820_entry(MQ_e820_params_type* params)
+static void MM_e820_entry(MQ_e820_params_type* params)
 {
   print_string("DEBUG: ");
   print_hex64(params->entry.base);
@@ -37,7 +37,7 @@ void print_e820_entry(MQ_e820_params_type* params)
   print_char('\n');
 }
 
-int memmap_e820()
+int MM_populate()
 {
   static unsigned __int64 total_size = 0;
   static MQ_e820_params_type params;
@@ -67,17 +67,16 @@ int memmap_e820()
       break;
     }
   #ifdef DEBUG
-    print_e820_entry(&params);
+    MM_e820_entry(&params);
   #endif
   }
   while(params.next != 0);  
 #ifdef DEBUG
-  print_string("DEBUG: Total RAM: ");
-  print_dec32(((unsigned long)total_size) / 1024);
-  print_char(' ');
-  print_string("KBytes");  
-  print_char('\n');
+  print_string("DEBUG: Total ");
+  print_hex64(total_size);  
+  print_string(" bytes of RAM\n");    
 #endif
+
   return 0;
 }
 

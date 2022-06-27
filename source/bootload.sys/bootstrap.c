@@ -7,7 +7,7 @@
 void bootstrap ()
 {     
   print_string("Starting bootload.sys\n");
-  memmap_e820();
+  MM_populate();
   print_string("Boot failed.\nPress any key to reboot.\n");
   wait_for_key();
 }

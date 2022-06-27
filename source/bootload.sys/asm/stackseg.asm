@@ -2,9 +2,12 @@
 .model tiny
 
 _STACK segment use16 public 'STACK'
-  DB 0x4000 DUP(?)
 
-_G_stack_top proc far public
+_G_stack_body proc near public
+  db 0x4000 dup (1)
+_G_stack_body endp
+
+_G_stack_top proc near public
 _G_stack_top endp
 
 _STACK ends
