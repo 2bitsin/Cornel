@@ -1,3 +1,6 @@
+.386
+.model tiny
+
 _TEXT segment para use16 public 'CODE' 
 
 _small_code_ proc near public

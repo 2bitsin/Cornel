@@ -22,8 +22,14 @@ unsigned char x86_inb(unsigned short port);
 unsigned short x86_inw(unsigned short port);
 #pragma aux x86_inw = "in ax, dx" parm [dx] value [ax] 
 
-void x86_load_ss_sp(void _far * ss_sp);
+void x86_load_ss_sp(void _far * value);
 #pragma aux x86_load_ss_sp = "mov ss, dx" "mov sp, ax"  parm [dx ax]
+
+void x86_load_sp(void * value);
+#pragma aux x86_load_sp = "mov sp, ax" parm [ax]
+
+void x86_load_ss(unsigned short value);
+#pragma aux x86_load_ss = "mov ss, ax" parm [ax]
 
 void x86_load_ds(unsigned short value);
 #pragma aux x86_load_ds = "mov ds, ax" parm [ax];
@@ -51,6 +57,11 @@ unsigned short x86_gs();
 
 unsigned short x86_cs();
 #pragma aux x86_cs = "mov ax, cs" value [ax];
+
+void x86_load_all_seg(unsigned short value);
+#pragma aux x86_load_all_seg = "mov ds, ax" "mov es, ax" "mov fs, ax" "mov gs, ax" "mov ss, ax" parm [ax];
+
+#define x86_jump_abs(seg, off) __asm { db 0xea }; __asm { dw off, seg };
 
 
 #endif
