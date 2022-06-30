@@ -3,7 +3,7 @@
 
 _TEXT segment use16 public 'CODE'
 
-MQ_e820_ proc near public
+MEM_read_acpi_entry_ proc near public
   ;[AX] [BX] [CX]
 
   push    di
@@ -17,28 +17,29 @@ MQ_e820_ proc near public
   mov     edx,    'SMAP'
 
   int     0x15
-  jnc     MQ_e820_no_carry
+  jnc     MEM_read_acpi_entry_no_carry
   mov     al,     ah
   xor     ah,     ah
-  jmp     MQ_e820_exit
+  jmp     MEM_read_acpi_entry_exit
 
-MQ_e820_no_carry:
+MEM_read_acpi_entry_no_carry:
   cmp     eax,    'SMAP'
-  je      MQ_e820_smap_ok
+  je      MEM_read_acpi_entry_smap_ok
   mov     ax,     0x86
-  jmp     MQ_e820_exit
+  jmp     MEM_read_acpi_entry_exit
 
-MQ_e820_smap_ok:  
+MEM_read_acpi_entry_smap_ok:  
   mov     dword ptr es:[di - 8], ecx
   mov     dword ptr es:[di - 4], ebx
   xor     ax,     ax
 
-MQ_e820_exit:
+MEM_read_acpi_entry_exit:
   pop     di
   ret
 
-MQ_e820_ endp
-  
+MEM_read_acpi_entry_ endp
+
+
 _TEXT ends
 
 end

@@ -2,7 +2,6 @@
 .model tiny
 
   extern bootstrap_:proc near
-  extern _G_stack_top:proc near
 
 _TEXT segment use16 public 'CODE'
 
@@ -10,14 +9,13 @@ _bootstrap proc near public
 
   db 0xea
   dw offset _bootstrap_adjust_segment
-  dw G_LOAD_SEGMENT
+  dw (G_LOAD_ADDRESS - G_STACK_SIZE)/16
 
 _bootstrap_adjust_segment:
 
-  mov         ax,     G_LOAD_SEGMENT
+  mov         sp,     G_STACK_SIZE
+  mov         ax,     cs
   mov         ss,     ax
-  mov         sp,     offset _G_stack_top
-
   mov         ds,     ax
   mov         es,     ax
   mov         fs,     ax

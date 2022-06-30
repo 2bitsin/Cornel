@@ -1,0 +1,64 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type":"shell",
+      "label":"Build ISO image",
+      "command":"${workspaceFolder}/build.sh",
+      "group":
+      {
+        "kind":"build",
+        "isDefault":true
+      } 
+    },
+
+    {
+      "type":"shell",
+      "label":"Test On QEMU",
+      "command":"${workspaceFolder}/test-qemu.sh",
+      "group":
+      {
+        "kind":"build",
+        "isDefault":true
+      },
+      "dependsOn":["Build ISO image"]
+    },
+
+    {
+      "type":"shell",
+      "label":"Debug On QEMU ",
+      "command":"${workspaceFolder}/test-qemu-dbg.sh",
+      "group":
+      {
+        "kind":"build",
+        "isDefault":true
+      },
+      "dependsOn":["Build ISO image"] 
+    },
+
+    {
+      "type":"shell",
+      "label":"Test On Bochs",
+      "command":"${workspaceFolder}/test-bochs.sh",
+      "group":
+      {
+        "kind":"build",
+        "isDefault":true
+      },
+      "dependsOn":["Build ISO image"]
+    },
+
+    {
+      "type":"shell",
+      "label":"Debug On BOCHS ",
+      "command":"${workspaceFolder}/test-bochs-dbg.sh",
+      "group":
+      {
+        "kind":"build",
+        "isDefault":true
+      },
+      "dependsOn":["Build ISO image"]
+    },
+
+  ]
+}
