@@ -7,7 +7,7 @@ void print_error_15h(int error)
   print_string(error_string_15h(error));
   print_string(" (");
   print_hex16(error);
-  print_string(")\n");
+  print_string(")");
 }
 
 const char* error_string_15h(int error)

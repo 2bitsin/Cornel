@@ -8,8 +8,8 @@ gdb -ix gdb/init_real_mode.txt            \
   -ex "set tdesc filename gdb/target.xml" \
   -ex "set architecture i8086"            \
   -ex "set disassembly-flavor intel"      \
-  -ex "break *0x7c00"                     \
+  -ex "break *0x8000"                     \
   -ex "continue"                          \
-  -ex "x /5i 0x7c00"
+  -ex "x /5i 0x8000"
 taskkill.exe /IM qemu-system-i386.exe
 
