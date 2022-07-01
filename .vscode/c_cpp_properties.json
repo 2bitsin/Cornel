@@ -1,9 +1,9 @@
 {
     "configurations": [
         {
-            "name": "RAW",
+            "name": "Stage 1",
             "includePath": [
-                "${workspaceFolder}/source/bootload/include/"                
+                "${workspaceFolder}/source/stage1/include"                
             ],
             "defines": ["__int64=long long", "DEBUG=1"],
             "compilerPath": "/usr/bin/watcom/binl64/wcc",

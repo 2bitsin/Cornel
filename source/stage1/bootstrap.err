@@ -1,7 +1,0 @@
-bootstrap.c(1): Error! E1055: Unable to open 'x86assembly.h'
-bootstrap.c(2): Error! E1055: Unable to open 'memory.h'
-bootstrap.c(3): Error! E1055: Unable to open 'print.h'
-bootstrap.c(4): Error! E1055: Unable to open 'keyboard.h'
-bootstrap.c(8): Warning! W131: No prototype found for function 'print_string'
-bootstrap.c(9): Warning! W131: No prototype found for function 'MEM_initialize'
-bootstrap.c(11): Warning! W131: No prototype found for function 'wait_for_key'
