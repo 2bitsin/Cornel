@@ -5,13 +5,13 @@
 
 _TEXT segment use16 public 'CODE'
 
-_bootstrap proc near public 
+_startup proc near public 
 
   db 0xea
-  dw offset _bootstrap_adjust_segment
+  dw offset _startup_adjust_segment
   dw (G_LOAD_ADDRESS - G_STACK_SIZE)/16
 
-_bootstrap_adjust_segment:
+_startup_adjust_segment:
 
   mov         sp,     G_STACK_SIZE
   mov         ax,     cs
@@ -23,18 +23,18 @@ _bootstrap_adjust_segment:
   
   call        bootstrap_
 
-_bootstrap_wait_8042:
+_startup_wait_8042:
 
   in          al,     0x64
   test        al,     0x02
-  jnz         _bootstrap_wait_8042
+  jnz         _startup_wait_8042
   mov         al,     0xfe
   out         0x64,   al
 
   cli
   hlt
 
-_bootstrap endp
+_startup endp
 
 
 _TEXT ends
