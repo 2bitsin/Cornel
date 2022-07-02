@@ -10,6 +10,17 @@
             "cStandard": "c99",
             "cppStandard": "c++98",
             "intelliSenseMode": "${default}"
+        },
+        {
+            "name": "Coreload Loader",
+            "includePath": [
+                "${workspaceFolder}/source/coreload/loader/include"                
+            ],
+            "defines": ["DEBUG=1"],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c99",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "${default}"            
         }
     ],
     "version": 4

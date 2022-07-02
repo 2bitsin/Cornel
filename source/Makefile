@@ -7,6 +7,8 @@ TARGET_BINARY			?= $(BUILD_DIR)/$(TARGET_NAME).iso
 BUILD_TARGETS			?= coreload.sys
 
 PREFIXED_TARGETS	?= $(addprefix $(BUILD_DIR)/, $(BUILD_TARGETS))
+DEPENDENCIES			?= $(shell find . -type f)
+
 
 .PHONY: all
 all: $(BUILD_DIR) $(TARGET_BINARY)
@@ -18,7 +20,7 @@ $(BUILD_DIR):
 clean:
 	rm -rf $(BUILD_DIR)/*
 
-$(PREFIXED_TARGETS):
+$(PREFIXED_TARGETS): $(DEPENDENCIES)
 	for target in $(BUILD_TARGETS); do \
 		$(MAKE) -C "$${target%.*}" BUILD_DIR="$(BUILD_DIR)/$${target%.*}" all; \
 		cp "$(BUILD_DIR)/$${target%.*}/$$target" $(BUILD_DIR)/$$target;	\

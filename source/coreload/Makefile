@@ -7,6 +7,8 @@ BUILD_DIR 			?= $(abspath ../../build/$(TARGET_NAME))
 BUILD_TARGETS 	?= stub loader
 BUILD_BINARIES	?= $(addprefix $(BUILD_DIR)/,$(addsuffix .bin,$(BUILD_TARGETS)))
 
+DEPENDENCIES		?= $(shell find . -type f)
+
 .PHONY: all
 all: $(BUILD_DIR) $(TARGET_BINARY)
 
@@ -17,7 +19,7 @@ $(BUILD_DIR):
 clean:
 	rm -rf $(BUILD_DIR)/*
 
-$(BUILD_BINARIES):
+$(BUILD_BINARIES): $(DEPENDENCIES)
 	for target in $(BUILD_TARGETS); do \
 		$(MAKE) -C $$target BUILD_DIR=$(BUILD_DIR)/$$target all; \
 		cp $(BUILD_DIR)/$$target/$$target.bin $(BUILD_DIR)/; \
