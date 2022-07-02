@@ -5,7 +5,7 @@
 
 _TEXT segment use16 public 'CODE'
 
-_startup proc near
+_prologue_start proc near
 
 L$1:
 
@@ -30,22 +30,22 @@ L$2:
   cli
   hlt
 
-_startup endp
+_prologue_start endp
 
 _TEXT ends
 
 _DATA segment use16 public 'DATA'
 _DATA ends
 
-_ENTRY segment use16 public 'ENTRY'
+_PROLOGUE segment use16 public 'PROLOGUE'
 
-_startup_entry proc near public 
+_entry proc near public 
   db 0xea
-  dw offset _startup
+  dw offset _prologue_start
   dw (G_LOAD_ADDRESS - G_STACK_SIZE)/16
-_startup_entry endp
+_entry endp
 
-_ENTRY ends
+_PROLOGUE ends
 
 end
 

@@ -1,9 +1,9 @@
 {
     "configurations": [
         {
-            "name": "Stage 1",
+            "name": "Coreload STUB",
             "includePath": [
-                "${workspaceFolder}/source/stage1/include"                
+                "${workspaceFolder}/source/coreload/stub/include"                
             ],
             "defines": ["__int64=long long", "DEBUG=1"],
             "compilerPath": "/usr/bin/watcom/binl64/wcc",

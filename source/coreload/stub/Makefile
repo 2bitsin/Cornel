@@ -7,11 +7,12 @@ TARGET_BINARY_NAME 	?= 	$(TARGET_NAME).bin
 TARGET_BINARY 			?= 	$(BUILD_DIR)/$(TARGET_BINARY_NAME)
 MAP_FILE						?= 	$(TARGET_BINARY).map
 
-SOURCES_S						?=	startup.s			\
+SOURCES_S						?=	prologue.s		\
 				 								longdiv.s			\
 				 								biosacpi.s		\
 				 								smallcode.s		\
-				 								stackseg.s		
+				 								stackseg.s		\
+												epilogue.s	
 
 SOURCES_C						?=	bootstrap.c		\
 				 								error.c				\
@@ -60,7 +61,7 @@ $(BUILD_DIR)/%.o : $(SOURCES_DIR)/%.s
 	$(AS) $(S_FLAGS) -fo=$@ $<
 
 $(TARGET_BINARY) : $(PREFIXED_OBJECTS) $(LINKER_FILE)
-	$(LD) NAME $(TARGET_BINARY) PATH $(BUILD_DIR) FILE {$(OBJECTS)} OPTION MAP=$(MAP_FILE),OFFSET=$(STACK_SIZE) @$(LINKER_FILE)
+	$(LD) NAME $(TARGET_BINARY) PATH $(BUILD_DIR) FILE {$(OBJECTS)} @$(LINKER_FILE) OPTION MAP=$(MAP_FILE),OFFSET=$(STACK_SIZE)
 
 include $(wildcard $(BUILD_DIR)/*.d)
 				
