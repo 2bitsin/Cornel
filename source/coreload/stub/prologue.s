@@ -2,6 +2,7 @@
 .model tiny
 
   extern bootstrap_:proc near
+  extern _PMODE_init_flat_real_mode:proc near
 
 _TEXT segment use16 public 'CODE'
 
@@ -16,7 +17,8 @@ L$1:
   mov         es,     ax
   mov         fs,     ax
   mov         gs,     ax
-  
+
+  call        _PMODE_init_flat_real_mode  
   call        bootstrap_
 
 L$2:

@@ -21,7 +21,18 @@
             "cStandard": "c99",
             "cppStandard": "c++20",
             "intelliSenseMode": "${default}"            
-        }
+        },
+        {
+            "name": "Tools",
+            "includePath": [
+                "${workspaceFolder}/tools"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c99",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "${default}"            
+        }        
     ],
     "version": 4
 }

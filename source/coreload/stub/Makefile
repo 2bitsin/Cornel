@@ -12,7 +12,8 @@ SOURCES_S						?=	prologue.s		\
 				 								biosacpi.s		\
 				 								smallcode.s		\
 				 								stackseg.s		\
-												epilogue.s	
+												epilogue.s		\
+												pmode32.s
 
 SOURCES_C						?=	bootstrap.c		\
 				 								error.c				\
