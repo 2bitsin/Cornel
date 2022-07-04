@@ -20,19 +20,20 @@ SOURCES_C						?=	stub.c				\
 				 								error.c				\
 				 								memory.c   		\
 				 								print.c				\
-												rtccmos.c
+												rtccmos.c			\
+												kbdctrl.c
 
 CC									:=	wcc
 LD									:=	wlink
 AS									:=	wasm
 
-LOAD_ADDRESS				?=	0x8000
-LOAD_SEGMENT				?=	0x800
-STACK_SIZE					?=	0x2000
+LOAD_ADDRESS				?=	0x7c00
+LOAD_SEGMENT				?=	0x7c0
+STACK_SIZE					?=	0x1c00
 LINKER_FILE					?=	$(SOURCES_DIR)/.wlink
 
 INCLUDE							?=	-i=$(SOURCES_DIR)/include
-DEFINES							?=	-dDEBUG=1 -dG_LOAD_ADDRESS=$(LOAD_ADDRESS) -dG_STACK_SIZE=$(STACK_SIZE)
+DEFINES							?=	-dDEBUG=1 -dG_LOAD_ADDRESS=$(LOAD_ADDRESS) -dG_STACK_SIZE=$(STACK_SIZE) -dDEBUG_STARTUP=1
 C_FLAGS							?=	-3 -ms -ox -zu $(DEFINES) $(INCLUDE)
 S_FLAGS							?=	-3 -mt $(DEFINES)
 

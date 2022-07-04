@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "print.h"
 #include "keyboard.h"
+#include "kbdctrl.h"
 #include "flatreal.h"
 
 static const char test_string [] = "FLAT REAL MODE TEST STRING!";
@@ -23,10 +24,7 @@ void FLAT_test()
   print_string(buffer);
   print_string("\n");
 
-  print_string("Press any key to continue...\n");
-  wait_for_key();
 }
-
 
 void STUB_init ()
 {     
@@ -40,8 +38,11 @@ void STUB_init ()
 
   print_string("Initializing memory map ...\n");
   MEM_init();
+}
 
-
-  print_string("Boot failed.\nPress any key to reboot.\n");
+void STUB_exit () 
+{
+  print_string("Press any key to continue...\n");
   wait_for_key();
+  KBC_hardware_reset();
 }

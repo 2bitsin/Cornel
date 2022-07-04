@@ -1,0 +1,8 @@
+Next at t=0
+(0) [0x0000fffffff0] f000:fff0 (unk. ctxt): jmpf 0xf000:e05b          ; ea5be000f0
+lb 0x7c00
+c
+(0) Breakpoint 1, 0x0000000000007c00 in ?? ()
+Next at t=9711907
+(0) [0x000000007c00] 07c0:0000 (unk. ctxt): jmpf 0x0600:1f1b          ; ea1b1f0006
+(0).[9711907] [0x000000007c00] 07c0:0000 (unk. ctxt): jmpf 0x0600:1f1b          ; ea1b1f0006

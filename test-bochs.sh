@@ -1,2 +1,2 @@
 #!/bin/bash
-cmd.exe /c bochs -f bochs/bochs.rc -q
+cmd.exe /c bochs -f bochs/bochs.ini -q
