@@ -117,7 +117,15 @@ _DATA ends
 _PROLOGUE segment use16 public 'PROLOGUE'
 
   _entry proc near public 
-    mov         sp,     0x1000
+
+    mov         eax,    'TEST'
+    call        _local_print_eax
+    mov         eax,    0xABCD
+    call        _local_print_hex16
+    mov         eax,    'TEST'
+    call        _local_print_eax
+    mov         eax,    0xEF98
+    call        _local_print_hex16
 
     mov         eax,    ' CS='
     call        _local_print_eax
