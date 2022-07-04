@@ -3,131 +3,130 @@
 
 _TEXT segment use16 public 'CODE'
 
-; ******************************************
-; * __U4D                                  *
-; ******************************************
+  ; ******************************************
+  ; * __U4D                                  *
+  ; ******************************************
 
-__U4D proc near public
+  __U4D proc near public
 
-  shl     edx,      16
-  movzx   eax,      ax
-  or      eax,      edx
-  xor     edx,      edx
-  
-  shl     ecx,      16
-  movzx   ebx,      bx
-  or      ebx,      ecx
-  xor     ecx,      ecx
+    shl     edx,      16
+    movzx   eax,      ax
+    or      eax,      edx
+    xor     edx,      edx
 
-  div     ebx
+    shl     ecx,      16
+    movzx   ebx,      bx
+    or      ebx,      ecx
+    xor     ecx,      ecx
 
-  mov     ecx,      edx
-  mov     ebx,      edx
+    div     ebx
 
-  mov     edx,      eax
-  shr     edx,      16
-  and     eax,      0xffff
+    mov     ecx,      edx
+    mov     ebx,      edx
 
-  shr     ecx,      16
-  and     ebx,      0xffff
-  ret  
+    mov     edx,      eax
+    shr     edx,      16
+    and     eax,      0xffff
 
-__U4D endp
+    shr     ecx,      16
+    and     ebx,      0xffff
+    ret  
 
-; ******************************************
-; * end __U4D                              *
-; ******************************************
+  __U4D endp
+
+  ; ******************************************
+  ; * end __U4D                              *
+  ; ******************************************
 
 
-; ******************************************
-; * __I4D                                  *
-; ******************************************
+  ; ******************************************
+  ; * __I4D                                  *
+  ; ******************************************
 
-__I4D proc near public
+  __I4D proc near public
 
-  shl     edx,      16
-  movzx   eax,      ax
-  or      eax,      edx
-  xor     edx,      edx
-  test    eax,      0x80000000
-  jz      __I4D_1
-  not     edx
-__I4D_1:
-  
-  shl     ecx,      16
-  movzx   ebx,      bx
-  or      ebx,      ecx
-  xor     ecx,      ecx
-  test    ebx,      0x80000000
-  jz      __I4D_2
-  not     ecx
-__I4D_2:
+    shl     edx,      16
+    movzx   eax,      ax
+    or      eax,      edx
+    xor     edx,      edx
+    test    eax,      0x80000000
+    jz      __I4D_1
+    not     edx
+  __I4D_1:
 
-  idiv    ebx
+    shl     ecx,      16
+    movzx   ebx,      bx
+    or      ebx,      ecx
+    xor     ecx,      ecx
+    test    ebx,      0x80000000
+    jz      __I4D_2
+    not     ecx
+  __I4D_2:
 
-  mov     ecx,      edx
-  mov     ebx,      edx
+    idiv    ebx
 
-  mov     edx,      eax
-  shr     edx,      16
-  and     eax,      0xffff
+    mov     ecx,      edx
+    mov     ebx,      edx
 
-  shr     ecx,      16
-  and     ebx,      0xffff
-  ret  
+    mov     edx,      eax
+    shr     edx,      16
+    and     eax,      0xffff
 
-__I4D endp
+    shr     ecx,      16
+    and     ebx,      0xffff
+    ret  
 
-; ******************************************
-; * end __I4D                              *
-; ******************************************
+  __I4D endp
 
-; ******************************************
-; * 64bit / 32bit dvision                  *
-; ******************************************
+  ; ******************************************
+  ; * end __I4D                              *
+  ; ******************************************
 
-long_64_udiv_32_ proc near public 
-  pushad
-  
-  mov     di,       ax
-  mov     si,       dx
+  ; ******************************************
+  ; * 64bit / 32bit dvision                  *
+  ; ******************************************
 
-  mov     eax,      dword ptr [di + 0]
-  mov     edx,      dword ptr [di + 4]  
+  long_64_udiv_32_ proc near public 
+    pushad
 
-  mov     ebx,      dword ptr [si + 0]
+    mov     di,       ax
+    mov     si,       dx
 
-  div     ebx
+    mov     eax,      dword ptr [di + 0]
+    mov     edx,      dword ptr [di + 4]  
 
-  mov     dword ptr [di + 0],      eax
-  mov     dword ptr [di + 4],      edx
+    mov     ebx,      dword ptr [si + 0]
 
-  popad
-  ret
-long_64_udiv_32_ endp
+    div     ebx
 
-; ===============================================
+    mov     dword ptr [di + 0],      eax
+    mov     dword ptr [di + 4],      edx
 
-long_64_idiv_32_ proc near public 
-  pushad
-  
-  mov     di,       ax
-  mov     si,       dx
+    popad
+    ret
+  long_64_udiv_32_ endp
 
-  mov     eax,      dword ptr [di + 0]
-  mov     edx,      dword ptr [di + 4]  
+  ; ===============================================
 
-  mov     ebx,      dword ptr [si + 0]
+  long_64_idiv_32_ proc near public 
+    pushad
 
-  idiv    ebx
+    mov     di,       ax
+    mov     si,       dx
 
-  mov     dword ptr [di + 0],      eax
-  mov     dword ptr [di + 4],      edx
+    mov     eax,      dword ptr [di + 0]
+    mov     edx,      dword ptr [di + 4]  
 
-  popad
-  ret
-long_64_idiv_32_ endp
+    mov     ebx,      dword ptr [si + 0]
 
+    idiv    ebx
+
+    mov     dword ptr [di + 0],      eax
+    mov     dword ptr [di + 4],      edx
+
+    popad
+    ret
+  long_64_idiv_32_ endp
 
 _TEXT ends
 

@@ -5,10 +5,9 @@ _EPILOGUE segment use16 public para 'EPILOGUE'
 
   DB "CONFIGURATIONISM"
 
-  public proc _end_of_epilogue near
-_end_of_epilogue:
+  _end_of_epilogue proc near public
+  _end_of_epilogue endp
 
-  
 _EPILOGUE ends
 
 end

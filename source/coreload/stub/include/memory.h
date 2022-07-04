@@ -32,7 +32,7 @@ struct MEM_entry_list_t
 
 #pragma pack(pop)
 
-int MEM_initialize();
+int MEM_init();
 
 void MEM_copy(const void* src, void* dst, unsigned int size);
 void MEM_fill(void* dst, unsigned int size, unsigned char value);

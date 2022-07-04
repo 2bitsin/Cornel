@@ -12,13 +12,15 @@ SOURCES_S						?=	prologue.s		\
 				 								biosacpi.s		\
 				 								smallcode.s		\
 				 								stackseg.s		\
-												epilogue.s		\
-												pmode32.s
+												flatreal.s		\
+												gdt.s					\
+												epilogue.s		
 
-SOURCES_C						?=	bootstrap.c		\
+SOURCES_C						?=	stub.c				\
 				 								error.c				\
 				 								memory.c   		\
-				 								print.c
+				 								print.c				\
+												rtccmos.c
 
 CC									:=	wcc
 LD									:=	wlink

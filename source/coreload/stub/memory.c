@@ -85,23 +85,23 @@ static void MEM_print_acpi_entry(MEM_read_acpi_params_type* params)
   switch(params->entry.type)
   {
   case MEM_ENTRY_TYPE_AVAILABLE: 
-    print_string("Availble to OS"); 
+    print_string("AVAILABLE"); 
     break;
 
   case MEM_ENTRY_TYPE_RESERVED: 
-    print_string("Reserved"); 
+    print_string("RESERVED"); 
     break;
 
   case MEM_ENTRY_TYPE_ACPI_RECLAIMABLE: 
-    print_string("ACPI reclaimable memory"); 
+    print_string("RECLAIMABLE"); 
     break; 
 
   case MEM_ENTRY_TYPE_ACPI_NVS: 
-    print_string("ACPI NVS memory"); 
+    print_string("NVS MEMORY"); 
     break;
 
   default:
-    print_string("Other (");    
+    print_string("OTHER (");    
     print_hex8(params->entry.type);
     print_char(')');
   }
@@ -186,7 +186,7 @@ int MEM_populate_acpi_memory_map(unsigned __int64* out_memory_size)
   return 0;
 }
 
-int MEM_initialize()
+int MEM_init()
 {
   static unsigned __int64 total_memory_size;
   unsigned int conv_memory_size;   
