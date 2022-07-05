@@ -2,11 +2,9 @@
 .model tiny
 
 _EPILOGUE segment use16 public para 'EPILOGUE'
-
-  DB "CONFIGURATIONISM"
-
-  _end_of_epilogue proc near public
-  _end_of_epilogue endp
+  db "YEAHBABYLOADMYOS"
+  _loader_start proc near public
+  _loader_start endp
 
 _EPILOGUE ends
 

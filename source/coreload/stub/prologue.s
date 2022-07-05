@@ -34,5 +34,8 @@ _PROLOGUE segment use16 public 'PROLOGUE'
 
 _PROLOGUE ends
 
+_STACK segment use16 public 'STACK'
+_STACK ends
+
 end
 

@@ -11,8 +11,7 @@ SOURCES_S						?=	prologue.s		\
 				 								longdiv.s			\
 				 								biosacpi.s		\
 												flatreal.s		\
-												epilogue.s		\
-												stackseg.s		
+												epilogue.s		
 												
 
 SOURCES_C						?=	stub.c				\

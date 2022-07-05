@@ -27,11 +27,11 @@ uint16_t x86_inw(uint16_t port);
 void x86_load_ss_sp(void _far * value);
 #pragma aux x86_load_ss_sp = "mov ss, dx" "mov sp, ax"  parm [dx ax]
 
-void x86_load_sp(void * value);
-#pragma aux x86_load_sp = "mov sp, ax" parm [ax]
+void x86_load_sp(uint16_t value);
+#pragma aux x86_load_sp = "mov sp, ax" parm [ax];
 
 void x86_load_ss(uint16_t value);
-#pragma aux x86_load_ss = "mov ss, ax" parm [ax]
+#pragma aux x86_load_ss = "mov ss, ax" parm [ax];
 
 void x86_load_ds(uint16_t value);
 #pragma aux x86_load_ds = "mov ds, ax" parm [ax];
