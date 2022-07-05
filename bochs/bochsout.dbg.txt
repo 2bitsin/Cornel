@@ -1,202 +1,67 @@
 Next at t=0
 (0) [0x0000fffffff0] f000:fff0 (unk. ctxt): jmpf 0xf000:e05b          ; ea5be000f0
-lb 0x7c00
+lb 0x8100
 c
-(0) Breakpoint 1, 0x0000000000007c00 in ?? ()
-Next at t=9711907
-(0) [0x000000007c00] 07c0:0000 (unk. ctxt): jmpf 0x0600:21c8          ; eac8210006
-Next at t=9711908
-(0) [0x0000000081c8] 0600:21c8 (unk. ctxt): cli                       ; fa
-Next at t=9711909
-(0) [0x0000000081c9] 0600:21c9 (unk. ctxt): mov ax, 0x1c00            ; b8001c
-Next at t=9711910
-(0) [0x0000000081cc] 0600:21cc (unk. ctxt): mov sp, ax                ; 8be0
-Next at t=9711911
-(0) [0x0000000081ce] 0600:21ce (unk. ctxt): mov ax, cs                ; 8cc8
-Next at t=9711912
-(0) [0x0000000081d0] 0600:21d0 (unk. ctxt): mov ds, ax                ; 8ed8
-Next at t=9711913
-(0) [0x0000000081d2] 0600:21d2 (unk. ctxt): mov es, ax                ; 8ec0
-Next at t=9711914
-(0) [0x0000000081d4] 0600:21d4 (unk. ctxt): mov fs, ax                ; 8ee0
-Next at t=9711915
-(0) [0x0000000081d6] 0600:21d6 (unk. ctxt): mov gs, ax                ; 8ee8
-Next at t=9711916
-(0) [0x0000000081d8] 0600:21d8 (unk. ctxt): mov ss, ax                ; 8ed0
-Next at t=9711917
-(0) [0x0000000081da] 0600:21da (unk. ctxt): sti                       ; fb
-Next at t=9711918
-(0) [0x0000000081db] 0600:21db (unk. ctxt): call .-65  (0x0000819d)   ; e8bfff
-Next at t=9711919
-(0) [0x00000000819d] 0600:219d (unk. ctxt): push bx                   ; 53
-Next at t=9711920
-(0) [0x00000000819e] 0600:219e (unk. ctxt): push cx                   ; 51
-Next at t=9711921
-(0) [0x00000000819f] 0600:219f (unk. ctxt): push dx                   ; 52
-Next at t=9711922
-(0) [0x0000000081a0] 0600:21a0 (unk. ctxt): mov ax, 0x1cba            ; b8ba1c
-Next at t=9711923
-(0) [0x0000000081a3] 0600:21a3 (unk. ctxt): call .+847  (0x000084f5)  ; e84f03
-Next at t=9711924
-(0) [0x0000000084f5] 0600:24f5 (unk. ctxt): push bx                   ; 53
-Next at t=9711925
-(0) [0x0000000084f6] 0600:24f6 (unk. ctxt): mov bx, ax                ; 89c3
-Next at t=9711926
-(0) [0x0000000084f8] 0600:24f8 (unk. ctxt): cmp byte ptr ds:[bx], 0x00 ; 803f00
-Next at t=9711927
-(0) [0x0000000084fb] 0600:24fb (unk. ctxt): jnz .+2  (0x000084ff)     ; 7502
-Next at t=9711928
-(0) [0x0000000084ff] 0600:24ff (unk. ctxt): movzx ax, byte ptr ds:[bx] ; 0fb607
-Next at t=9711929
-(0) [0x000000008502] 0600:2502 (unk. ctxt): call .-49  (0x000084d4)   ; e8cfff
-Next at t=9711930
-(0) [0x0000000084d4] 0600:24d4 (unk. ctxt): push bx                   ; 53
-Next at t=9711931
-(0) [0x0000000084d5] 0600:24d5 (unk. ctxt): push dx                   ; 52
-Next at t=9711932
-(0) [0x0000000084d6] 0600:24d6 (unk. ctxt): mov dl, al                ; 88c2
-Next at t=9711933
-(0) [0x0000000084d8] 0600:24d8 (unk. ctxt): cmp al, 0x0a              ; 3c0a
-Next at t=9711934
-(0) [0x0000000084da] 0600:24da (unk. ctxt): jz .+13  (0x000084e9)     ; 740d
-Next at t=9711935
-(0) [0x0000000084dc] 0600:24dc (unk. ctxt): mov bl, 0x07              ; b307
-Next at t=9711936
-(0) [0x0000000084de] 0600:24de (unk. ctxt): mov al, dl                ; 88d0
-Next at t=9711937
-(0) [0x0000000084e0] 0600:24e0 (unk. ctxt): xor bh, bh                ; 30ff
-Next at t=9711938
-(0) [0x0000000084e2] 0600:24e2 (unk. ctxt): mov ah, 0x0e              ; b40e
-Next at t=9711939
-(0) [0x0000000084e4] 0600:24e4 (unk. ctxt): int 0x10                  ; cd10
-Next at t=9711940
-(0) [0x0000000c014a] c000:014a (unk. ctxt): pushf                     ; 9c
-Next at t=9711941
-(0) [0x0000000c014b] c000:014b (unk. ctxt): cmp ah, 0x4f              ; 80fc4f
-Next at t=9711942
-(0) [0x0000000c014e] c000:014e (unk. ctxt): jnz .+3  (0x000c0153)     ; 7503
-Next at t=9711943
-(0) [0x0000000c0153] c000:0153 (unk. ctxt): push 0x020a               ; 680a02
-Next at t=9711944
-(0) [0x0000000c0156] c000:0156 (unk. ctxt): cmp ah, 0x01              ; 80fc01
-Next at t=9711945
-(0) [0x0000000c0159] c000:0159 (unk. ctxt): jnz .+3  (0x000c015e)     ; 7503
-Next at t=9711946
-(0) [0x0000000c015e] c000:015e (unk. ctxt): cmp ah, 0x02              ; 80fc02
-Next at t=9711947
-(0) [0x0000000c0161] c000:0161 (unk. ctxt): jnz .+3  (0x000c0166)     ; 7503
-Next at t=9711948
-(0) [0x0000000c0166] c000:0166 (unk. ctxt): cmp ah, 0x03              ; 80fc03
-Next at t=9711949
-(0) [0x0000000c0169] c000:0169 (unk. ctxt): jnz .+3  (0x000c016e)     ; 7503
-Next at t=9711950
-(0) [0x0000000c016e] c000:016e (unk. ctxt): cmp ah, 0x04              ; 80fc04
-Next at t=9711951
-(0) [0x0000000c0171] c000:0171 (unk. ctxt): jnz .+3  (0x000c0176)     ; 7503
-Next at t=9711952
-(0) [0x0000000c0176] c000:0176 (unk. ctxt): cmp ah, 0x0f              ; 80fc0f
-Next at t=9711953
-(0) [0x0000000c0179] c000:0179 (unk. ctxt): jnz .+3  (0x000c017e)     ; 7503
-Next at t=9711954
-(0) [0x0000000c017e] c000:017e (unk. ctxt): cmp ah, 0x1a              ; 80fc1a
-Next at t=9711955
-(0) [0x0000000c0181] c000:0181 (unk. ctxt): jnz .+3  (0x000c0186)     ; 7503
-Next at t=9711956
-(0) [0x0000000c0186] c000:0186 (unk. ctxt): cmp ah, 0x0b              ; 80fc0b
-Next at t=9711957
-(0) [0x0000000c0189] c000:0189 (unk. ctxt): jnz .+3  (0x000c018e)     ; 7503
-Next at t=9711958
-(0) [0x0000000c018e] c000:018e (unk. ctxt): cmp ax, 0x1103            ; 3d0311
-Next at t=9711959
-(0) [0x0000000c0191] c000:0191 (unk. ctxt): jnz .+3  (0x000c0196)     ; 7503
-Next at t=9711960
-(0) [0x0000000c0196] c000:0196 (unk. ctxt): cmp ax, 0x1130            ; 3d3011
-Next at t=9711961
-(0) [0x0000000c0199] c000:0199 (unk. ctxt): jnz .+3  (0x000c019e)     ; 7503
-Next at t=9711962
-(0) [0x0000000c019e] c000:019e (unk. ctxt): cmp ah, 0x12              ; 80fc12
-Next at t=9711963
-(0) [0x0000000c01a1] c000:01a1 (unk. ctxt): jnz .+48  (0x000c01d3)    ; 7530
-Next at t=9711964
-(0) [0x0000000c01d3] c000:01d3 (unk. ctxt): cmp ah, 0x10              ; 80fc10
-Next at t=9711965
-(0) [0x0000000c01d6] c000:01d6 (unk. ctxt): jnz .+3  (0x000c01db)     ; 7503
-Next at t=9711966
-(0) [0x0000000c01db] c000:01db (unk. ctxt): cmp ah, 0x1b              ; 80fc1b
-Next at t=9711967
-(0) [0x0000000c01de] c000:01de (unk. ctxt): jnz .+3  (0x000c01e3)     ; 7503
-Next at t=9711968
-(0) [0x0000000c01e3] c000:01e3 (unk. ctxt): cmp ah, 0x1c              ; 80fc1c
-Next at t=9711969
-(0) [0x0000000c01e6] c000:01e6 (unk. ctxt): jnz .+19  (0x000c01fb)    ; 7513
-Next at t=9711970
-(0) [0x0000000c01fb] c000:01fb (unk. ctxt): push es                   ; 06
-Next at t=9711971
-(0) [0x0000000c01fc] c000:01fc (unk. ctxt): push ds                   ; 1e
-Next at t=9711972
-(0) [0x0000000c01fd] c000:01fd (unk. ctxt): pusha                     ; 60
-Next at t=9711973
-(0) [0x0000000c01fe] c000:01fe (unk. ctxt): mov bx, 0xc000            ; bb00c0
-Next at t=9711974
-(0) [0x0000000c0201] c000:0201 (unk. ctxt): mov ds, bx                ; 8edb
-Next at t=9711975
-(0) [0x0000000c0203] c000:0203 (unk. ctxt): call .+13407  (0x000c3665) ; e85f34
-Next at t=9711976
-(0) [0x0000000c3665] c000:3665 (unk. ctxt): push bp                   ; 55
-Next at t=9711977
-(0) [0x0000000c3666] c000:3666 (unk. ctxt): mov bp, sp                ; 89e5
-Next at t=9711978
-(0) [0x0000000c3668] c000:3668 (unk. ctxt): mov ax, word ptr ss:[bp+18] ; 8b4612
-Next at t=9711979
-(0) [0x0000000c366b] c000:366b (unk. ctxt): mov al, ah                ; 88e0
-Next at t=9711980
-(0) [0x0000000c366d] c000:366d (unk. ctxt): xor ah, ah                ; 30e4
-Next at t=9711981
-(0) [0x0000000c366f] c000:366f (unk. ctxt): jmp .+889  (0x000c39eb)   ; e97903
-Next at t=9711982
-(0) [0x0000000c39eb] c000:39eb (unk. ctxt): sub ax, 0x0000            ; 2d0000
-Next at t=9711983
-(0) [0x0000000c39ee] c000:39ee (unk. ctxt): jl .+61  (0x000c3a2d)     ; 7c3d
-Next at t=9711984
-(0) [0x0000000c39f0] c000:39f0 (unk. ctxt): cmp ax, 0x0013            ; 3d1300
-Next at t=9711985
-(0) [0x0000000c39f3] c000:39f3 (unk. ctxt): jnbe .+49  (0x000c3a26)   ; 7731
-Next at t=9711986
-(0) [0x0000000c39f5] c000:39f5 (unk. ctxt): shl ax, 0x01              ; d1e0
-Next at t=9711987
-(0) [0x0000000c39f7] c000:39f7 (unk. ctxt): mov bx, ax                ; 89c3
-Next at t=9711988
-(0) [0x0000000c39f9] c000:39f9 (unk. ctxt): jmp word ptr cs:[bx+14846] ; 2effa7fe39
-Next at t=9711989
-(0) [0x0000000c37e0] c000:37e0 (unk. ctxt): mov ax, 0x0002            ; b80200
-Next at t=9711990
-(0) [0x0000000c37e3] c000:37e3 (unk. ctxt): push ax                   ; 50
-Next at t=9711991
-(0) [0x0000000c37e4] c000:37e4 (unk. ctxt): mov al, byte ptr ss:[bp+12] ; 8a460c
-Next at t=9711992
-(0) [0x0000000c37e7] c000:37e7 (unk. ctxt): xor ah, ah                ; 30e4
-Next at t=9711993
-(0) [0x0000000c37e9] c000:37e9 (unk. ctxt): push ax                   ; 50
-Next at t=9711994
-(0) [0x0000000c37ea] c000:37ea (unk. ctxt): mov ax, 0x00ff            ; b8ff00
-Next at t=9711995
-(0) [0x0000000c37ed] c000:37ed (unk. ctxt): push ax                   ; 50
-Next at t=9711996
-(0) [0x0000000c37ee] c000:37ee (unk. ctxt): mov al, byte ptr ss:[bp+18] ; 8a4612
-Next at t=9711997
-(0) [0x0000000c37f1] c000:37f1 (unk. ctxt): xor ah, ah                ; 30e4
-Next at t=9711998
-(0) [0x0000000c37f3] c000:37f3 (unk. ctxt): push ax                   ; 50
-Next at t=9711999
-(0) [0x0000000c37f4] c000:37f4 (unk. ctxt): call .+9159  (0x000c5bbe) ; e8c723
-Next at t=9712000
-(0) [0x0000000c5bbe] c000:5bbe (unk. ctxt): push bp                   ; 55
-Next at t=9712001
-(0) [0x0000000c5bbf] c000:5bbf (unk. ctxt): mov bp, sp                ; 89e5
-Next at t=9712002
-(0) [0x0000000c5bc1] c000:5bc1 (unk. ctxt): add sp, 0xfff0            ; 83c4f0
-Next at t=9712003
-(0) [0x0000000c5bc4] c000:5bc4 (unk. ctxt): mov al, byte ptr ss:[bp+6] ; 8a4606
-Next at t=9712004
-(0) [0x0000000c5bc7] c000:5bc7 (unk. ctxt): cmp al, 0xff              ; 3cff
-(0).[9712004] [0x0000000c5bc7] c000:5bc7 (unk. ctxt): cmp al, 0xff              ; 3cff
+(0) Breakpoint 1, 0x0000000000008100 in ?? ()
+Next at t=9757461
+(0) [0x000000008100] 0600:2100 (unk. ctxt): push bp                   ; 55
+Next at t=9757462
+(0) [0x000000008101] 0600:2101 (unk. ctxt): mov bp, sp                ; 8bec
+Next at t=9757463
+(0) [0x000000008103] 0600:2103 (unk. ctxt): push es                   ; 06
+Next at t=9757464
+(0) [0x000000008104] 0600:2104 (unk. ctxt): push eax                  ; 6650
+Next at t=9757465
+(0) [0x000000008106] 0600:2106 (unk. ctxt): push ecx                  ; 6651
+Next at t=9757466
+(0) [0x000000008108] 0600:2108 (unk. ctxt): push edi                  ; 6657
+Next at t=9757467
+(0) [0x00000000810a] 0600:210a (unk. ctxt): xor ax, ax                ; 33c0
+Next at t=9757468
+(0) [0x00000000810c] 0600:210c (unk. ctxt): mov es, ax                ; 8ec0
+Next at t=9757469
+(0) [0x00000000810e] 0600:210e (unk. ctxt): mov edi, dword ptr ss:[bp+4] ; 668b7e04
+Next at t=9757470
+(0) [0x000000008112] 0600:2112 (unk. ctxt): mov ecx, dword ptr ss:[bp+8] ; 668b4e08
+Next at t=9757471
+(0) [0x000000008116] 0600:2116 (unk. ctxt): mov eax, dword ptr ss:[bp+12] ; 668b460c
+Next at t=9757472
+(0) [0x00000000811a] 0600:211a (unk. ctxt): mov dword ptr es:[edi], eax ; 6766268907
+Next at t=9757473
+(0) [0x00000000811f] 0600:211f (unk. ctxt): add edi, 0x00000004       ; 6683c704
+Next at t=9757474
+(0) [0x000000008123] 0600:2123 (unk. ctxt): dec ecx                   ; 6649
+Next at t=9757475
+(0) [0x000000008125] 0600:2125 (unk. ctxt): jnz .-13  (0x0000811a)    ; 75f3
+Next at t=9757476
+(0) [0x000000008127] 0600:2127 (unk. ctxt): pop edi                   ; 665f
+Next at t=9757477
+(0) [0x000000008129] 0600:2129 (unk. ctxt): pop ecx                   ; 6659
+Next at t=9757478
+(0) [0x00000000812b] 0600:212b (unk. ctxt): pop eax                   ; 6658
+Next at t=9757479
+(0) [0x00000000812d] 0600:212d (unk. ctxt): pop es                    ; 07
+Next at t=9757480
+(0) [0x00000000812e] 0600:212e (unk. ctxt): pop bp                    ; 5d
+Next at t=9757481
+(0) [0x00000000812f] 0600:212f (unk. ctxt): ret                       ; c3
+Next at t=9757482
+(0) [0x000000008638] 0600:2638 (unk. ctxt): add sp, 0x000c            ; 83c40c
+Next at t=9757483
+(0) [0x00000000863b] 0600:263b (unk. ctxt): push 0x55aa               ; 68aa55
+Next at t=9757484
+(0) [0x00000000863e] 0600:263e (unk. ctxt): push 0x55aa               ; 68aa55
+Next at t=9757485
+(0) [0x000000008641] 0600:2641 (unk. ctxt): push 0x00000001           ; 666a01
+Next at t=9757486
+(0) [0x000000008644] 0600:2644 (unk. ctxt): push 0x0010               ; 6a10
+Next at t=9757487
+(0) [0x000000008646] 0600:2646 (unk. ctxt): push 0x0500               ; 680005
+Next at t=9757488
+(0) [0x000000008649] 0600:2649 (unk. ctxt): call .-1356  (0x00008100) ; e8b4fa
+c
+(0) Breakpoint 1, 0x0000000000008100 in ?? ()
+Next at t=9757489
+(0) [0x000000008100] 0600:2100 (unk. ctxt): push bp                   ; 55
+c
+(0).[33950000] [0x0000000fe869] f000:e869 (unk. ctxt): cli                       ; fa

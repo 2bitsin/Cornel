@@ -14,6 +14,33 @@
 
     {
       "type":"shell",
+      "label":"Clean project",
+      "command":"${workspaceFolder}/clean.sh",
+      "group":
+      {
+        "kind":"build",
+        "isDefault":true
+      } 
+    },
+
+    {
+      "type":"shell",
+      "label":"Rebuild ISO image",      
+      "group":
+      {
+        "kind":"build",
+        "isDefault":true
+      },
+      "dependsOn":
+      [
+        "Clean project",
+        "Build ISO image"
+      ],
+      "dependsOrder":"sequence"
+    },
+
+    {
+      "type":"shell",
       "label":"Test On QEMU",
       "command":"${workspaceFolder}/test-qemu.sh",
       "group":

@@ -21,7 +21,8 @@ SOURCES_C						?=	stub.c				\
 				 								print.c				\
 												rtccmos.c			\
 												kbdctrl.c			\
-												desctab.c			
+												desctab.c			\
+												atwenty.c			
 
 CC									:=	wcc
 LD									:=	wlink

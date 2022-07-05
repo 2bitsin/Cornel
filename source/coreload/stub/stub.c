@@ -5,44 +5,17 @@
 #include "bioskey.h"
 #include "kbdctrl.h"
 #include "flatreal.h"
+#include "atwenty.h"
 
-static const char test_string [] = "FLAT REAL MODE TEST STRING!";
-static char buffer[2048];
-
-void FLAT_test()
-{
-  print_string("Testing flat real mode ...\n");
-
-  print_string("Test string : ");
-  print_string(test_string);
-  print_string("\n");
-
-  print_string("Copying test string above 2MB mark...\n");
-  FLAT_copy1(0x200000, FLAT_neartolinear(&test_string[0]), sizeof (test_string));
-
-  print_string("Copying test string from abov 2MB mark, back to below 1MB buffer...\n");
-  FLAT_copy1(FLAT_neartolinear(&buffer[0]), 0x200000, sizeof (test_string));
-
-  print_string("Test string in buffer : ");
-  print_string(buffer);
-  print_string("\n");
-}
-
-
-void STUB_init ()
+int16_t STUB_init ()
 {     
-  print_string("Starting Cornel OS ...\n");  
-#ifdef DEBUG
-  print_string("Initializing flat real mode ...\n");
-#endif
-  FLAT_init();    
+  int16_t status;
 
-//#ifdef FALT_REAL_MODE_TEST
-  FLAT_test();
-//#endif
-
-  print_string("Initializing memory map ...\n");
+  DBG_print_string("Starting Cornel OS:\n");    
+  FLAT_init();   
+  A20_init();
   MEM_init();
+  return 0;
 }
 
 void STUB_exit () 

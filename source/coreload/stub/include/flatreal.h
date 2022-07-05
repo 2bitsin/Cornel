@@ -6,9 +6,14 @@
 #include "x86assembly.h"
 
 void __cdecl FLAT_init();
+
 void __cdecl FLAT_copy1(uint32_t dst, uint32_t src, uint32_t len);
 void __cdecl FLAT_copy2(uint32_t dst, uint32_t src, uint32_t len);
 void __cdecl FLAT_copy4(uint32_t dst, uint32_t src, uint32_t len);
+
+void __cdecl FLAT_fill1(uint32_t dst, uint32_t len, uint8_t  val);
+void __cdecl FLAT_fill2(uint32_t dst, uint32_t len, uint16_t val);
+void __cdecl FLAT_fill4(uint32_t dst, uint32_t len, uint32_t val);
 
 inline 
 uint32_t __cdecl FLAT_fartolinear(const void _far* ptr)

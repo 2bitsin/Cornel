@@ -79,7 +79,7 @@ _TEXT segment use16 para public 'CODE'
   
   L$1:
     mov       al,         ds:[esi]
-    mov       ds:[edi],   al
+    mov       es:[edi],   al
     inc       esi
     inc       edi
     dec       ecx
@@ -119,7 +119,7 @@ _TEXT segment use16 para public 'CODE'
   
   L$2:
     mov       ax,         ds:[esi]
-    mov       ds:[edi],   ax
+    mov       es:[edi],   ax
     add       esi,        2
     add       edi,        2
     dec       ecx
@@ -153,13 +153,13 @@ _TEXT segment use16 para public 'CODE'
     xor       ax,         ax
     mov       ds,         ax
     mov       es,         ax
-    mov       edi,        dword ptr [bp + 4]
-    mov       esi,        dword ptr [bp + 8]
-    mov       ecx,        dword ptr [bp + 12]
+    mov       edi,        dword ptr [bp + 4]    ; dst
+    mov       esi,        dword ptr [bp + 8]    ; src
+    mov       ecx,        dword ptr [bp + 12]   ; size
   
   L$3:
     mov       eax,        ds:[esi]
-    mov       ds:[edi],   eax
+    mov       es:[edi],   eax
     add       esi,        4
     add       edi,        4
     dec       ecx
@@ -176,6 +176,105 @@ _TEXT segment use16 para public 'CODE'
     ret
   
   _FLAT_copy4 endp
+
+  ; FLAT_fill1 (uint32_t dst, uint32_t size, uint8_t value)
+  _FLAT_fill1 proc near public
+  
+    push      bp
+    mov       bp,         sp
+  
+    push      es  
+    push      eax
+    push      ecx
+    push      edi
+  
+    xor       ax,         ax
+    mov       es,         ax
+    mov       edi,        dword ptr [bp + 4]    
+    mov       ecx,        dword ptr [bp + 8]
+    mov       al,         byte ptr [bp + 12]
+
+  Q$1:
+    mov       es:[edi],   al
+    inc       edi
+    dec       ecx
+    jnz       Q$1
+  
+    pop       edi
+    pop       ecx
+    pop       eax
+    pop       es
+
+    pop       bp
+    ret
+
+  _FLAT_fill1 endp
+
+  ; FLAT_fill2 (uint32_t dst, uint32_t size, uint16_t value)
+  _FLAT_fill2 proc near public
+  
+    push      bp
+    mov       bp,         sp
+  
+    push      es  
+    push      eax
+    push      ecx
+    push      edi
+  
+    xor       ax,         ax
+    mov       es,         ax
+    mov       edi,        dword ptr [bp + 4]    
+    mov       ecx,        dword ptr [bp + 8]
+    mov       ax,         word ptr [bp + 12]
+
+  Q$2:
+    mov       es:[edi],   ax
+    add       edi,        2
+    dec       ecx
+    jnz       Q$2
+  
+    pop       edi
+    pop       ecx
+    pop       eax
+    pop       es
+
+    pop       bp
+    ret
+
+  _FLAT_fill2 endp
+
+  ; FLAT_fill4 (uint32_t dst, uint32_t size, uint32_t value)
+  _FLAT_fill4 proc near public
+  
+    push      bp
+    mov       bp,         sp
+  
+    push      es  
+    push      eax
+    push      ecx
+    push      edi
+  
+    xor       ax,         ax
+    mov       es,         ax
+    mov       edi,        dword ptr [bp + 4]    
+    mov       ecx,        dword ptr [bp + 8]
+    mov       eax,        dword ptr [bp + 12]
+
+  Q$3:
+    mov       es:[edi],   eax
+    add       edi,        4
+    dec       ecx
+    jnz       Q$3
+  
+    pop       edi
+    pop       ecx
+    pop       eax
+    pop       es
+
+    pop       bp
+    ret
+
+  _FLAT_fill4 endp
 
 _TEXT ends
 

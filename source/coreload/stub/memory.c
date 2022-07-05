@@ -110,14 +110,13 @@ static void MEM_print_acpi_entry(MEM_read_acpi_params_type* params)
 
 static int16_t MEM_check_conventional_memory(uint32_t conv_memory_size)
 {
-#ifdef DEBUG
-  print_string("MEM: ");
-  print_dec16(conv_memory_size);
-  print_string("KB of conventional memory found.\n\n");
-#endif
+  DBG_print_string("\nMEM: ");
+  DBG_print_dec16(conv_memory_size);
+  DBG_print_string("KB of conventional memory found.\n\n");
+
   if (conv_memory_size < 576)
   {
-    print_string("#0001 - 576KB of conventional memory is required.\n");  
+    print_string("\n#0001 - 576KB of conventional memory is required.\n");  
     return MEM_ERROR_NOT_ENOUGH_CONVENTIONAL_MEMORY;
   }
   return 0;
@@ -125,15 +124,13 @@ static int16_t MEM_check_conventional_memory(uint32_t conv_memory_size)
 
 int16_t MEM_check_extended_memory(const uint64_t* extended_memory_size)
 {
-#ifdef DEBUG
-  print_char('\n');
-  print_string("MEM: Total ");
-  print_hex64(*extended_memory_size);  
-  print_string(" bytes of RAM\n");    
-#endif
+  DBG_print_string("\nMEM: Total ");
+  DBG_print_hex64(*extended_memory_size);  
+  DBG_print_string(" bytes of RAM\n");    
+
   if (*extended_memory_size < 0x2000000)
   {
-    print_string("#0002 - 32 Megabytes of extended memory are required.\n");  
+    print_string("\n#0002 - 32 Megabytes of extended memory are required.\n");  
     return MEM_ERROR_NOT_ENOUGH_EXTENDED_MEMORY;
   }
   return 0;
@@ -141,8 +138,8 @@ int16_t MEM_check_extended_memory(const uint64_t* extended_memory_size)
 
 void MEM_print_acpi_error(int16_t error)
 {
-  print_string("#0003 - Can't query ACPI memory map.\n");
-  print_string("#0003.1 - ");
+  print_string("\n#0003 - Can't query ACPI memory map.");
+  print_string("\n#0003.1 - ");
   print_error_15h(error);  
   print_string("\n");
 }

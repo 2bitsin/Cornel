@@ -17,4 +17,31 @@ void print_dec16(uint16_t value);
 void print_dec32(uint32_t value);
 void print_dec64(uint64_t value);
 
+
+#if defined(DEBUG) && DEBUG == 1
+  #define DBG_print_char(c)         print_char(c)
+  #define DBG_print_string(s)       print_string(s)
+  #define DBG_print_string_n(s, n)  print_string_n(s, n)
+  #define DBG_print_hex8(v)         print_hex8(v)
+  #define DBG_print_hex16(v)        print_hex16(v)
+  #define DBG_print_hex32(v)        print_hex32(v)
+  #define DBG_print_hex64(v)        print_hex64(v)
+  #define DBG_print_dec8(v)         print_dec8(v)
+  #define DBG_print_dec16(v)        print_dec16(v)
+  #define DBG_print_dec32(v)        print_dec32(v)
+  #define DBG_print_dec64(v)        print_dec64(v)
+#else
+  #define DBG_print_char(c)         
+  #define DBG_print_string(s)
+  #define DBG_print_string_n(s, n)
+  #define DBG_print_hex8(v)
+  #define DBG_print_hex16(v)
+  #define DBG_print_hex32(v)
+  #define DBG_print_hex64(v)
+  #define DBG_print_dec8(v)
+  #define DBG_print_dec16(v)
+  #define DBG_print_dec32(v)
+  #define DBG_print_dec64(v)
+#endif
+
 #endif
