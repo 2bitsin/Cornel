@@ -53,8 +53,7 @@ void STUB_exit ()
 
 __declspec(noreturn)
 void STUB_main ()
-{ 
-  
+{   
   x86_cli();
   x86_load_sp(G_STACK_SIZE);
   x86_load_all_seg(x86_cs());
