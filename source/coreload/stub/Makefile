@@ -13,7 +13,6 @@ SOURCES_S						?=	prologue.s		\
 				 								smallcode.s		\
 				 								stackseg.s		\
 												flatreal.s		\
-												gdt.s					\
 												epilogue.s		
 
 SOURCES_C						?=	stub.c				\
@@ -21,7 +20,8 @@ SOURCES_C						?=	stub.c				\
 				 								memory.c   		\
 				 								print.c				\
 												rtccmos.c			\
-												kbdctrl.c
+												kbdctrl.c			\
+												desctab.c
 
 CC									:=	wcc
 LD									:=	wlink
@@ -30,10 +30,11 @@ AS									:=	wasm
 LOAD_ADDRESS				?=	0x7c00
 LOAD_SEGMENT				?=	0x7c0
 STACK_SIZE					?=	0x1c00
+BASE_ADDRESS				?= 	0x6000 # LOAD_ADDRESS - STACK_SIZE
 LINKER_FILE					?=	$(SOURCES_DIR)/.wlink
 
 INCLUDE							?=	-i=$(SOURCES_DIR)/include
-DEFINES							?=	-dDEBUG=1 -dG_LOAD_ADDRESS=$(LOAD_ADDRESS) -dG_STACK_SIZE=$(STACK_SIZE) -dDEBUG_STARTUP=1
+DEFINES							?=	-dDEBUG=1 -dG_LOAD_ADDRESS=$(LOAD_ADDRESS) -dG_STACK_SIZE=$(STACK_SIZE) -dG_BASE_ADDRESS=$(BASE_ADDRESS) -dDEBUG_STARTUP=1
 C_FLAGS							?=	-3 -ms -ox -zu $(DEFINES) $(INCLUDE)
 S_FLAGS							?=	-3 -mt $(DEFINES)
 

@@ -1,6 +1,8 @@
 #ifndef __MEMORY_H__
 #define __MEMORY_H__
 
+#include "types.h"
+
 #pragma pack(push, 1)
 
 #define MEM_ENTRY_TYPE_AVAILABLE        1
@@ -15,10 +17,10 @@
 
 typedef struct MEM_entry_t
 {
-  unsigned __int64 base;
-  unsigned __int64 size;
-  unsigned long type;
-  unsigned long reserved;
+  uint64_t base;
+  uint64_t size;
+  uint32_t type;
+  uint32_t reserved;
 } MEM_entry_type;
 
 typedef struct MEM_entry_list_t MEM_entry_list_type;
@@ -34,10 +36,10 @@ struct MEM_entry_list_t
 
 int MEM_init();
 
-void MEM_copy(const void* src, void* dst, unsigned int size);
-void MEM_fill(void* dst, unsigned int size, unsigned char value);
-void MEM_swap(void* lhs, void* rhs, unsigned int size);
-void MEM_zero(void* dst, unsigned int size);
+void MEM_copy(const void* src, void* dst, size_t size);
+void MEM_fill(void* dst, size_t size, uint8_t value);
+void MEM_swap(void* lhs, void* rhs, size_t size);
+void MEM_zero(void* dst, size_t size);
 
 #endif
 

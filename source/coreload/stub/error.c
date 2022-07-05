@@ -1,7 +1,7 @@
 #include "error.h"
 #include "print.h"
 
-void print_error_15h(int error)
+void print_error_15h(int16_t error)
 {
   print_string("Error : ");
   print_string(error_string_15h(error));
@@ -10,7 +10,7 @@ void print_error_15h(int error)
   print_string(")");
 }
 
-const char* error_string_15h(int error)
+const char* error_string_15h(int16_t error)
 {
   switch(error)
   {

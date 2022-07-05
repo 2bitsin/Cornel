@@ -6,30 +6,30 @@
 
 typedef struct MEM_read_acpi_params_t
 {
-  unsigned long size;
-  unsigned long next;
+  uint32_t size;
+  uint32_t next;
   MEM_entry_type entry;
 } MEM_read_acpi_params_type;
 
 #pragma pack(pop)
 
-int MEM_read_acpi_entry(MEM_read_acpi_params_type* params);
+int16_t MEM_read_acpi_entry(MEM_read_acpi_params_type* params);
 
 unsigned int MEM_conv_memory_size ();
 
 #pragma aux MEM_conv_memory_size = "int 0x12" value [ax];
 
-void MEM_fill(void* dst, unsigned int size, unsigned char value)
+void MEM_fill(void* dst, size_t size, uint8_t value)
 {
-  unsigned int i;
+  uint16_t i;
   for (i = 0; i < size; i++)
-    ((unsigned char*)dst)[i] = value;
+    ((uint8_t*)dst)[i] = value;
 }
 
-void MEM_copy(const void* src, void* dst, unsigned int size)
+void MEM_copy(const void* src, void* dst, size_t size)
 {
-  const char* src_ = (const char*)src;
-  char* dst_ = (char*)dst;
+  const uint8_t* src_ = (const char*)src;
+  uint8_t* dst_ = (char*)dst;
 
   if (src_ == dst_)
     return;
@@ -43,11 +43,11 @@ void MEM_copy(const void* src, void* dst, unsigned int size)
     *--dst_ = *--src_;
 }
 
-void MEM_swap(void* lhs, void* rhs, unsigned int size)
+void MEM_swap(void* lhs, void* rhs, size_t size)
 {
-  char tmp;
-  char* lhs_ = (char*)lhs;
-  char* rhs_ = (char*)rhs;
+  uint8_t tmp;
+  uint8_t* lhs_ = (uint8_t*)lhs;
+  uint8_t* rhs_ = (uint8_t*)rhs;
   if (lhs_ == rhs_)
     return;
   if (lhs_ > rhs_) 
@@ -68,7 +68,7 @@ void MEM_swap(void* lhs, void* rhs, unsigned int size)
   }  
 }
 
-void MEM_zero(void* dst, unsigned int size)
+void MEM_zero(void* dst, size_t size)
 {
   MEM_fill(dst, size, 0);
 }
@@ -108,7 +108,7 @@ static void MEM_print_acpi_entry(MEM_read_acpi_params_type* params)
   print_char('\n');
 }
 
-static int MEM_check_conventional_memory(unsigned long conv_memory_size)
+static int16_t MEM_check_conventional_memory(uint32_t conv_memory_size)
 {
 #ifdef DEBUG
   print_string("MEM: ");
@@ -123,7 +123,7 @@ static int MEM_check_conventional_memory(unsigned long conv_memory_size)
   return 0;
 }
 
-int MEM_check_extended_memory(const unsigned __int64* extended_memory_size)
+int16_t MEM_check_extended_memory(const uint64_t* extended_memory_size)
 {
 #ifdef DEBUG
   print_char('\n');
@@ -139,7 +139,7 @@ int MEM_check_extended_memory(const unsigned __int64* extended_memory_size)
   return 0;
 }
 
-void MEM_print_acpi_error(int error)
+void MEM_print_acpi_error(int16_t error)
 {
   print_string("#0003 - Can't query ACPI memory map.\n");
   print_string("#0003.1 - ");
@@ -147,12 +147,12 @@ void MEM_print_acpi_error(int error)
   print_string("\n");
 }
 
-int MEM_populate_acpi_memory_map(unsigned __int64* out_memory_size)
+int16_t MEM_populate_acpi_memory_map(uint64_t* out_memory_size)
 {
   static MEM_read_acpi_params_type params;
-  static unsigned __int64 total_memory_size;
+  static uint64_t total_memory_size;
 
-  int error;
+  int16_t error;
 
   total_memory_size = 0;
   params.next = 0;  
@@ -188,9 +188,9 @@ int MEM_populate_acpi_memory_map(unsigned __int64* out_memory_size)
 
 int MEM_init()
 {
-  static unsigned __int64 total_memory_size;
-  unsigned int conv_memory_size;   
-  int error;
+  static uint64_t total_memory_size;
+  uint16_t conv_memory_size;   
+  int16_t error;
 
   total_memory_size = 0;
   conv_memory_size = MEM_conv_memory_size();

@@ -47,7 +47,7 @@ _PROLOGUE segment use16 public 'PROLOGUE'
   ENDIF
     db 0xea
     dw offset _prologue_start
-    dw (G_LOAD_ADDRESS - G_STACK_SIZE)/16
+    dw G_BASE_ADDRESS/16
   _entry endp
 
 _PROLOGUE ends

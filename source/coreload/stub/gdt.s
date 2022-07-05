@@ -13,7 +13,7 @@ _DATA segment use16 para public 'DATA'
     
   _GDTR_bits proc near public
     dw offset _GDTR_bits - offset _GDT_bits
-    dd offset _GDT_bits + G_LOAD_ADDRESS - G_STACK_SIZE
+    dd offset _GDT_bits + G_BASE_ADDRESS
   _GDTR_bits endp
 
 _DATA ends

@@ -1,8 +1,118 @@
 Next at t=0
 (0) [0x0000fffffff0] f000:fff0 (unk. ctxt): jmpf 0xf000:e05b          ; ea5be000f0
-lb 0x7c00
+lb 0x8010
 c
-(0) Breakpoint 1, 0x0000000000007c00 in ?? ()
-Next at t=9711907
-(0) [0x000000007c00] 07c0:0000 (unk. ctxt): jmpf 0x0600:1f1b          ; ea1b1f0006
-(0).[9711907] [0x000000007c00] 07c0:0000 (unk. ctxt): jmpf 0x0600:1f1b          ; ea1b1f0006
+(0) Breakpoint 1, 0x0000000000008010 in ?? ()
+Next at t=9739181
+(0) [0x000000008010] 0600:2010 (unk. ctxt): pusha                     ; 6660
+Next at t=9739182
+(0) [0x000000008012] 0600:2012 (unk. ctxt): push ds                   ; 1e
+Next at t=9739183
+(0) [0x000000008013] 0600:2013 (unk. ctxt): push es                   ; 06
+Next at t=9739184
+(0) [0x000000008014] 0600:2014 (unk. ctxt): push fs                   ; 0fa0
+Next at t=9739185
+(0) [0x000000008016] 0600:2016 (unk. ctxt): push gs                   ; 0fa8
+Next at t=9739186
+(0) [0x000000008018] 0600:2018 (unk. ctxt): cli                       ; fa
+Next at t=9739187
+(0) [0x000000008019] 0600:2019 (unk. ctxt): call .+1515  (0x00008607) ; e8eb05
+Next at t=9739188
+(0) [0x000000008607] 0600:2607 (unk. ctxt): push dx                   ; 52
+Next at t=9739189
+(0) [0x000000008608] 0600:2608 (unk. ctxt): mov dx, 0x0070            ; ba7000
+Next at t=9739190
+(0) [0x00000000860b] 0600:260b (unk. ctxt): in al, dx                 ; ec
+Next at t=9739191
+(0) [0x00000000860c] 0600:260c (unk. ctxt): mov dx, 0x0070            ; ba7000
+Next at t=9739192
+(0) [0x00000000860f] 0600:260f (unk. ctxt): or al, 0x80               ; 0c80
+Next at t=9739193
+(0) [0x000000008611] 0600:2611 (unk. ctxt): out dx, al                ; ee
+Next at t=9739194
+(0) [0x000000008612] 0600:2612 (unk. ctxt): pop dx                    ; 5a
+Next at t=9739195
+(0) [0x000000008613] 0600:2613 (unk. ctxt): ret                       ; c3
+Next at t=9739196
+(0) [0x00000000801c] 0600:201c (unk. ctxt): mov bx, sp                ; 8bdc
+Next at t=9739197
+(0) [0x00000000801e] 0600:201e (unk. ctxt): push 0x00007eaa           ; 6668aa7e0000
+Next at t=9739198
+(0) [0x000000008024] 0600:2024 (unk. ctxt): push word ptr ds:0x00001ed2 ; 67ff35d21e0000
+Next at t=9739199
+(0) [0x00000000802b] 0600:202b (unk. ctxt): xchg bx, sp               ; 87e3
+Next at t=9739200
+(0) [0x00000000802d] 0600:202d (unk. ctxt): lgdt ds:[bx]              ; 0f0117
+Next at t=9739201
+(0) [0x000000008030] 0600:2030 (unk. ctxt): mov eax, cr0              ; 0f20c0
+Next at t=9739202
+(0) [0x000000008033] 0600:2033 (unk. ctxt): xor ax, 0x0001            ; 83f001
+Next at t=9739203
+(0) [0x000000008036] 0600:2036 (unk. ctxt): mov cr0, eax              ; 0f22c0
+Next at t=9739204
+(0) [0x000000008039] 0600:0000000000002039 (unk. ctxt): jmpf 0x0008:8650          ; ea50860800
+bx_dbg_read_pmode_descriptor: Dereferencing a NULL selector!
+bx_dbg_read_pmode_descriptor: selector (0x0600) > GDT size limit
+Next at t=9739205
+(0) [0x000000008650] 0008:0000000000008650 (unk. ctxt): mov ax, 0x0010            ; 66b81000
+Next at t=9739206
+(0) [0x000000008654] 0008:0000000000008654 (unk. ctxt): mov ds, ax                ; 668ed8
+Next at t=9739207
+(0) [0x000000008657] 0008:0000000000008657 (unk. ctxt): mov es, ax                ; 668ec0
+Next at t=9739208
+(0) [0x00000000865a] 0008:000000000000865a (unk. ctxt): mov fs, ax                ; 668ee0
+Next at t=9739209
+(0) [0x00000000865d] 0008:000000000000865d (unk. ctxt): mov gs, ax                ; 668ee8
+Next at t=9739210
+(0) [0x000000008660] 0008:0000000000008660 (unk. ctxt): jmpf 0x0018:0000803e      ; ea3e8000001800
+Next at t=9739211
+(0) [0x00000000803e] 0018:000000000000803e (unk. ctxt): mov eax, cr0              ; 0f20c0
+bx_dbg_read_pmode_descriptor: Dereferencing a NULL selector!
+bx_dbg_read_pmode_descriptor: selector (0x0600) > GDT size limit
+Next at t=9739212
+(0) [0x000000008041] 0018:0000000000008041 (unk. ctxt): xor ax, 0x0001            ; 83f001
+Next at t=9739213
+(0) [0x000000008044] 0018:0000000000008044 (unk. ctxt): mov cr0, eax              ; 0f22c0
+Next at t=9739214
+(0) [0x000000008047] 0018:8047 (unk. ctxt): jmpf 0x0000:804c          ; ea4c800000
+Next at t=9739215
+(0) [0x00000000804c] 0000:804c (unk. ctxt): jmpf 0x0600:2051          ; ea51200006
+Next at t=9739216
+(0) [0x000000008051] 0600:2051 (unk. ctxt): call .+1472  (0x00008614) ; e8c005
+Next at t=9739217
+(0) [0x000000008614] 0600:2614 (unk. ctxt): push dx                   ; 52
+Next at t=9739218
+(0) [0x000000008615] 0600:2615 (unk. ctxt): mov dx, 0x0070            ; ba7000
+Next at t=9739219
+(0) [0x000000008618] 0600:2618 (unk. ctxt): in al, dx                 ; ec
+Next at t=9739220
+(0) [0x000000008619] 0600:2619 (unk. ctxt): mov dx, 0x0070            ; ba7000
+Next at t=9739221
+(0) [0x00000000861c] 0600:261c (unk. ctxt): and al, 0x7f              ; 247f
+Next at t=9739222
+(0) [0x00000000861e] 0600:261e (unk. ctxt): out dx, al                ; ee
+Next at t=9739223
+(0) [0x00000000861f] 0600:261f (unk. ctxt): pop dx                    ; 5a
+Next at t=9739224
+(0) [0x000000008620] 0600:2620 (unk. ctxt): ret                       ; c3
+Next at t=9739225
+(0) [0x000000008054] 0600:2054 (unk. ctxt): sti                       ; fb
+Next at t=9739226
+(0) [0x000000008055] 0600:2055 (unk. ctxt): pop gs                    ; 0fa9
+Next at t=9739227
+(0) [0x000000008057] 0600:2057 (unk. ctxt): pop fs                    ; 0fa1
+Next at t=9739228
+(0) [0x000000008059] 0600:2059 (unk. ctxt): pop es                    ; 07
+Next at t=9739229
+(0) [0x00000000805a] 0600:205a (unk. ctxt): pop ds                    ; 1f
+Next at t=9739230
+(0) [0x00000000805b] 0600:205b (unk. ctxt): popa                      ; 6661
+Next at t=9739231
+(0) [0x00000000805d] 0600:205d (unk. ctxt): ret                       ; c3
+Next at t=9739232
+(0) [0x0000000081bf] 0600:21bf (unk. ctxt): call .-175  (0x00008113)  ; e851ff
+Next at t=9739233
+(0) [0x000000008113] 0600:2113 (unk. ctxt): push bx                   ; 53
+Next at t=9739234
+(0) [0x000000008114] 0600:2114 (unk. ctxt): push cx                   ; 51
+(0).[9739234] [0x000000008114] 0600:2114 (unk. ctxt): push cx                   ; 51

@@ -1,7 +1,7 @@
 #include "print.h"
 #include "longdiv.h"
 
-void bios_put_char (char value, unsigned char page, unsigned char color);
+void bios_put_char (char value, uint8_t page, uint8_t color);
 #pragma aux bios_put_char = \
   "mov ah, 0x0e" \
   "int 0x10" \
@@ -22,49 +22,49 @@ void print_string(const char* value)
     print_char(*value++);
 }
 
-void print_string_n(const char* value, unsigned n)
+void print_string_n(const char* value, size_t n)
 {
   while (n--)
     print_char(*value++);
 }
 
-static inline char hex_char (char value)
+static inline char hex_char (uint8_t value)
 {
   if (value > 36)
     return '-';
   return value < 10 ? '0' + value : 'A' + (value - 10);
 }
 
-void print_hex8(unsigned char value)
+void print_hex8(uint8_t value)
 {
   print_char(hex_char((value >> 4) & 0x0F));
   print_char(hex_char(value & 0x0F));
 }
 
-void print_hex16(unsigned short value)
+void print_hex16(uint16_t value)
 {
   print_hex8((value >> 8) & 0xFF);
   print_hex8(value & 0xFF);
 }
 
-void print_hex32(unsigned long value)
+void print_hex32(uint32_t value)
 {
   print_hex16((value >> 16) & 0xFFFF);
   print_hex16(value & 0xFFFF);
 }
 
-void print_hex64(unsigned __int64 value)
+void print_hex64(uint64_t value)
 {
-  print_hex32(((const unsigned long *)&value)[1]);
-  print_hex32(((const unsigned long *)&value)[0]);  
+  print_hex32(((const uint32_t *)&value)[1]);
+  print_hex32(((const uint32_t *)&value)[0]);  
 }
 
 static char G_print_buffer[32];
 
-void reverse(char* value, unsigned size)
+void reverse(char* value, size_t size)
 {
   char temp;
-  unsigned i;
+  size_t i;
   for(i = 0u; i < size / 2u; ++i)
   {
     temp = value[i];
@@ -73,7 +73,7 @@ void reverse(char* value, unsigned size)
   }
 }
 
-void print_dec32(unsigned long value)
+void print_dec32(uint32_t value)
 {
   int i = 0;
   static u_longdiv_type t;
@@ -90,12 +90,12 @@ void print_dec32(unsigned long value)
   print_string_n(G_print_buffer, i);
 }
 
-void print_dec16(unsigned short value)
+void print_dec16(uint16_t value)
 {
   print_dec32(value);
 }
 
-void print_dec8(unsigned char value)
+void print_dec8(uint8_t value)
 {
   print_dec32(value);
 }
