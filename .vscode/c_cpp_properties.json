@@ -13,7 +13,10 @@
                 "G_LOAD_ADDRESS=0x7c00",
                 "G_BASE_ADDRESS=0x6000",
                 "G_STACK_SIZE=0x1c00",
-                "__declspec(x)="
+                "__declspec(x)=",
+                "_declspec(x)=",
+                "_asm",
+                "__asm"
             ],
             "compilerPath": "/usr/bin/watcom/binl64/wcc",
             "cStandard": "c99",
