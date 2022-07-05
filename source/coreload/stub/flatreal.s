@@ -179,7 +179,7 @@ _TEXT segment use16 para public 'CODE'
 
 _TEXT ends
 
-_TEXT32 segment use32 para public 'CODE'
+_TEXT32 segment use32 para public 'CODE32'
 
   _FLAT_init32 proc near
 

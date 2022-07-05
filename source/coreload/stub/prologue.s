@@ -34,8 +34,5 @@ _PROLOGUE segment use16 public 'PROLOGUE'
 
 _PROLOGUE ends
 
-_DATA segment use16 public 'DATA'
-_DATA ends
-
 end
 

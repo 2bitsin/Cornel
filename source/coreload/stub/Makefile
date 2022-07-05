@@ -11,17 +11,18 @@ SOURCES_S						?=	prologue.s		\
 				 								longdiv.s			\
 				 								biosacpi.s		\
 												flatreal.s		\
-												epilogue.s		
+												epilogue.s		\
+												stackseg.s		
+												
 
 SOURCES_C						?=	stub.c				\
+												smallcode.c		\
 				 								error.c				\
 				 								memory.c   		\
 				 								print.c				\
 												rtccmos.c			\
 												kbdctrl.c			\
-												desctab.c			\
-												smallcode.c		\
-												stackseg.c
+												desctab.c			
 
 CC									:=	wcc
 LD									:=	wlink
