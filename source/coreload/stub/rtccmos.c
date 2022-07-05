@@ -1,5 +1,5 @@
 #include "rtccmos.h"
-#include "x86assembly.h"
+#include "x86asm.h"
 
 #define NMI_DISABLE_BIT 0x80
 

@@ -3,7 +3,7 @@
 
 
 #include "types.h"
-#include "x86assembly.h"
+#include "x86asm.h"
 
 void __cdecl FLAT_init();
 

@@ -1,67 +1,12 @@
 Next at t=0
 (0) [0x0000fffffff0] f000:fff0 (unk. ctxt): jmpf 0xf000:e05b          ; ea5be000f0
-lb 0x8100
+lb 0x81b2
 c
-(0) Breakpoint 1, 0x0000000000008100 in ?? ()
-Next at t=9757461
-(0) [0x000000008100] 0600:2100 (unk. ctxt): push bp                   ; 55
-Next at t=9757462
-(0) [0x000000008101] 0600:2101 (unk. ctxt): mov bp, sp                ; 8bec
-Next at t=9757463
-(0) [0x000000008103] 0600:2103 (unk. ctxt): push es                   ; 06
-Next at t=9757464
-(0) [0x000000008104] 0600:2104 (unk. ctxt): push eax                  ; 6650
-Next at t=9757465
-(0) [0x000000008106] 0600:2106 (unk. ctxt): push ecx                  ; 6651
-Next at t=9757466
-(0) [0x000000008108] 0600:2108 (unk. ctxt): push edi                  ; 6657
-Next at t=9757467
-(0) [0x00000000810a] 0600:210a (unk. ctxt): xor ax, ax                ; 33c0
-Next at t=9757468
-(0) [0x00000000810c] 0600:210c (unk. ctxt): mov es, ax                ; 8ec0
-Next at t=9757469
-(0) [0x00000000810e] 0600:210e (unk. ctxt): mov edi, dword ptr ss:[bp+4] ; 668b7e04
-Next at t=9757470
-(0) [0x000000008112] 0600:2112 (unk. ctxt): mov ecx, dword ptr ss:[bp+8] ; 668b4e08
-Next at t=9757471
-(0) [0x000000008116] 0600:2116 (unk. ctxt): mov eax, dword ptr ss:[bp+12] ; 668b460c
-Next at t=9757472
-(0) [0x00000000811a] 0600:211a (unk. ctxt): mov dword ptr es:[edi], eax ; 6766268907
-Next at t=9757473
-(0) [0x00000000811f] 0600:211f (unk. ctxt): add edi, 0x00000004       ; 6683c704
-Next at t=9757474
-(0) [0x000000008123] 0600:2123 (unk. ctxt): dec ecx                   ; 6649
-Next at t=9757475
-(0) [0x000000008125] 0600:2125 (unk. ctxt): jnz .-13  (0x0000811a)    ; 75f3
-Next at t=9757476
-(0) [0x000000008127] 0600:2127 (unk. ctxt): pop edi                   ; 665f
-Next at t=9757477
-(0) [0x000000008129] 0600:2129 (unk. ctxt): pop ecx                   ; 6659
-Next at t=9757478
-(0) [0x00000000812b] 0600:212b (unk. ctxt): pop eax                   ; 6658
-Next at t=9757479
-(0) [0x00000000812d] 0600:212d (unk. ctxt): pop es                    ; 07
-Next at t=9757480
-(0) [0x00000000812e] 0600:212e (unk. ctxt): pop bp                    ; 5d
-Next at t=9757481
-(0) [0x00000000812f] 0600:212f (unk. ctxt): ret                       ; c3
-Next at t=9757482
-(0) [0x000000008638] 0600:2638 (unk. ctxt): add sp, 0x000c            ; 83c40c
-Next at t=9757483
-(0) [0x00000000863b] 0600:263b (unk. ctxt): push 0x55aa               ; 68aa55
-Next at t=9757484
-(0) [0x00000000863e] 0600:263e (unk. ctxt): push 0x55aa               ; 68aa55
-Next at t=9757485
-(0) [0x000000008641] 0600:2641 (unk. ctxt): push 0x00000001           ; 666a01
-Next at t=9757486
-(0) [0x000000008644] 0600:2644 (unk. ctxt): push 0x0010               ; 6a10
-Next at t=9757487
-(0) [0x000000008646] 0600:2646 (unk. ctxt): push 0x0500               ; 680005
-Next at t=9757488
-(0) [0x000000008649] 0600:2649 (unk. ctxt): call .-1356  (0x00008100) ; e8b4fa
+(0) Breakpoint 1, 0x00000000000081b2 in ?? ()
+Next at t=9722078
+(0) [0x0000000081b2] 0600:21b2 (unk. ctxt): push bx                   ; 53
 c
-(0) Breakpoint 1, 0x0000000000008100 in ?? ()
-Next at t=9757489
-(0) [0x000000008100] 0600:2100 (unk. ctxt): push bp                   ; 55
-c
-(0).[33950000] [0x0000000fe869] f000:e869 (unk. ctxt): cli                       ; fa
+(0) Breakpoint 2, 0x000000000000822e in ?? ()
+Next at t=9738359
+(0) [0x00000000822e] 0600:222e (unk. ctxt): ret                       ; c3
+(0).[9738359] [0x00000000822e] 0600:222e (unk. ctxt): ret                       ; c3
