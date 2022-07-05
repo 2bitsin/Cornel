@@ -1,25 +1,7 @@
 .386
 .model tiny
 
-  extern STUB_init_:proc near
-  extern STUB_exit_:proc near
-
-_TEXT segment use16 public 'CODE'
-
-  _prologue_start proc near    
-    mov         sp,     G_STACK_SIZE
-    mov         ax,     cs
-    mov         ss,     ax
-    mov         ds,     ax
-    mov         es,     ax
-    mov         fs,     ax
-    mov         gs,     ax
-    sti
-    call        STUB_init_
-    jmp         STUB_exit_
-  _prologue_start endp
-
-_TEXT ends
+  extern STUB_main_:proc near
 
 _PROLOGUE segment use16 public 'PROLOGUE'
 
@@ -40,13 +22,13 @@ _PROLOGUE segment use16 public 'PROLOGUE'
     jz          Q$2
     mov         ax,     0x0e01
     mov         bx,     0x0007
-    int         0x10
-    cli
+    int         0x10    
     hlt    
   Q$2:
+    sti
   ENDIF
     db 0xea
-    dw offset _prologue_start
+    dw offset STUB_main_
     dw G_BASE_ADDRESS/16
   _entry endp
 

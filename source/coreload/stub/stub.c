@@ -28,6 +28,7 @@ void FLAT_test()
   print_string("\n");
 }
 
+
 void STUB_init ()
 {     
   print_string("Starting Cornel OS ...\n");  
@@ -49,4 +50,15 @@ void STUB_exit ()
   print_string("Press any key to reboot...\n");
   wait_for_key();  
   KBC_hardware_reset();
+}
+
+__declspec(naked)
+void STUB_main ()
+{ 
+  x86_cli();
+  x86_load_sp((void*)G_STACK_SIZE);
+  x86_load_all_seg(x86_cs());
+  x86_sti();
+  STUB_init();
+  STUB_exit();
 }

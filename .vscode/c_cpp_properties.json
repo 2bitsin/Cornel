@@ -1,38 +1,49 @@
 {
-    "configurations": [
-        {
-            "name": "Coreload STUB",
-            "includePath": [
-                "${workspaceFolder}/source/coreload/stub/include"                
-            ],
-            "defines": ["__int64=long long", "DEBUG=1", "__cdecl=", "_far=", "G_LOAD_ADDRESS=0x7c00", "G_BASE_ADDRESS=0x6000", "G_STACK_SIZE=0x1c00"],
-            "compilerPath": "/usr/bin/watcom/binl64/wcc",
-            "cStandard": "c99",
-            "cppStandard": "c++98",
-            "intelliSenseMode": "${default}"
-        },
-        {
-            "name": "Coreload Loader",
-            "includePath": [
-                "${workspaceFolder}/source/coreload/loader/include"                
-            ],
-            "defines": ["DEBUG=1"],
-            "compilerPath": "/usr/bin/g++",
-            "cStandard": "c99",
-            "cppStandard": "c++20",
-            "intelliSenseMode": "${default}"            
-        },
-        {
-            "name": "Tools",
-            "includePath": [
-                "${workspaceFolder}/tools"
-            ],
-            "defines": [],
-            "compilerPath": "/usr/bin/g++",
-            "cStandard": "c99",
-            "cppStandard": "c++20",
-            "intelliSenseMode": "${default}"            
-        }        
-    ],
-    "version": 4
+  "configurations": [
+    {
+      "name": "Coreload STUB",
+      "includePath": [
+        "${workspaceFolder}/source/coreload/stub/include"
+      ],
+      "defines": [
+        "__int64=long long",
+        "DEBUG=1",
+        "__cdecl=",
+        "_far=",
+        "G_LOAD_ADDRESS=0x7c00",
+        "G_BASE_ADDRESS=0x6000",
+        "G_STACK_SIZE=0x1c00",
+        "__declspec(x)="
+      ],
+      "compilerPath": "/usr/bin/watcom/binl64/wcc",
+      "cStandard": "c99",
+      "cppStandard": "c++98",
+      "intelliSenseMode": "${default}"
+    },
+    {
+      "name": "Coreload Loader",
+      "includePath": [
+        "${workspaceFolder}/source/coreload/loader/include"
+      ],
+      "defines": [
+        "DEBUG=1"
+      ],
+      "compilerPath": "/usr/bin/g++",
+      "cStandard": "c99",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "${default}"
+    },
+    {
+      "name": "Tools",
+      "includePath": [
+        "${workspaceFolder}/tools"
+      ],
+      "defines": [],
+      "compilerPath": "/usr/bin/g++",
+      "cStandard": "c99",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "${default}"
+    }
+  ],
+  "version": 4
 }
