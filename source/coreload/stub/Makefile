@@ -10,8 +10,6 @@ MAP_FILE						?= 	$(TARGET_BINARY).map
 SOURCES_S						?=	prologue.s		\
 				 								longdiv.s			\
 				 								biosacpi.s		\
-				 								smallcode.s		\
-				 								stackseg.s		\
 												flatreal.s		\
 												epilogue.s		
 
@@ -21,7 +19,9 @@ SOURCES_C						?=	stub.c				\
 				 								print.c				\
 												rtccmos.c			\
 												kbdctrl.c			\
-												desctab.c
+												desctab.c			\
+												smallcode.c		\
+												stackseg.c
 
 CC									:=	wcc
 LD									:=	wlink
