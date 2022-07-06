@@ -6,11 +6,28 @@
 #include "kbdctrl.h"
 #include "flatreal.h"
 #include "atwenty.h"
+#include "irqstubs.h"
+
+void STUB_tick(uint16_t irq_n)
+{
+  DBG_print_string("TICK!\n");
+}
+
 
 int16_t STUB_init ()
 {     
   int16_t status;
-  DBG_print_string("Starting Cornel OS:\n");    
+  DBG_print_string("Starting Cornel OS:\n"); 
+
+  x86_cli();
+  IRQ_init(IRQ_INIT_IRQ0_BIT|IRQ_INIT_IRQ3_BIT|IRQ_INIT_IRQ4_BIT);
+  IRQ_set(&STUB_tick, 0);
+  x86_sti();
+  
+  for(;;)
+    x86_hlt();
+
+  DBG_print_char('\n');
   FLAT_init();   
   DBG_print_char('\n');
   A20_init();

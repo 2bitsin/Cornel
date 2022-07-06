@@ -11,7 +11,8 @@ SOURCES_S						?=	prologue.s		\
 				 								longdiv.s			\
 				 								biosacpi.s		\
 												flatreal.s		\
-												epilogue.s		
+												epilogue.s		\
+												irqstubs.s
 												
 
 SOURCES_C						?=	stub.c				\
@@ -22,7 +23,8 @@ SOURCES_C						?=	stub.c				\
 												rtccmos.c			\
 												kbdctrl.c			\
 												desctab.c			\
-												atwenty.c			
+												atwenty.c			\
+												serial.c			
 
 CC									:=	wcc
 LD									:=	wlink
