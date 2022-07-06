@@ -24,8 +24,8 @@ uint8_t x86_inb(uint16_t port);
 uint16_t x86_inw(uint16_t port);
 #pragma aux x86_inw = "in ax, dx" parm [dx] value [ax] 
 
-void x86_load_ss_sp(void _far * value);
-#pragma aux x86_load_ss_sp = "mov ss, dx" "mov sp, ax"  parm [dx ax]
+void x86_load_ss_sp(uint16_t ss, uint16_t sp);
+#pragma aux x86_load_ss_sp = "pushf" "cli" "pop bx" "mov ss, dx" "mov sp, ax" "push bx" "popf"  parm [dx] [ax] modify [bx]
 
 void x86_load_sp(uint16_t value);
 #pragma aux x86_load_sp = "mov sp, ax" parm [ax];
@@ -61,9 +61,21 @@ uint16_t x86_cs();
 #pragma aux x86_cs = "mov ax, cs" value [ax];
 
 void x86_load_all_seg(uint16_t value);
-#pragma aux x86_load_all_seg = "mov ds, ax" "mov es, ax" "mov fs, ax" "mov gs, ax" "mov ss, ax" parm [ax];
+#pragma aux x86_load_all_seg = "mov ds, ax" "mov es, ax" "mov fs, ax" "mov gs, ax" parm [ax];
 
-#define x86_jump_abs(seg, off) __asm { db 0xea }; __asm { dw off, seg };
+uint16_t x86_flags16();
+#pragma aux x86_flags16 = "pushf" "pop ax" value [ax];
 
+uint32_t x86_flags32();
+#pragma aux x86_flags32 = "pushfd" "pop ax" "pop dx" value [dx ax];
+
+void x86_load_flags16(uint16_t value);
+#pragma aux x86_load_flags16 = "push ax" "popf" parm [ax];
+
+void x86_load_flags32(uint32_t value);
+#pragma aux x86_load_flags32 = "push dx" "push ax" "popfd" parm [dx ax];
+
+void bochs_magic_break();
+#pragma aux bochs_magic_break = "xchg bx, bx"
 
 #endif

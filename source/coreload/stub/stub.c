@@ -18,12 +18,9 @@ int16_t STUB_init ()
 {     
   int16_t status;
   DBG_print_string("Starting Cornel OS:\n"); 
-
-  x86_cli();
-  IRQ_init(IRQ_INIT_IRQ0_BIT|IRQ_INIT_IRQ3_BIT|IRQ_INIT_IRQ4_BIT);
-  IRQ_set(&STUB_tick, 0);
-  x86_sti();
   
+  IRQ_set(&STUB_tick, 0);
+  IRQ_init(IRQ_INIT_IRQ0_BIT|IRQ_INIT_IRQ3_BIT|IRQ_INIT_IRQ4_BIT);
   for(;;)
     x86_hlt();
 
@@ -45,11 +42,9 @@ void STUB_exit ()
 __declspec(noreturn)
 void STUB_main ()
 { 
-  // Initialize STACK  
-  x86_cli();
-  x86_load_sp(G_STACK_SIZE);
+  // Initialize STACK    
+  x86_load_ss_sp(G_BASE_ADDRESS/16, G_STACK_SIZE);
   x86_load_all_seg(x86_cs());
-  x86_sti();
 
   // Initialize STUB
   STUB_init();

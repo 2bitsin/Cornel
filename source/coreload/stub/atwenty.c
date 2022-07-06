@@ -12,13 +12,14 @@
 int16_t A20_is_disabled()
 { 
   static uint32_t value = 0;
+  uint16_t flags;
+
+  flags = x86_flags16();
   x86_cli();
-  RTC_nmi_disable();
   FLAT_fill4(0x000500, 1, 0xAA55AA55);  
   FLAT_fill4(0x100500, 1, 0x55AA55AA);
   FLAT_copy4(FLAT_neartolinear(&value), 0x000500, 1);
-  RTC_nmi_enable();
-  x86_sti();
+  x86_load_flags16(flags);
 
   // Gate enabled
   if(value == 0xAA55AA55)
@@ -51,15 +52,16 @@ static inline void A20_port_ee_enable()
 static inline void A20_kbc_enable()
 {
   uint8_t status;
+  uint16_t flags;
+
+  flags = x86_flags16();
   x86_cli();
-  RTC_nmi_disable();
   KBC_disable_keyboard();
   status = KBC_read_output_port();
   status |= KBC_OUTPUT_PORT_A20_ENABLE_BIT;
   KBC_send_output_port(status); 
   KBC_enable_keyboard();
-  RTC_nmi_enable();
-  x86_sti();
+  x86_load_flags16(flags);
 }
 
 uint16_t A20_enable_bios_15h();

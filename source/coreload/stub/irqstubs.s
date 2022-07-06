@@ -8,7 +8,7 @@ _TEXT segment use16 para public 'CODE'
 _TEXT ends
 
 _DATA segment use16 para public 'DATA'
-  IRQ_table:
+  _IRQ_table:
     dw offset _noop
     dw offset _noop
     dw offset _noop
@@ -74,6 +74,9 @@ _DATA segment use16 para public 'DATA'
     mov       word ptr cs:[_IRQ_save_ss], ss
     mov       word ptr cs:[_IRQ_save_sp], sp
 
+  _IRQ_stack_bottom:
+    dq        128 dup ('KCATSQRI')
+  _IRQ_stack_top:
 _DATA ends
 
 _TEXT segment use16 para public 'CODE'
@@ -83,9 +86,9 @@ _TEXT segment use16 para public 'CODE'
     mov       word ptr cs:[_IRQ_save_ss], ss
     mov       word ptr cs:[_IRQ_save_sp], sp
 
-    mov       sp,       G_BASE_ADDRESS/16
+    mov       sp,       cs
     mov       ss,       sp
-    mov       sp,       G_STACK_SIZE
+    mov       sp,       offset _IRQ_stack_top
 
    ; save registers
     pushad
@@ -101,7 +104,7 @@ _TEXT segment use16 para public 'CODE'
     mov       fs,       ax
     mov       gs,       ax
     push      word ptr number
-    call      word ptr cs:[_IRQ_stub_table + number*2]   
+    call      word ptr cs:[_IRQ_table + number*2]   
     add       sp,       2
 
     ; signal end of interrupt
@@ -120,8 +123,9 @@ _TEXT segment use16 para public 'CODE'
     
     mov       ss, word ptr cs:[_IRQ_save_ss]
     mov       sp, word ptr cs:[_IRQ_save_sp]
-
-    jmp       dword ptr cs:[_IRQ_save + number*4]   
+    
+    db        0x2E, 0xFF, 0x2E 
+    dw        offset _IRQ_save + number*4
 
   ENDM
 
@@ -191,6 +195,8 @@ _TEXT segment use16 para public 'CODE'
 
 
   IRQ_init_ proc near public
+    pushf
+    cli
     push      edi
     push      ebx
     push      dx
@@ -227,27 +233,30 @@ _TEXT segment use16 para public 'CODE'
 
     pop       cx
     pop       dx
-
-    pop       ebx
+    pop       ebx    
     pop       edi
+    popf
     ret
   IRQ_init_ endp
 
 
   IRQ_set_ proc near public
-    push      bx
-    and       bx,       0x0f
-    mov       word ptr [IRQ_table + bx*2], ax
-    pop       bx
+    pushf
+    cli
+    push      edx
+    and       dx,       0x0f
+    mov       word ptr [_IRQ_table + edx*2], ax
+    pop       edx
+    popf
     ret
   IRQ_set_ endp
 
   REQ_get_ proc near public
-    push      bx
-    mov       bx,       ax
-    and       bx,       0x0f
-    mov       ax,       word ptr [IRQ_table + bx*2]
-    pop       bx
+    push      edx
+    mov       dx,       ax
+    and       dx,       0x0f
+    mov       ax,       word ptr [_IRQ_table + edx*2]
+    pop       edx
     ret
   REQ_get_ endp
 
