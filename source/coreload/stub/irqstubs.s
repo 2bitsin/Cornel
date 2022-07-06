@@ -66,18 +66,40 @@ _DATA segment use16 para public 'DATA'
     dd '!QRI'
     dd '!QRI'
 
+  _IRQ_save_sp:
+    dw 'TS'
+  _IRQ_save_ss:
+    dw 'KA'
+
+    mov       word ptr cs:[_IRQ_save_ss], ss
+    mov       word ptr cs:[_IRQ_save_sp], sp
+
 _DATA ends
 
 _TEXT segment use16 para public 'CODE'
 
   IRQ_M MACRO number
-   ; save state
+   ; save stack    
+    mov       word ptr cs:[_IRQ_save_ss], ss
+    mov       word ptr cs:[_IRQ_save_sp], sp
+
+    mov       sp,       G_BASE_ADDRESS/16
+    mov       ss,       sp
+    mov       sp,       G_STACK_SIZE
+
+   ; save registers
     pushad
     push      ds
     push      es
     push      fs
     push      gs   
 
+    mov       ax,       cs
+    mov       ds,       ax
+    mov       es,       ax
+    xor       ax,       ax
+    mov       fs,       ax
+    mov       gs,       ax
     push      word ptr number
     call      word ptr cs:[_IRQ_stub_table + number*2]   
     add       sp,       2
@@ -96,101 +118,104 @@ _TEXT segment use16 para public 'CODE'
     pop       ds    
     popad
     
+    mov       ss, word ptr cs:[_IRQ_save_ss]
+    mov       sp, word ptr cs:[_IRQ_save_sp]
+
     jmp       dword ptr cs:[_IRQ_save + number*4]   
 
   ENDM
 
-  _IRQ0_stub proc far 
+  _IRQ0_stub proc far public
     IRQ_M 0
   _IRQ0_stub endp
 
-  _IRQ1_stub proc far 
+  _IRQ1_stub proc far public
     IRQ_M 1  
   _IRQ1_stub endp
 
-  _IRQ2_stub proc far 
+  _IRQ2_stub proc far public 
     IRQ_M 2  
   _IRQ2_stub endp
 
-  _IRQ3_stub proc far 
+  _IRQ3_stub proc far public 
     IRQ_M 3  
   _IRQ3_stub endp
 
-  _IRQ4_stub proc far 
+  _IRQ4_stub proc far public 
     IRQ_M 4
   _IRQ4_stub endp
 
-  _IRQ5_stub proc far 
+  _IRQ5_stub proc far public 
     IRQ_M 5
   _IRQ5_stub endp
 
-  _IRQ6_stub proc far 
+  _IRQ6_stub proc far public 
     IRQ_M 6
   _IRQ6_stub endp
 
-  _IRQ7_stub proc far 
+  _IRQ7_stub proc far public 
     IRQ_M 7
   _IRQ7_stub endp
 
-  _IRQ8_stub proc far 
+  _IRQ8_stub proc far public 
     IRQ_M 8
   _IRQ8_stub endp
 
-  _IRQ9_stub proc far 
+  _IRQ9_stub proc far public 
     IRQ_M 9
   _IRQ9_stub endp
 
-  _IRQ10_stub proc far 
+  _IRQ10_stub proc far public 
     IRQ_M 10
   _IRQ10_stub endp
 
-  _IRQ11_stub proc far 
+  _IRQ11_stub proc far public 
     IRQ_M 11
   _IRQ11_stub endp
 
-  _IRQ12_stub proc far 
+  _IRQ12_stub proc far public
     IRQ_M 12
   _IRQ12_stub endp
 
-  _IRQ13_stub proc far 
+  _IRQ13_stub proc far public 
     IRQ_M 13
   _IRQ13_stub endp
 
-  _IRQ14_stub proc far 
+  _IRQ14_stub proc far public 
     IRQ_M 14
   _IRQ14_stub endp
 
-  _IRQ15_stub proc far  
+  _IRQ15_stub proc far public  
     IRQ_M 15
   _IRQ15_stub endp
 
 
-
   IRQ_init_ proc near public
     push      edi
-
+    push      ebx
     push      dx
     push      cx
-    push      bx
 
     mov       cx,       16
-    xor       bx,       bx
+    xor       ebx,      ebx
+    mov       gs,       bx
+
   L$0:
     test      ax,       1
     jz        L$1
-    mov       dx,       cs:[_IRQ_stub_table + bx*2]
+    mov       dx,       cs:[_IRQ_stub_table + ebx*2]
     push      bx
-    mov       bl,       cs:[_IRQ_map + bx]
+    mov       bl,       cs:[_IRQ_map + ebx]
     xor       bh,       bh
 
-    mov       edi,      dword ptr gs:[bx*4]
+    mov       edi,      dword ptr gs:[ebx*4]
 
-    mov       word ptr gs:[bx*4 + 0], dx 
-    mov       word ptr gs:[bx*4 + 2], cs
+    mov       word ptr gs:[ebx*4 + 0], dx 
+    mov       word ptr gs:[ebx*4 + 2], cs
             
     pop       bx
 
-    mov       dword ptr cs:[_IRQ_save + bx*4], edi
+    mov       dword ptr cs:[_IRQ_save + ebx*4], edi
    
   L$1:
     shr       ax,       1
@@ -200,10 +225,10 @@ _TEXT segment use16 para public 'CODE'
     jnz       L$0
   L$2:
 
-    pop       bx
     pop       cx
-    push      dx
+    pop       dx
 
+    pop       ebx
     pop       edi
     ret
   IRQ_init_ endp
