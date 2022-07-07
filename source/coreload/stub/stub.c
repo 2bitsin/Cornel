@@ -7,29 +7,21 @@
 #include "flatreal.h"
 #include "atwenty.h"
 #include "irqstubs.h"
-
-void STUB_tick(uint16_t irq_n)
-{
-  DBG_print_string("TICK!\n");
-}
-
+#include "serial.h"
 
 int16_t STUB_init ()
 {     
   int16_t status;
-  DBG_print_string("Starting Cornel OS:\n"); 
-  
-  IRQ_set(&STUB_tick, 0);
-  IRQ_init(IRQ_INIT_IRQ0_BIT|IRQ_INIT_IRQ3_BIT|IRQ_INIT_IRQ4_BIT);
-  for(;;)
-    x86_hlt();
-
+  DBG_print_string("Cornel loader v0.1 : \n"); 
+  DBG_print_string("Initializing...\n");
   DBG_print_char('\n');
   FLAT_init();   
   DBG_print_char('\n');
   A20_init();
   DBG_print_char('\n');
   MEM_init();
+  DBG_print_char('\n');
+  SER_init();
   return 0;
 }
 

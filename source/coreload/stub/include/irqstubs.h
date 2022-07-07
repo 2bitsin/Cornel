@@ -20,8 +20,10 @@
 #define IRQ_INIT_IRQ14_BIT    0x4000
 #define IRQ_INIT_IRQ15_BIT    0x8000
 
-void  IRQ_init  (uint16_t mask);
-void  IRQ_set   (void* callable, uint16_t irq);
-void* IRQ_get   (uint16_t irq);
+void  IRQ_init      (uint16_t mask);
+void  IRQ_set       (void* callable, uint16_t irq);
+void* IRQ_get       (uint16_t irq);
+void  IRQ_enable    (uint16_t mask);
+void  IRQ_disable   (uint16_t mask);
 
 #endif

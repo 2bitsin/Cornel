@@ -78,4 +78,11 @@ void x86_load_flags32(uint32_t value);
 void bochs_magic_break();
 #pragma aux bochs_magic_break = "xchg bx, bx"
 
+byte read_bda_byte(uint8_t offset);
+#pragma aux read_bda_byte = "xor bh, bh" "mov al, gs:[0x400 + bx]" parm [bl] value [al]
+word read_bda_word(uint8_t offset);
+#pragma aux read_bda_word = "xor bh, bh" "mov ax, gs:[0x400 + bx]" parm [bl] value [ax]
+dword read_bda_dword(uint8_t offset);
+#pragma aux read_bda_dword = "xor bh, bh" "mov ax, gs:[0x400 + bx]" "mov dx, gs:[0x400 + bx + 2]" parm [bl] value [dx ax]
+
 #endif

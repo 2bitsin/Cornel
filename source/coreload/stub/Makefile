@@ -24,7 +24,8 @@ SOURCES_C						?=	stub.c				\
 												kbdctrl.c			\
 												desctab.c			\
 												atwenty.c			\
-												serial.c			
+												serial.c			\
+												timer.c
 
 CC									:=	wcc
 LD									:=	wlink

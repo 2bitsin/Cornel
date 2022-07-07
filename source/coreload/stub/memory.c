@@ -1,6 +1,7 @@
 #include "memory.h"
 #include "print.h"
 #include "error.h"
+#include "longdiv.h"
 
 #pragma pack(push, 1)
 
@@ -112,11 +113,11 @@ static int16_t MEM_check_conventional_memory(uint32_t conv_memory_size)
 {
   DBG_print_string("\nMEM: ");
   DBG_print_dec16(conv_memory_size);
-  DBG_print_string("KB of conventional memory found.\n\n");
+  DBG_print_string("KiB of conventional memory found.\n\n");
 
   if (conv_memory_size < 576)
   {
-    print_string("\n#0001 - 576KB of conventional memory is required.\n");  
+    print_string("\n#0001 - 576 KiB of conventional memory is required.\n");  
     return MEM_ERROR_NOT_ENOUGH_CONVENTIONAL_MEMORY;
   }
   return 0;
@@ -124,13 +125,21 @@ static int16_t MEM_check_conventional_memory(uint32_t conv_memory_size)
 
 int16_t MEM_check_extended_memory(const uint64_t* extended_memory_size)
 {
-  DBG_print_string("\nMEM: Total ");
-  DBG_print_hex64(*extended_memory_size);  
-  DBG_print_string(" bytes of RAM\n");    
+#ifdef DEBUG
+  static u_longdiv_type ldt;
+  static const uint32_t di = 1024ul*1024ul;
 
-  if (*extended_memory_size < 0x2000000)
+  ldt.d = *extended_memory_size;
+  long_64_udiv_32(&ldt, &di);
+
+  DBG_print_string("\nMEM: ");
+  DBG_print_dec32((uint32_t)ldt.q);
+  DBG_print_string(" MiB of extended memory found.\n");    
+#endif
+
+  if (*extended_memory_size <= (0x2000000ul - 0x100000ul))
   {
-    print_string("\n#0002 - 32 Megabytes of extended memory are required.\n");  
+    print_string("\n#0002 - 31 Megabytes of extended memory is required.\n");  
     return MEM_ERROR_NOT_ENOUGH_EXTENDED_MEMORY;
   }
   return 0;

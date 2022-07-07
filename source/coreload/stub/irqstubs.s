@@ -8,23 +8,26 @@ _TEXT segment use16 para public 'CODE'
 _TEXT ends
 
 _DATA segment use16 para public 'DATA'
+  extern _SER_irq:proc near
+  extern _PIT_irq:proc near
+
   _IRQ_table:
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop
-    dw offset _noop  
+    dw offset _PIT_irq ; 0   
+    dw offset _noop ; 1
+    dw offset _noop ; 2
+    dw offset _SER_irq ; 3
+    dw offset _SER_irq ; 4
+    dw offset _noop ; 5
+    dw offset _noop ; 6
+    dw offset _noop ; 7
+    dw offset _noop ; 8
+    dw offset _noop ; 9
+    dw offset _noop ; 10
+    dw offset _noop ; 11
+    dw offset _noop ; 12
+    dw offset _noop ; 13
+    dw offset _noop ; 14
+    dw offset _noop ; 15
 
   _IRQ_stub_table:
     dw offset _IRQ0_stub
@@ -49,30 +52,19 @@ _DATA segment use16 para public 'DATA'
     db 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77
 
   _IRQ_save:
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
-    dd '!QRI'
+    dd 16 dup ('!QRI')
+  
+  _IRQ_save_ss:
+    dw 'SS'
 
   _IRQ_save_sp:
-    dw 'TS'
-  _IRQ_save_ss:
-    dw 'KA'
+    dw 'PS'
 
-    mov       word ptr cs:[_IRQ_save_ss], ss
-    mov       word ptr cs:[_IRQ_save_sp], sp
+  _IRQ_mask:
+    dw 0x0000
+
+  _IRQ_init_mask:
+    dw 0xFFFF
 
   _IRQ_stack_bottom:
     dq        128 dup ('KCATSQRI')
@@ -82,6 +74,11 @@ _DATA ends
 _TEXT segment use16 para public 'CODE'
 
   IRQ_M MACRO number
+  LOCAL L_end
+
+    test      word ptr cs:[_IRQ_mask], (1 shl number)
+    jz        short L_end
+
    ; save stack    
     mov       word ptr cs:[_IRQ_save_ss], ss
     mov       word ptr cs:[_IRQ_save_sp], sp
@@ -108,11 +105,11 @@ _TEXT segment use16 para public 'CODE'
     add       sp,       2
 
     ; signal end of interrupt
-  IF number GE 8
-    mov       al,       0x20
-    out       0xa0,     al
-  ENDIF      
-    out       0x20,     al
+  ;IF number GE 8
+  ;  mov       al,       0x20
+  ;  out       0xa0,     al
+  ;ENDIF      
+  ;  out       0x20,     al
 
     ; restore state
     pop       gs
@@ -124,6 +121,7 @@ _TEXT segment use16 para public 'CODE'
     mov       ss, word ptr cs:[_IRQ_save_ss]
     mov       sp, word ptr cs:[_IRQ_save_sp]
     
+  L_end:
     db        0x2E, 0xFF, 0x2E 
     dw        offset _IRQ_save + number*4
 
@@ -201,6 +199,13 @@ _TEXT segment use16 para public 'CODE'
     push      ebx
     push      dx
     push      cx
+    
+    mov       bx,       cs:[_IRQ_init_mask]
+    not       bx
+    and       ax,       bx
+
+    or        word ptr cs:[_IRQ_init_mask], ax
+    or        word ptr cs:[_IRQ_mask], ax    
 
     mov       cx,       16
     xor       ebx,      ebx
@@ -251,14 +256,25 @@ _TEXT segment use16 para public 'CODE'
     ret
   IRQ_set_ endp
 
-  REQ_get_ proc near public
+  IRQ_get_ proc near public
     push      edx
     mov       dx,       ax
     and       dx,       0x0f
     mov       ax,       word ptr [_IRQ_table + edx*2]
     pop       edx
     ret
-  REQ_get_ endp
+  IRQ_get_ endp
+
+  IRQ_enable_ proc near public
+    or        word ptr cs:[_IRQ_mask], ax    
+    ret
+  IRQ_enable_ endp
+  
+  IRQ_disable_ proc near public
+    not       ax
+    and       word ptr cs:[_IRQ_mask], ax    
+    ret
+  IRQ_disable_ endp
 
 _TEXT ends
 
