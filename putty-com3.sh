@@ -1,0 +1,1 @@
+cmd.exe /c "putty -serial com3 -sercfg 9600,8,n,N"

@@ -79,6 +79,12 @@ void print_dec32(uint32_t value)
   static u_longdiv_type t;
   static const unsigned long d = 10u;
 
+  if (value == 0)
+  {
+    print_char('0');
+    return;
+  }
+
   while(value > 0)
   {
     t.d = value;

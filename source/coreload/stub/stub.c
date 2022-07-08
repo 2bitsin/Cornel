@@ -11,10 +11,10 @@
 #include "timer.h"
 
 static const serial_port_init_type G_com1_init = {
-  .baud = 9600,
-  .data_bits = 8,
-  .parity = SERIAL_PARITY_NONE,
-  .stop_bits = 1
+  .baud       = 9600,
+  .data_bits  = 8,
+  .parity     = SERIAL_PARITY_NONE,
+  .stop_bits  = 1
 };
 
 int16_t STUB_init ()

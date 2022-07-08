@@ -233,9 +233,10 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
   baud_div = ldt.q;
 
 #ifdef DEBUG
-  DBG_print_string("\n* Initializing COM port ... : ");
+  DBG_print_string("\n* Initializing COM port ... : COM");
+  DBG_print_dec8(port+1);  
   DBG_print_string("\n  Base address ............ : ");
-  DBG_print_hex16(port);  
+  DBG_print_hex16(base_port);
   ldt.d = 115200;
   di = baud_div;
   long_64_udiv_32(&ldt, &di);
