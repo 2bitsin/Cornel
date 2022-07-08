@@ -20,6 +20,13 @@
 #define IRQ_INIT_IRQ14_BIT    0x4000
 #define IRQ_INIT_IRQ15_BIT    0x8000
 
+#define IRQ_ACKNOWLEDGE_BIT   0x0004
+#define IRQ_CALL_DEFAULT_BIT  0x0001
+
+#define IRQ_CALL_DEFAULT      IRQ_CALL_DEFAULT_BIT
+#define IRQ_DO_NOTHING        0x0000
+#define IRQ_ACKNOWLEDGE       IRQ_ACKNOWLEDGE_BIT
+
 void  IRQ_init      (uint16_t mask);
 void  IRQ_set       (void* callable, uint16_t irq);
 void* IRQ_get       (uint16_t irq);

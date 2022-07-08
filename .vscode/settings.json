@@ -67,5 +67,6 @@
     "variant": "cpp",
     "semaphore": "cpp",
     "x86asm.h": "c"
-  }
+  },
+  "C_Cpp.errorSquiggles": "Disabled"
 }

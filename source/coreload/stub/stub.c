@@ -9,6 +9,13 @@
 #include "irqstubs.h"
 #include "serial.h"
 
+static const serial_port_init_type G_com1_init = {
+  .baud = 9600,
+  .data_bits = 8,
+  .parity = SERIAL_PARITY_NONE,
+  .stop_bits = 1
+};
+
 int16_t STUB_init ()
 {     
   int16_t status;
@@ -22,12 +29,13 @@ int16_t STUB_init ()
   MEM_init();
   DBG_print_char('\n');
   SER_init();
+  SER_init_port(SERIAL_PORT_COM1, &G_com1_init);
   return 0;
 }
 
 void STUB_exit () 
 {
-  print_string("Press any key to reboot...\n");
+  print_string("\nPress any key to reboot...\n");
   wait_for_key();  
 }
 

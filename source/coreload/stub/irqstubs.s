@@ -52,7 +52,7 @@ _DATA segment use16 para public 'DATA'
     db 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77
 
   _IRQ_save:
-    dd 16 dup ('!QRI')
+    dd 16 dup (0x21515249)
   
   _IRQ_save_ss:
     dw 'SS'
@@ -66,15 +66,18 @@ _DATA segment use16 para public 'DATA'
   _IRQ_init_mask:
     dw 0xFFFF
 
+  _IRQ_next_action:
+    dw 0x0000
+
   _IRQ_stack_bottom:
-    dq        128 dup ('KCATSQRI')
+    dq        128 dup (0x4B43415453515249)
   _IRQ_stack_top:
 _DATA ends
 
 _TEXT segment use16 para public 'CODE'
 
   IRQ_M MACRO number
-  LOCAL L_end
+  LOCAL L_end, L_no_ack, L_iret
 
     test      word ptr cs:[_IRQ_mask], (1 shl number)
     jz        short L_end
@@ -101,29 +104,42 @@ _TEXT segment use16 para public 'CODE'
     mov       fs,       ax
     mov       gs,       ax
     push      word ptr number
-    call      word ptr cs:[_IRQ_table + number*2]   
+    call      word ptr cs:[_IRQ_table + number*2]    
     add       sp,       2
 
-    ; signal end of interrupt
-  ;IF number GE 8
-  ;  mov       al,       0x20
-  ;  out       0xa0,     al
-  ;ENDIF      
-  ;  out       0x20,     al
+    ; load return value into flags
+    mov       ah,       al
+    lahf
 
     ; restore state
     pop       gs
     pop       fs
     pop       es
     pop       ds    
+
+    ; signal end of interrupt
+
+    ; skip of PF=0
+    jpo       short L_no_ack
+  IF number GE 8
+    mov       al,       0x20
+    out       0xa0,     al
+  ENDIF      
+    out       0x20,     al
+  L_no_ack:
+    
     popad
     
     mov       ss, word ptr cs:[_IRQ_save_ss]
     mov       sp, word ptr cs:[_IRQ_save_sp]
     
-  L_end:
+    ; skip if CF=0
+    jnc       short L_iret
+  L_end:    
     db        0x2E, 0xFF, 0x2E 
     dw        offset _IRQ_save + number*4
+  L_iret:
+    iret
 
   ENDM
 
