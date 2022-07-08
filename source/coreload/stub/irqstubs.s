@@ -109,7 +109,7 @@ _TEXT segment use16 para public 'CODE'
 
     ; load return value into flags
     mov       ah,       al
-    lahf
+    sahf
 
     ; restore state
     pop       gs
@@ -121,8 +121,8 @@ _TEXT segment use16 para public 'CODE'
 
     ; skip of PF=0
     jpo       short L_no_ack
-  IF number GE 8
     mov       al,       0x20
+  IF number GE 8
     out       0xa0,     al
   ENDIF      
     out       0x20,     al

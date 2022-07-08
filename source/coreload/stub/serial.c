@@ -233,8 +233,8 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
   baud_div = ldt.q;
 
 #ifdef DEBUG
-  DBG_print_string("\n* Initializing COM port .. : ");
-  DBG_print_string("\n  Base address ........... : ");
+  DBG_print_string("\n* Initializing COM port ... : ");
+  DBG_print_string("\n  Base address ............ : ");
   DBG_print_hex16(port);  
   ldt.d = 115200;
   di = baud_div;
@@ -283,7 +283,7 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
 
   x86_outb(base_port + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
   IRQ_enable(SER_get_port_irq_mask(port));
-  
+
   return 0;  
 }
 

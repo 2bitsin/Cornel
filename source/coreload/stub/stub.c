@@ -8,6 +8,7 @@
 #include "atwenty.h"
 #include "irqstubs.h"
 #include "serial.h"
+#include "timer.h"
 
 static const serial_port_init_type G_com1_init = {
   .baud = 9600,
@@ -30,6 +31,10 @@ int16_t STUB_init ()
   DBG_print_char('\n');
   SER_init();
   SER_init_port(SERIAL_PORT_COM1, &G_com1_init);
+  SER_sync_send_string(SERIAL_PORT_COM1, "Cornel loader v0.1 : \n");
+  PIT_init();
+  x86_sti();
+  for(;;)x86_hlt();
   return 0;
 }
 

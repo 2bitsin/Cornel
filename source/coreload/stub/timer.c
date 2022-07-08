@@ -10,9 +10,9 @@ void PIT_init()
 
 uint16_t __cdecl PIT_irq(uint16_t irq_n)
 {
-  print_string ("\n");
-  print_string (__FUNCTION__);
+  DBG_print_string("\nSending trough COM1 ... ");
   SER_sync_send_string(SERIAL_PORT_COM1, "TICK!\r\n");
+  DBG_print_string("done");
   return IRQ_CALL_DEFAULT;
 }
 
