@@ -12,6 +12,8 @@ void PIT_init()
 
 uint16_t __cdecl PIT_irq(uint16_t irq_n)
 {
+  uint16_t base;
+
   DBG_print_string("\rTIME = ");
   DBG_print_hex8(CMOS_read_byte(CMOS_HOURS_REG));
   DBG_print_char(':');
@@ -20,7 +22,8 @@ uint16_t __cdecl PIT_irq(uint16_t irq_n)
   DBG_print_hex8(CMOS_read_byte(CMOS_SECONDS_REG));
   DBG_print_string("   ");
 
-  SER_sync_send_string(SERIAL_PORT_COM1, "TICK!\r\n"); 
+  base = SER_get_port_base(SERIAL_PORT_COM1);
+  SER_sync_transmit_string(base, "TICK!\r\n"); 
   return IRQ_CALL_DEFAULT;
 }
 

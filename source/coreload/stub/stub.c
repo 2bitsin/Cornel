@@ -20,6 +20,8 @@ static const serial_port_init_type G_com1_init = {
 int16_t STUB_init ()
 {     
   int16_t status;
+  uint16_t com_base;
+
   DBG_print_string("Cornel loader v0.1 : \n"); 
   DBG_print_string("Initializing...\n");
   DBG_print_char('\n');
@@ -30,11 +32,18 @@ int16_t STUB_init ()
   MEM_init();
   DBG_print_char('\n');
   SER_init();
-  SER_init_port(SERIAL_PORT_COM1, &G_com1_init);
-  SER_sync_send_string(SERIAL_PORT_COM1, "Cornel loader v0.1 : \n");
+
+  com_base = SER_init_port(SERIAL_PORT_COM1, &G_com1_init);
+  if (com_base < 0)
+  {
+    print_string("#0006 - Error initializing COM1!\n");
+    return -1;
+  }
+  SER_sync_transmit_string(com_base, "Cornel loader v0.1 : \n");
   PIT_init();
   x86_sti();
-  for(;;)x86_hlt();
+  for(;;)
+    x86_hlt();
   return 0;
 }
 

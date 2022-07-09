@@ -77,49 +77,25 @@
 
 static uint8_t G_port_mask;
 
-uint16_t __cdecl SER_irq(int16_t irq_n)
+uint16_t SER_get_port_irq_mask(uint16_t port)
 {
-  return IRQ_CALL_DEFAULT;
-}
-
-int16_t SER_init()
-{ 
-  uint16_t value;  
-  G_port_mask = 0;
-
-  DBG_print_string("\nInitializing serial COM's ...... ");                  
-  DBG_print_string("\n* Base addresses:");    
-  if (value = read_bda_word(0)) {
-    DBG_print_string("\n  COM1: ");
-    DBG_print_hex16(value);
-    G_port_mask |= IRQ_INIT_IRQ4_BIT;
-  }
-  if (value = read_bda_word(2)) {
-    DBG_print_string("\n  COM2: ");
-    DBG_print_hex16(value);
-    G_port_mask |= IRQ_INIT_IRQ3_BIT;
-  }
-  if (value = read_bda_word(4)) {
-    DBG_print_string("\n  COM3: ");
-    DBG_print_hex16(value);
-    G_port_mask |= IRQ_INIT_IRQ4_BIT;
-  }
-  if (value = read_bda_word(6)) {
-    DBG_print_string("\n  COM4: ");
-    DBG_print_hex16(value);
-    G_port_mask |= IRQ_INIT_IRQ3_BIT;
-  }
-  if (!G_port_mask)
+  switch (port)
   {
-    DBG_print_string("\n  No COM ports found!");
-    return -1;
+    case SERIAL_PORT_COM1:
+      return IRQ_INIT_IRQ4_BIT;
+    case SERIAL_PORT_COM2:
+      return IRQ_INIT_IRQ3_BIT;
+    case SERIAL_PORT_COM3:
+      return IRQ_INIT_IRQ4_BIT;
+    case SERIAL_PORT_COM4:
+      return IRQ_INIT_IRQ3_BIT;
+    default:
+      return 0;
   }
-  IRQ_init(G_port_mask);
-  DBG_print_char('\n');  
   return 0;
 }
 
-static uint16_t SER_get_port_base(uint16_t port)
+uint16_t SER_get_port_base(uint16_t port)
 {
   switch (port)
   {
@@ -137,21 +113,40 @@ static uint16_t SER_get_port_base(uint16_t port)
   return 0;
 }
 
-static uint16_t SER_get_port_irq_mask(uint16_t port)
-{
-  switch (port)
-  {
-    case SERIAL_PORT_COM1:
-      return IRQ_INIT_IRQ4_BIT;
-    case SERIAL_PORT_COM2:
-      return IRQ_INIT_IRQ3_BIT;
-    case SERIAL_PORT_COM3:
-      return IRQ_INIT_IRQ4_BIT;
-    case SERIAL_PORT_COM4:
-      return IRQ_INIT_IRQ3_BIT;
-    default:
-      return 0;
+int16_t SER_init()
+{ 
+  uint16_t value;  
+  G_port_mask = 0;
+
+  DBG_print_string("\nInitializing serial COM's ...... ");                  
+  DBG_print_string("\n* Base addresses:");    
+  if (value = SER_get_port_base(SERIAL_PORT_COM1)) {
+    DBG_print_string("\n  COM1: ");
+    DBG_print_hex16(value);
+    G_port_mask |= IRQ_INIT_IRQ4_BIT;
   }
+  if (value = SER_get_port_base(SERIAL_PORT_COM2)) {
+    DBG_print_string("\n  COM2: ");
+    DBG_print_hex16(value);
+    G_port_mask |= IRQ_INIT_IRQ3_BIT;
+  }
+  if (value = SER_get_port_base(SERIAL_PORT_COM3)) {
+    DBG_print_string("\n  COM3: ");
+    DBG_print_hex16(value);
+    G_port_mask |= IRQ_INIT_IRQ4_BIT;
+  }
+  if (value = SER_get_port_base(SERIAL_PORT_COM4)) {
+    DBG_print_string("\n  COM4: ");
+    DBG_print_hex16(value);
+    G_port_mask |= IRQ_INIT_IRQ3_BIT;
+  }
+  if (!G_port_mask)
+  {
+    DBG_print_string("\n  No COM ports found!");
+    return -1;
+  }
+  IRQ_init(G_port_mask);
+  DBG_print_char('\n');  
   return 0;
 }
 
@@ -191,74 +186,58 @@ static uint8_t SER_get_line_control_bits(const serial_port_init_type* init)
   return bits;
 }
 
-static int16_t SER_is_transmit_empty(uint16_t base)
-{
-  if (x86_inb(base + SERIAL_PORT_LSR) & SERIAL_LSR_THRE_BIT)
-    return 1;
-  return 0;
-}
-
-
-static int16_t SER_is_data_received(uint16_t base)
-{
-  if (x86_inb(base + SERIAL_PORT_LSR) & SERIAL_LSR_DR_BIT)
-    return 1;
-  return 0;
-}
-
-
-static int16_t SER_self_test(uint16_t base, uint8_t value)
-{
-  while (!SER_is_transmit_empty(base));
-  x86_outb(base + SERIAL_PORT_DR, value);
-  while(!SER_is_data_received(base));
-  if (x86_inb(base + SERIAL_PORT_DR) != value) 
-  {
-    DBG_print_string("\n  ERROR: Self test failed with value : ");
-    DBG_print_hex8(value);    
-    return SERIAL_ERROR_SELF_TEST;
-  }
-  return 0;
-}
-
 int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
 {
+  static char const test[] = "\xFF\xF0\x0F\xCC\x33\xAA\x55";
   static u_longdiv_type ldt;
   static uint32_t di;
+  uint16_t baud_div, i, base;
 
-  uint16_t baud_div;
-  uint16_t base;
-  uint16_t i;
-  static char const test[] = "\xFF\xF0\x0F\xCC\x33\xAA\x55";
-
-  if (!(base = SER_get_port_base(port)))
+  base = SER_get_port_base(port);
+  
+  if (!base) {
+    DBG_print_string("\n  Error, invalid serial base port : ");
+    DBG_print_hex16(base);
     return SERIAL_ERROR_BAD_PORT;
+  }
 
-  if (init->baud > 115200 || init->baud < 2)
+  if (init->baud > 115200 || init->baud < 2) {
+    DBG_print_string("\n  Error, invalid serial baud rate : ");
+    DBG_print_hex16(init->baud);    
     return SERIAL_ERROR_BAD_BAUD_RATE;
+  }
 
-  if (init->data_bits > 8 || init->data_bits < 5)
+  if (init->data_bits > 8 || init->data_bits < 5) {
+    DBG_print_string("\n  Error, invalid serial data bits : ");
+    DBG_print_dec8(init->data_bits);
     return SERIAL_ERROR_BAD_DATA_BITS;
+  }
    
-  if (init->parity > SERIAL_PARITY_MARK)
+  if (init->parity > SERIAL_PARITY_MARK) {
+    DBG_print_string("\n  Error, invalid serial parity : ");
+    DBG_print_dec8(init->parity);
     return SERIAL_ERROR_BAD_PARITY;
+  }
 
-  if (init->stop_bits > 2 || init->stop_bits < 1)
+  if (init->stop_bits > 2 || init->stop_bits < 1) {
+    DBG_print_string("\n  Error, invalid serial stop bits : ");
+    DBG_print_dec8(init->stop_bits);
     return SERIAL_ERROR_BAD_STOP_BITS;
+  }
     
   ldt.d = 115200;
   di = init->baud;
   long_64_udiv_32(&ldt, &di);
   if (ldt.r != 0) {
-    DBG_print_string("\nWARNING! Non-standard baud rate, rounding up to nearest standard rate.");
+    DBG_print_string("\n  WARNING! Non-standard baud rate, rounding up to nearest standard rate.");
     ldt.q += 1;
   }  
 
   baud_div = ldt.q;
 
 #ifdef DEBUG
-  DBG_print_string("\n* Initializing COM port ... : COM");
-  DBG_print_dec8(port+1);  
+  DBG_print_string("\n* Initializing COM port ... : COM");  
+  DBG_print_dec16(port+1);
   DBG_print_string("\n  Base address ............ : ");
   DBG_print_hex16(base);
   ldt.d = 115200;
@@ -298,7 +277,6 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
   x86_outb(base + SERIAL_PORT_LCR, SER_get_line_control_bits(init));
   x86_outb(base + SERIAL_PORT_FCR, SERIAL_FCR_FIFO_EN_BIT|SERIAL_FCR_CLR_RCVR_BIT|SERIAL_FCR_CLR_XMIT_BIT|SERIAL_FCR_14BYTE_BIT);
   x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_IRQ_BIT);
-
   x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_LOOP_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
   DBG_print_string("\n  Self test ............... :");
   for(i = 0; test[i]; ++i)
@@ -312,30 +290,53 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
   }
   x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
   IRQ_enable(SER_get_port_irq_mask(port));
-
-  return 0;  
+  return base;
 }
 
-
-int16_t SER_sync_send_char(uint16_t port, char value)
+int16_t SER_can_transmit_now(uint16_t base)
 {
-  uint16_t base;  
-  if (!(base = SER_get_port_base(port)))
-    return SERIAL_ERROR_BAD_PORT;
-  while (!SER_is_transmit_empty(base));  
-  x86_outb(base + SERIAL_PORT_DR, (uint8_t)value);
+  return (int16_t)!!(x86_inb(base + SERIAL_PORT_LSR) & SERIAL_LSR_THRE_BIT);
+}
+
+int16_t SER_can_receive_now(uint16_t base)
+{
+  return (int16_t)!!(x86_inb(base + SERIAL_PORT_LSR) & SERIAL_LSR_DR_BIT);
+}
+
+int16_t SER_sync_transmit_byte(uint16_t base, uint8_t byte)
+{
+  while (!SER_can_transmit_now(base));
+  x86_outb(base + SERIAL_PORT_DR, byte);
   return 0;
 }
 
-int16_t SER_sync_send_string(uint16_t port, const char* value)
+int16_t SER_sync_receive_byte(uint16_t base)
 {
-  uint16_t base;  
-  if (!(base = SER_get_port_base(port)))
-    return SERIAL_ERROR_BAD_PORT;
+  while (!SER_can_receive_now(base));
+  return x86_inb(base + SERIAL_PORT_DR);  
+}
+
+ int16_t SER_self_test(uint16_t base, uint8_t value)
+{
+  SER_sync_transmit_byte(base, value);  
+  if (SER_sync_receive_byte(base) != value) 
+  {
+    DBG_print_string("\n  ERROR: Self test failed with value : ");
+    DBG_print_hex8(value);    
+    return SERIAL_ERROR_SELF_TEST;
+  }
+  return 0;
+}
+int16_t SER_sync_transmit_string(uint16_t base, const char* value)
+{
   while (*value) {
-    SER_sync_send_char(port, *value);
+    SER_sync_transmit_byte(base, *value);
     ++value;
   }
   return 0;
 }
 
+uint16_t __cdecl SER_irq(int16_t irq_n)
+{
+  return IRQ_CALL_DEFAULT;
+}
