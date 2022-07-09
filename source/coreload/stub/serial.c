@@ -30,11 +30,11 @@
 #define SERIAL_LCR_WLEN8_BIT      0x03
 
 #define SERIAL_LCR_2STOP_BIT      0x04
-#define SERIAL_LCR_PARENB_BIT     0x08
-#define SERIAL_LCR_PAR_ODD_BIT    0x00
-#define SERIAL_LCR_PAR_EVEN_BIT   0x10
-#define SERIAL_LCR_PAR_MARK_BIT   0x20
-#define SERIAL_LCR_PAR_SPACE_BIT  0x30
+#define SERIAL_LCR_PAR_ENB_BIT    0x08
+#define SERIAL_LCR_PAR_ODD_BIT    (0x00|SERIAL_LCR_PAR_ENB_BIT)
+#define SERIAL_LCR_PAR_EVEN_BIT   (0x10|SERIAL_LCR_PAR_ENB_BIT)
+#define SERIAL_LCR_PAR_MARK_BIT   (0x20|SERIAL_LCR_PAR_ENB_BIT)
+#define SERIAL_LCR_PAR_SPACE_BIT  (0x30|SERIAL_LCR_PAR_ENB_BIT)
 #define SERIAL_LCR_BREAK_BIT      0x40
 #define SERIAL_LCR_DLAB_BIT       0x80
 
@@ -175,27 +175,49 @@ static uint8_t SER_get_line_control_bits(const serial_port_init_type* init)
   case SERIAL_PARITY_NONE:    
     break;
   case SERIAL_PARITY_ODD:
-    bits |= SERIAL_LCR_PAR_ODD_BIT|SERIAL_LCR_PARENB_BIT;
+    bits |= SERIAL_LCR_PAR_ODD_BIT;
     break;
   case SERIAL_PARITY_EVEN:
-    bits |= SERIAL_LCR_PAR_EVEN_BIT|SERIAL_LCR_PARENB_BIT;
+    bits |= SERIAL_LCR_PAR_EVEN_BIT;
     break;
   case SERIAL_PARITY_MARK:
-    bits |= SERIAL_LCR_PAR_MARK_BIT|SERIAL_LCR_PARENB_BIT;
+    bits |= SERIAL_LCR_PAR_MARK_BIT;
     break;
   case SERIAL_PARITY_SPACE:
-    bits |= SERIAL_LCR_PAR_SPACE_BIT|SERIAL_LCR_PARENB_BIT;
+    bits |= SERIAL_LCR_PAR_SPACE_BIT;
     break;
   }
 
   return bits;
 }
 
+static int16_t SER_is_transmit_empty(uint16_t base)
+{
+  if (x86_inb(base + SERIAL_PORT_LSR) & SERIAL_LSR_THRE_BIT)
+    return 1;
+  return 0;
+}
+
+
+static int16_t SER_is_data_received(uint16_t base)
+{
+  if (x86_inb(base + SERIAL_PORT_LSR) & SERIAL_LSR_DR_BIT)
+    return 1;
+  return 0;
+}
+
+
 static int16_t SER_self_test(uint16_t base, uint8_t value)
 {
+  while (!SER_is_transmit_empty(base));
   x86_outb(base + SERIAL_PORT_DR, value);
-  if (x86_inb(base + SERIAL_PORT_DR) != value)
+  while(!SER_is_data_received(base));
+  if (x86_inb(base + SERIAL_PORT_DR) != value) 
+  {
+    DBG_print_string("\n  ERROR: Self test failed with value : ");
+    DBG_print_hex8(value);    
     return SERIAL_ERROR_SELF_TEST;
+  }
   return 0;
 }
 
@@ -205,9 +227,11 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
   static uint32_t di;
 
   uint16_t baud_div;
-  uint16_t base_port;
+  uint16_t base;
+  uint16_t i;
+  static char const test[] = "\xFF\xF0\x0F\xCC\x33\xAA\x55";
 
-  if (!(base_port = SER_get_port_base(port)))
+  if (!(base = SER_get_port_base(port)))
     return SERIAL_ERROR_BAD_PORT;
 
   if (init->baud > 115200 || init->baud < 2)
@@ -236,7 +260,7 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
   DBG_print_string("\n* Initializing COM port ... : COM");
   DBG_print_dec8(port+1);  
   DBG_print_string("\n  Base address ............ : ");
-  DBG_print_hex16(base_port);
+  DBG_print_hex16(base);
   ldt.d = 115200;
   di = baud_div;
   long_64_udiv_32(&ldt, &di);
@@ -267,33 +291,31 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
   DBG_print_dec32(init->stop_bits);
 #endif
 
-  x86_outb(base_port + SERIAL_PORT_IER, 0x00);
-  x86_outb(base_port + SERIAL_PORT_LCR, SERIAL_LCR_DLAB_BIT);
-  x86_outb(base_port + SERIAL_PORT_BDR_LSB, baud_div & 0xFF);
-  x86_outb(base_port + SERIAL_PORT_BDR_MSB, (baud_div >> 8) & 0xFF);
-  x86_outb(base_port + SERIAL_PORT_LCR, SER_get_line_control_bits(init));
-  x86_outb(base_port + SERIAL_PORT_FCR, SERIAL_FCR_FIFO_EN_BIT|SERIAL_FCR_CLR_RCVR_BIT|SERIAL_FCR_CLR_XMIT_BIT|SERIAL_FCR_14BYTE_BIT);
-  x86_outb(base_port + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_IRQ_BIT);
+  x86_outb(base + SERIAL_PORT_IER, 0x00);
+  x86_outb(base + SERIAL_PORT_LCR, SERIAL_LCR_DLAB_BIT);
+  x86_outb(base + SERIAL_PORT_BDR_LSB, baud_div & 0xFF);
+  x86_outb(base + SERIAL_PORT_BDR_MSB, (baud_div >> 8) & 0xFF);
+  x86_outb(base + SERIAL_PORT_LCR, SER_get_line_control_bits(init));
+  x86_outb(base + SERIAL_PORT_FCR, SERIAL_FCR_FIFO_EN_BIT|SERIAL_FCR_CLR_RCVR_BIT|SERIAL_FCR_CLR_XMIT_BIT|SERIAL_FCR_14BYTE_BIT);
+  x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_IRQ_BIT);
 
-  x86_outb(base_port + SERIAL_PORT_MCR, SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT|SERIAL_MCR_LOOP_BIT);
-
-  if (SER_self_test(base_port, 0x55) || SER_self_test(base_port, 0xAA)) {
-    DBG_print_string("\n  ERROR! Self-test failed!");
-    return SERIAL_ERROR_SELF_TEST;
-  }  
-
-  x86_outb(base_port + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
+  x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_LOOP_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
+  DBG_print_string("\n  Self test ............... :");
+  for(i = 0; test[i]; ++i)
+  {
+    DBG_print_char(' ');
+    DBG_print_hex8(test[i]);
+    if (SER_self_test(base, test[i])) 
+    {
+      return SERIAL_ERROR_SELF_TEST;
+    }     
+  }
+  x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
   IRQ_enable(SER_get_port_irq_mask(port));
 
   return 0;  
 }
 
-static int16_t SER_is_transmit_empty(uint16_t base)
-{
-  if (x86_inb(base + SERIAL_PORT_LSR) & SERIAL_LSR_THRE_BIT)
-    return 1;
-  return 0;
-}
 
 int16_t SER_sync_send_char(uint16_t port, char value)
 {

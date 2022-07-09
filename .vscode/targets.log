@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Jul  7 04:02:48 2022
+# Make data base, printed on Sat Jul  9 03:08:50 2022
 
 # Variables
 
@@ -57,7 +57,7 @@ CURDIR := /mnt/c/Users/alex/Desktop/projects/leisure/Cornel
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
 # automatic
@@ -123,7 +123,7 @@ LS_COLORS = rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:
 # environment
 WATCOM = /usr/bin/watcom
 # environment
-WSL_INTEROP = /run/WSL/11_interop
+WSL_INTEROP = /run/WSL/219_interop
 # 'override' directive
 GNUMAKEFLAGS := 
 # environment
@@ -145,7 +145,7 @@ _ = /home/alex/.vscode-server/bin/30d9c6cd9483b2cc586687151bcbcd635f373630/node
 # environment
 XDG_RUNTIME_DIR = /mnt/wslg/runtime-dir
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-83ef5a59-31dc-4f00-8af5-24a3985808e0.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-a92c668a-a663-4be1-95cc-67b6fc752f89.sock
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
@@ -171,9 +171,9 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 67, inode 106397541196631228): 20 files, no impossibilities.
+# . (device 66, inode 106397541196631228): 22 files, no impossibilities.
 
-# 20 files, no impossibilities in 1 directories.
+# 22 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -223,12 +223,12 @@ GNUmakefile:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 28 / storage = 278 B / avg = 9 B
-# current buf: size = 8162 B / used = 278 B / count = 28 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 30 / storage = 297 B / avg = 9 B
+# current buf: size = 8162 B / used = 297 B / count = 30 / avg = 9 B
 
-# strcache performance: lookups = 31 / hit rate = 9%
+# strcache performance: lookups = 33 / hit rate = 9%
 # hash-table stats:
-# Load=28/8192=0%, Rehash=0, Collisions=0/31=0%
-# Finished Make data base on Thu Jul  7 04:02:48 2022
+# Load=30/8192=0%, Rehash=0, Collisions=0/33=0%
+# Finished Make data base on Sat Jul  9 03:08:50 2022
 
  
