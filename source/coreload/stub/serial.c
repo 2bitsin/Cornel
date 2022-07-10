@@ -3,6 +3,7 @@
 #include "irqstubs.h"
 #include "print.h"
 #include "longdiv.h"
+#include "memory.h"
 
 #define SERIAL_PORT_BDR_LSB       0x100
 #define SERIAL_PORT_BDR_MSB       0x101
@@ -19,10 +20,12 @@
 
 #define SERIAL_IER_RDA_BIT        0x01
 #define SERIAL_IER_THRE_BIT       0x02
-#define SERIAL_IER_RLS_BIT        0x04
-#define SERIAL_IER_MS_BIT         0x08
-#define SERIAL_IER_SM_BIT         0x10
-#define SERIAL_IER_LPM_BIT        0x20
+#define SERIAL_IER_ERR_BIT        0x04
+#define SERIAL_IER_STC_BIT        0x08
+
+#define SERIAL_IER_SM_BIT         0x10 // ?
+#define SERIAL_IER_LPM_BIT        0x20 // ?
+
 
 #define SERIAL_LCR_WLEN5_BIT      0x00
 #define SERIAL_LCR_WLEN6_BIT      0x01
@@ -76,6 +79,8 @@
 #define SERIAL_MSR_DCD_BIT        0x80
 
 static uint8_t G_port_mask;
+static uint8_t G_receive_buffer_bits[4][80];
+static uint8_t G_receive_buffer_size[4];
 
 uint16_t SER_get_port_irq_mask(uint16_t port)
 {
@@ -118,6 +123,9 @@ int16_t SER_init()
   uint16_t value;  
   G_port_mask = 0;
 
+  MEM_zero(&G_receive_buffer_bits[0][0], sizeof(G_receive_buffer_bits));
+  MEM_zero(&G_receive_buffer_size[0], sizeof(G_receive_buffer_size));
+
   DBG_print_string("\nInitializing serial COM's ...... ");                  
   DBG_print_string("\n* Base addresses:");    
   if (value = SER_get_port_base(SERIAL_PORT_COM1)) {
@@ -145,7 +153,10 @@ int16_t SER_init()
     DBG_print_string("\n  No COM ports found!");
     return -1;
   }
-  IRQ_init(G_port_mask);
+  G_port_mask = IRQ_INIT_IRQ4_BIT|IRQ_INIT_IRQ3_BIT;
+  IRQ_init(G_port_mask);  
+  IRQ_enable(G_port_mask);
+ 
   DBG_print_char('\n');  
   return 0;
 }
@@ -192,6 +203,7 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
   static u_longdiv_type ldt;
   static uint32_t di;
   uint16_t baud_div, i, base;
+  uint8_t value;
 
   base = SER_get_port_base(port);
   
@@ -276,7 +288,7 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
   x86_outb(base + SERIAL_PORT_BDR_MSB, (baud_div >> 8) & 0xFF);
   x86_outb(base + SERIAL_PORT_LCR, SER_get_line_control_bits(init));
   x86_outb(base + SERIAL_PORT_FCR, SERIAL_FCR_FIFO_EN_BIT|SERIAL_FCR_CLR_RCVR_BIT|SERIAL_FCR_CLR_XMIT_BIT|SERIAL_FCR_14BYTE_BIT);
-  x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_IRQ_BIT);
+  x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_IRQ_BIT);  
   x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_LOOP_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
   DBG_print_string("\n  Self test ............... :");
   for(i = 0; test[i]; ++i)
@@ -289,7 +301,22 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
     }     
   }
   x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
-  IRQ_enable(SER_get_port_irq_mask(port));
+
+/* Trying to enable serial IRQ */
+
+  x86_outb(base + SERIAL_PORT_IER, 0x00);
+
+  DBG_print_string("\n");
+L_again:
+  value = x86_inb(base + SERIAL_PORT_IIR);
+  DBG_print_string("\r  IIR = ");
+  DBG_print_hex8(value);
+  if (!(value & 1))
+    goto L_again;
+
+  x86_outb(base + SERIAL_PORT_IER, 0x0F);
+  x86_inb(base + SERIAL_PORT_DR);  
+  
   return base;
 }
 
@@ -327,6 +354,7 @@ int16_t SER_sync_receive_byte(uint16_t base)
   }
   return 0;
 }
+
 int16_t SER_sync_transmit_string(uint16_t base, const char* value)
 {
   while (*value) {
@@ -336,7 +364,60 @@ int16_t SER_sync_transmit_string(uint16_t base, const char* value)
   return 0;
 }
 
+void SER_flush_buffer(uint16_t port)
+{
+  DBG_print_string_n(G_receive_buffer_bits[port], G_receive_buffer_size[port]);
+  MEM_zero(G_receive_buffer_bits[port], sizeof(G_receive_buffer_bits[port]));
+  G_receive_buffer_size[port] = 0;
+}
+
+void SER_buffer_byte(uint16_t port, uint8_t byte)
+{
+  if (byte == '\n')
+    SER_flush_buffer(port);
+
+  if (G_receive_buffer_size[port] < sizeof(G_receive_buffer_bits[port]))
+  {
+    G_receive_buffer_bits[port][G_receive_buffer_size[port]] = byte;
+    ++G_receive_buffer_size[port];
+  }
+
+  if (G_receive_buffer_size[port] >= sizeof(G_receive_buffer_bits[port]))
+    SER_flush_buffer(port);
+}
+
 uint16_t __cdecl SER_irq(int16_t irq_n)
 {
-  return IRQ_CALL_DEFAULT;
+  int16_t value, i;
+  uint16_t base, port;
+
+  DBG_print_string("\n  SERIAL IRQ : ");
+  DBG_print_dec16(irq_n);
+
+  base = SER_get_port_base(SERIAL_PORT_COM1);
+  while(!(x86_inb(base + SERIAL_PORT_IIR) & 1));
+
+  if (irq_n != 4 && irq_n != 3)
+    return IRQ_CALL_DEFAULT;  
+  
+  for (i = 0; i < 2; ++i)
+  {
+    if (i == 0 && irq_n == 4) port = SERIAL_PORT_COM1;
+    if (i == 0 && irq_n == 3) port = SERIAL_PORT_COM2;
+    if (i == 1 && irq_n == 4) port = SERIAL_PORT_COM3;
+    if (i == 1 && irq_n == 3) port = SERIAL_PORT_COM4;
+
+    if (base = SER_get_port_base(port))
+    {    
+      while(SER_can_receive_now(base))
+      { 
+        if ((value = SER_sync_receive_byte(base)) < 0)
+          continue;
+        DBG_print_char(value & 0xff);
+        //SER_buffer_byte(port, value);      
+      }
+    }
+  }
+
+  return IRQ_ACKNOWLEDGE;
 }

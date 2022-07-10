@@ -6,12 +6,15 @@
 
 void PIT_init()
 {
+  #if 0
   DBG_print_char('\n');
   IRQ_init(IRQ_INIT_IRQ0_BIT); 
+  #endif
 }
 
 uint16_t __cdecl PIT_irq(uint16_t irq_n)
 {
+  #if 0
   uint16_t base;
 
   DBG_print_string("\rTIME = ");
@@ -24,6 +27,7 @@ uint16_t __cdecl PIT_irq(uint16_t irq_n)
 
   base = SER_get_port_base(SERIAL_PORT_COM1);
   SER_sync_transmit_string(base, "TICK!\r\n"); 
-  return IRQ_CALL_DEFAULT;
+  #endif
+  return IRQ_CALL_DEFAULT;  
 }
 

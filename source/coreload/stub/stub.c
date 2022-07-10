@@ -34,7 +34,7 @@ int16_t STUB_init ()
   SER_init();
 
   com_base = SER_init_port(SERIAL_PORT_COM1, &G_com1_init);
-  if (com_base < 0)
+  if (com_base == 0)
   {
     print_string("#0006 - Error initializing COM1!\n");
     return -1;
@@ -42,8 +42,10 @@ int16_t STUB_init ()
   SER_sync_transmit_string(com_base, "Cornel loader v0.1 : \n");
   PIT_init();
   x86_sti();
-  for(;;)
-    x86_hlt();
+  for(;;) {
+    DBG_print_char (SER_sync_receive_byte(com_base));
+    //x86_hlt();
+  }
   return 0;
 }
 
