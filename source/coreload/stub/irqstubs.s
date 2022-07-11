@@ -3,6 +3,7 @@
 
 _TEXT segment use16 para public 'CODE'
   _noop proc near
+    mov ax, 0x0001
     ret
   _noop endp
 _TEXT ends
@@ -10,8 +11,9 @@ _TEXT ends
 _DATA segment use16 para public 'DATA'
   extern _SER_irq:proc near
   extern _PIT_irq:proc near
-
+  
   _IRQ_table:
+    public _IRQ_table:proc near
     dw offset _PIT_irq ; 0   
     dw offset _noop ; 1
     dw offset _noop ; 2
@@ -30,6 +32,7 @@ _DATA segment use16 para public 'DATA'
     dw offset _noop ; 15
 
   _IRQ_stub_table:
+    public _IRQ_stub_table:proc near
     dw offset _IRQ0_stub
     dw offset _IRQ1_stub
     dw offset _IRQ2_stub
@@ -48,30 +51,39 @@ _DATA segment use16 para public 'DATA'
     dw offset _IRQ15_stub
 
   _IRQ_map:
+    public _IRQ_map:proc near
     db 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F
     db 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77
 
   _IRQ_save:
+    public _IRQ_save:proc near
     dd 16 dup (0x21515249)
   
   _IRQ_save_ss:
+    public _IRQ_save_ss:proc near
     dw 'SS'
 
   _IRQ_save_sp:
+    public _IRQ_save_sp:proc near
     dw 'PS'
 
   _IRQ_mask:
+    public _IRQ_mask:proc near    
     dw 0x0000
 
   _IRQ_init_mask:
-    dw 0xFFFF
+    public _IRQ_init_mask:proc near
+    dw 0x0000
 
   _IRQ_next_action:
+    public _IRQ_next_action:proc near
     dw 0x0000
 
   _IRQ_stack_bottom:
+    public _IRQ_stack_bottom:proc near
     dq        128 dup (0x4B43415453515249)
   _IRQ_stack_top:
+    public _IRQ_stack_top:proc near
 _DATA ends
 
 _TEXT segment use16 para public 'CODE'
@@ -216,7 +228,7 @@ _TEXT segment use16 para public 'CODE'
     push      dx
     push      cx
     
-    mov       bx,       cs:[_IRQ_init_mask]
+    mov       bx,       word ptr cs:[_IRQ_init_mask]
     not       bx
     and       ax,       bx
 
