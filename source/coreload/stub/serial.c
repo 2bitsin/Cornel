@@ -80,22 +80,26 @@
 
 static uint16_t G_port_mask;
 
-uint16_t SER_get_port_irq_mask(uint16_t port)
+uint16_t SER_get_port_irq(uint16_t port)
 {
   switch (port)
   {
     case SERIAL_PORT_COM1:
-      return IRQ_INIT_IRQ4_BIT;
+      return 4;
     case SERIAL_PORT_COM2:
-      return IRQ_INIT_IRQ3_BIT;
+      return 3;
     case SERIAL_PORT_COM3:
-      return IRQ_INIT_IRQ4_BIT;
+      return 4;
     case SERIAL_PORT_COM4:
-      return IRQ_INIT_IRQ3_BIT;
+      return 3;
     default:
       return 0;
   }
-  return 0;
+}
+
+uint16_t SER_get_port_irq_mask(uint16_t port)
+{
+  return 1u << SER_get_port_irq(port);
 }
 
 uint16_t SER_get_port_base(uint16_t port)
@@ -146,12 +150,11 @@ int16_t SER_init()
   if (!G_port_mask)
   {
     DBG_print_string("\n  No COM ports found!");
-    return -1;
+    return SERIAL_ERROR_NO_COM_PORTS;
   }
-  G_port_mask = IRQ_INIT_IRQ4_BIT|IRQ_INIT_IRQ3_BIT;
+  
   IRQ_init(G_port_mask);  
   IRQ_enable(G_port_mask);
- 
   DBG_print_char('\n');  
   return 0;
 }
@@ -192,19 +195,43 @@ static uint8_t SER_get_line_control_bits(const serial_port_init_type* init)
   return bits;
 }
 
-int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
+int16_t SER_update_baud_divisor(serial_port_init_type* init)
 {
-  static char const test[] = "\xFF\xF0\x0F\xCC\x33\xAA\x55";
   static u_longdiv_type ldt;
   static uint32_t di;
-  uint16_t baud_div, i, base;
-  uint8_t value;
+  uint16_t baud_div;
+  int16_t error;
+ 
+  error = 0;
+  ldt.d = 115200;
+  di = init->baud;
+  long_64_udiv_32(&ldt, &di);
+  if (ldt.r != 0) {
+    DBG_print_string("\n  Baud rate is not supported, rounding up to nearest supported value.");
+    ldt.q += 1;
+    error = SERIAL_ERROR_BAD_BAUD_RATE;
+  }  
+  init->_baud_div = ldt.q;
+  ldt.d = 115200;
+  di = init->_baud_div;
+  long_64_udiv_32(&ldt, &di);
+  init->baud = ldt.q;   
+  return error;
+}
 
-  base = SER_get_port_base(port);
-  
-  if (!base) {
+void SER_set_params(uint16_t base, serial_port_init_type* init) 
+{  
+  x86_outb(base + SERIAL_PORT_LCR, SERIAL_LCR_DLAB_BIT);
+  x86_outb(base + SERIAL_PORT_BDR_LSB, init->_baud_div & 0xFF);
+  x86_outb(base + SERIAL_PORT_BDR_MSB, (init->_baud_div >> 8) & 0xFF);
+  x86_outb(base + SERIAL_PORT_LCR, SER_get_line_control_bits(init));  
+}
+
+int16_t SER_check_params(serial_port_init_type* init)
+{
+  if (!init->_base) {    
     DBG_print_string("\n  Error, invalid serial base port : ");
-    DBG_print_hex16(base);
+    DBG_print_hex16(init->_base);
     return SERIAL_ERROR_BAD_PORT;
   }
 
@@ -221,7 +248,7 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
   }
    
   if (init->parity > SERIAL_PARITY_MARK) {
-    DBG_print_string("\n  Error, invalid serial parity : ");
+    DBG_print_string("\n  Error, invalid serial parity : ");7
     DBG_print_dec8(init->parity);
     return SERIAL_ERROR_BAD_PARITY;
   }
@@ -230,28 +257,17 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
     DBG_print_string("\n  Error, invalid serial stop bits : ");
     DBG_print_dec8(init->stop_bits);
     return SERIAL_ERROR_BAD_STOP_BITS;
-  }
-    
-  ldt.d = 115200;
-  di = init->baud;
-  long_64_udiv_32(&ldt, &di);
-  if (ldt.r != 0) {
-    DBG_print_string("\n  WARNING! Non-standard baud rate, rounding up to nearest standard rate.");
-    ldt.q += 1;
   }  
+}
 
-  baud_div = ldt.q;
-
-#ifdef DEBUG
+void SER_display_debug_info(serial_port_init_type* init)
+{
   DBG_print_string("\n* Initializing COM port ... : COM");  
-  DBG_print_dec16(port+1);
+  DBG_print_dec16(init->_port+1);
   DBG_print_string("\n  Base address ............ : ");
-  DBG_print_hex16(base);
-  ldt.d = 115200;
-  di = baud_div;
-  long_64_udiv_32(&ldt, &di);
+  DBG_print_hex16(init->_base);
   DBG_print_string("\n  Baud rate ............... : ");
-  DBG_print_dec32(ldt.q);
+  DBG_print_dec32(init->baud);
   DBG_print_string("\n  Data bits ............... : ");
   DBG_print_dec32(init->data_bits);
   DBG_print_string("\n  Parity .................. : ");
@@ -275,47 +291,78 @@ int16_t SER_init_port(uint16_t port, const serial_port_init_type* init)
   }
   DBG_print_string("\n  Stop bits ............... : ");
   DBG_print_dec32(init->stop_bits);
-#endif
+}
 
-  x86_outb(base + SERIAL_PORT_IER, 0x00);
-  x86_outb(base + SERIAL_PORT_LCR, SERIAL_LCR_DLAB_BIT);
-  x86_outb(base + SERIAL_PORT_BDR_LSB, baud_div & 0xFF);
-  x86_outb(base + SERIAL_PORT_BDR_MSB, (baud_div >> 8) & 0xFF);
-  x86_outb(base + SERIAL_PORT_LCR, SER_get_line_control_bits(init));
-  x86_outb(base + SERIAL_PORT_FCR, SERIAL_FCR_FIFO_EN_BIT|SERIAL_FCR_CLR_RCVR_BIT|SERIAL_FCR_CLR_XMIT_BIT|SERIAL_FCR_14BYTE_BIT);
-  x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_IRQ_BIT);  
-  x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_LOOP_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
+int16_t SER_perform_port_self_test(serial_port_init_type* init)
+{
+  static char const test[] = "\xFF\xF0\x0F\xCC\x33\xAA\x55";
+
+  x86_outb(init->_base + SERIAL_PORT_MCR, SERIAL_MCR_LOOP_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
   DBG_print_string("\n  Self test ............... :");
   for(i = 0; test[i]; ++i)
   {
     DBG_print_char(' ');
     DBG_print_hex8(test[i]);
-    if (SER_self_test(base, test[i])) 
+    if (SER_self_test(init->_base, test[i])) 
     {
       return SERIAL_ERROR_SELF_TEST;
     }     
   }
-  x86_outb(base + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
+  x86_outb(init->_base + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_OUT1_BIT|SERIAL_MCR_OUT2_BIT);
+
+  return 0;
+}
+
+void SER_interrupt_enable(uint16_t base, uint8_t mask)
+{
+  x86_outb(base + SERIAL_PORT_IER, mask);
+}
+
+int16_t SER_init_port(uint16_t port, serial_port_init_type* init)
+{
+  
+  uint16_t i;
+  uint8_t value;
+  int16_t error;
+
+  init->_port = port;
+  init->_irq  = SER_get_irq(port);
+  init->_base = SER_get_port_base(init->_port);
+  SER_update_baud_divisor(init); 
+  if (error = SER_check_params(init))
+    return error;
+#ifdef DEBUG
+  SER_display_debug_info(init);
+#endif
+
+  SER_interrupt_enable(0);
+
+  SER_set_params(init->_base, init);
+
+  x86_outb(init->_base + SERIAL_PORT_FCR, SERIAL_FCR_FIFO_EN_BIT|SERIAL_FCR_CLR_RCVR_BIT|SERIAL_FCR_CLR_XMIT_BIT|SERIAL_FCR_14BYTE_BIT);
+  x86_outb(init->_base + SERIAL_PORT_MCR, SERIAL_MCR_DTR_BIT|SERIAL_MCR_RTS_BIT|SERIAL_MCR_IRQ_BIT);  
+
+  if (error = SER_perform_port_self_test(init))
+    return error;
 
 /* Trying to enable serial IRQ */
 #if 1
-  x86_outb(base + SERIAL_PORT_IER, 0x00);
+  x86_outb(init->_base + SERIAL_PORT_IER, 0x00);
   DBG_print_string("\n");
 L_again:
-  value = x86_inb(base + SERIAL_PORT_IIR);
+  value = x86_inb(init->_base + SERIAL_PORT_IIR);
   DBG_print_string("\r  IIR = ");
   DBG_print_hex8(value);
   if (!(value & 1))
     goto L_again;
+  while(SER_can_receive_now(init->_base))
+    x86_inb(init->_base + SERIAL_PORT_DR);
+  x86_outb(init->_base + SERIAL_PORT_IER, 0x0F);
   while(SER_can_receive_now(base))
-    x86_inb(base + SERIAL_PORT_DR);
-  x86_outb(base + SERIAL_PORT_IER, 0x0F);
-  while(SER_can_receive_now(base))
-    x86_inb(base + SERIAL_PORT_DR);
-
+    x86_inb(init->_base + SERIAL_PORT_DR);
 #endif 
 
-  return base;
+  return 0;
 }
 
 int16_t SER_can_transmit_now(uint16_t base)

@@ -14,24 +14,30 @@
 #define SERIAL_PARITY_MARK          0x3
 #define SERIAL_PARITY_SPACE         0x4
 
-#define SERIAL_ERROR_BAD_BAUD_RATE  -1
-#define SERIAL_ERROR_BAD_PORT       -2
-#define SERIAL_ERROR_BAD_DATA_BITS  -3
-#define SERIAL_ERROR_BAD_PARITY     -4
-#define SERIAL_ERROR_BAD_STOP_BITS  -5
-#define SERIAL_ERROR_SELF_TEST      -6
-#define SERIAL_ERROR_TIMEOUT        -7
+#define SERIAL_ERROR_NO_COM_PORTS     -1
+#define SERIAL_ERROR_BAD_BAUD_RATE    -2
+#define SERIAL_ERROR_BAD_PORT         -3
+#define SERIAL_ERROR_BAD_DATA_BITS    -4
+#define SERIAL_ERROR_BAD_PARITY       -5
+#define SERIAL_ERROR_BAD_STOP_BITS    -6
+#define SERIAL_ERROR_SELF_TEST        -7
+#define SERIAL_ERROR_TIMEOUT          -8
 
 typedef struct serial_port_init_t
 {
   uint32_t baud;
   uint8_t  data_bits;
   uint8_t  parity;
-  uint8_t  stop_bits;  
+  uint8_t  stop_bits;
+
+  uint16_t _baud_div;
+  uint16_t _base;
+  uint8_t  _port;
+  uint8_t  _irq;
 } serial_port_init_type;
 
 int16_t   SER_init();
-int16_t   SER_init_port(uint16_t port, const serial_port_init_type* init);
+int16_t   SER_init_port(uint16_t port, serial_port_init_type* init);
 uint16_t  SER_get_port_irq_mask(uint16_t port);
 uint16_t  SER_get_port_base(uint16_t port);
 
