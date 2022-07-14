@@ -6,11 +6,18 @@
 #include "kbdctrl.h"
 #include "flatreal.h"
 #include "atwenty.h"
-#include "irqstubs.h"
+#include "irqctrl.h"
 #include "serial.h"
 #include "timer.h"
 
-static const serial_port_init_type G_com1_init = {
+#define PIC1    0x20    /* IO base address for master PIC */
+#define PIC2    0xA0    /* IO base address for slave PIC */
+#define PIC1_COMMAND  PIC1
+#define PIC1_DATA (PIC1+1)
+#define PIC2_COMMAND  PIC2
+#define PIC2_DATA (PIC2+1)
+
+static serial_port_init_type G_com1 = {
   .baud       = 9600,
   .data_bits  = 8,
   .parity     = SERIAL_PARITY_NONE,
@@ -19,8 +26,7 @@ static const serial_port_init_type G_com1_init = {
 
 int16_t STUB_init ()
 {     
-  int16_t status;
-  uint16_t com_base;
+  int16_t error;
 
   DBG_print_string("Cornel loader v0.1 : \n"); 
   DBG_print_string("Initializing...\n");
@@ -31,20 +37,18 @@ int16_t STUB_init ()
   DBG_print_char('\n');
   MEM_init();
   DBG_print_char('\n');
+  PIT_init();  
+  DBG_print_char('\n');
   SER_init();
-
-  com_base = SER_init_port(SERIAL_PORT_COM1, &G_com1_init);
-  if (com_base == 0)
-  {
-    print_string("#0006 - Error initializing COM1!\n");
+  
+  if (error = SER_init_port(SERIAL_PORT_COM1, &G_com1)) {
+    print_string("\n#0006 - Error initializing COM1!\n");
     return -1;
   }
-  SER_sync_transmit_string(com_base, "Cornel loader v0.1 : \n");
-  PIT_init();
-  x86_sti();
-  for(;;) {    
-    x86_hlt();
-  }
+  SER_wait_transmit_string(G_com1._base, "Cornel loader v0.1 : \n");
+
+  while(!0)
+    x86_hlt();  
   return 0;
 }
 

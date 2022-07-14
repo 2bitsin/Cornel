@@ -25,6 +25,7 @@ SOURCES_C						?=	stub.c				\
 												desctab.c			\
 												atwenty.c			\
 												serial.c			\
+												irqctrl.c			\
 												timer.c
 
 CC									:=	wcc

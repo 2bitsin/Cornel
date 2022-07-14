@@ -1,5 +1,5 @@
 #include "timer.h"
-#include "irqstubs.h"
+#include "irqctrl.h"
 #include "print.h"
 #include "serial.h"
 #include "rtccmos.h"
@@ -8,6 +8,7 @@
 void PIT_init()
 {  
   IRQ_init(IRQ_INIT_IRQ0_BIT);   
+  IRQ_unmask(IRQ_INIT_IRQ0_BIT);
 }
 
 uint16_t __cdecl PIT_irq(uint16_t irq_n)

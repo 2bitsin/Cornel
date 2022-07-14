@@ -88,7 +88,7 @@ int main(int argc, char** argv)
         descriptor |= (is_32bit ? 1ull : 0ull) << 54u;
         descriptor |= (granularity_4k ? 1ull : 0ull) << 55u;
         descriptor |= (segment_base >> 24ull) & 0xffull;
-        std::printf("DESCRIPTOR = 0x%016lX\n", descriptor);
+        std::printf("DESCRIPTOR = 0x%016llX\n", descriptor);
       }
     }
     else if ((seg_type == "tss") || (seg_type == "ldt"))

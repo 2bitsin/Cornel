@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.18)
+project(bootserver)
+add_executable(bootserver main.cpp)
+target_link_libraries(bootserver PRIVATE common)
+set_property(TARGET bootserver PROPERTY CXX_STANDARD 23)

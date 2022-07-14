@@ -22,6 +22,9 @@
 #define SERIAL_ERROR_BAD_STOP_BITS    -6
 #define SERIAL_ERROR_SELF_TEST        -7
 #define SERIAL_ERROR_TIMEOUT          -8
+#define SERIAL_ERROR_TRANSMIT_FULL    -9
+#define SERIAL_ERROR_RECEIVE_EMPTY    -10
+#define SERIAL_ERROR_BUFFER_FULL      -11
 
 typedef struct serial_port_init_t
 {
@@ -43,10 +46,14 @@ uint16_t  SER_get_port_base(uint16_t port);
 
 int16_t   SER_can_receive_now(uint16_t base);
 int16_t   SER_can_transmit_now(uint16_t base);
-int16_t   SER_sync_transmit_byte(uint16_t base, char value);
-int16_t   SER_sync_transmit_string(uint16_t base, const char* stringz);
-int16_t   SER_sync_receive_byte(uint16_t base);
+int16_t   SER_wait_transmit_byte(uint16_t base, char value);
+int16_t   SER_wait_transmit_string(uint16_t base, const char* stringz);
+int16_t   SER_wait_receive_byte(uint16_t base);
 int16_t   SER_self_test(uint16_t base, uint8_t value);
+
+int16_t   SER_wait_data_available(uint16_t port);
+
+
 
 #endif
 

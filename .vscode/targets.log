@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Jul 10 04:23:38 2022
+# Make data base, printed on Wed Jul 13 02:09:55 2022
 
 # Variables
 
@@ -17,7 +17,7 @@ LC_ALL = C
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
-WSLENV = VSCODE_WSL_EXT_LOCATION/up:VSCODE_SERVER_TAR/up
+WSLENV = VSCODE_WSL_EXT_LOCATION/up
 # environment
 VSCODE_CWD = /mnt/c/Devel/Microsoft VS Code
 # environment
@@ -26,6 +26,8 @@ LIBVIRT_DEFAULT_URI = qemu:///system
 MAKE_COMMAND := make
 # environment
 VSCODE_HANDLES_SIGPIPE = true
+# environment
+VSCODE_GIT_ASKPASS_EXTRA_ARGS = 
 # automatic
 @D = $(patsubst %/,%,$(dir $@))
 # environment
@@ -66,6 +68,8 @@ MFLAGS = -pqrR
 WAYLAND_DISPLAY = wayland-0
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
+# environment
+GIT_ASKPASS = /home/alex/.vscode-server/bin/92d25e35d9bf1a6b16f7d0758f25d48ace11e5b9/extensions/git/dist/askpass.sh
 # makefile
 MAKEFILE_LIST := 
 # automatic
@@ -85,19 +89,29 @@ SHELL = /bin/sh
 # default
 MAKECMDGOALS := all
 # environment
-SHLVL = 0
+SHLVL = 1
 # environment
-GCC_COLORS = error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01
+GCC_COLORS = error
 # environment
 MAKELEVEL := 0
 # default
 MAKE = $(MAKE_COMMAND)
 # environment
-PATH = /home/alex/.vscode-server/bin/92d25e35d9bf1a6b16f7d0758f25d48ace11e5b9/bin/remote-cli:/home/alex/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/VMware/VMware Workstation/bin/:/mnt/c/Devel/Java/jdk-17.0.2-ibm/bin:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Devel/Nvidia/CUDA/SDK/bin:/mnt/c/Devel/Nvidia/CUDA/SDK/libnvvp:/mnt/c/Devel/Python39/Scripts/:/mnt/c/Devel/Python39/:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/Devel/Python/Python39/Scripts/:/mnt/c/Devel/Python/Python39/:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/Microsoft SQL Server/130/Tools/Binn/:/mnt/c/Devel/gtkwave64/bin:/mnt/c/Devel/CC65/bin:/mnt/c/Devel/Far Manager:/mnt/c/Devel/avr-gcc-11.1.0-x64-windows/bin:/mnt/c/Devel/Golang/bin:/mnt/c/Program Files/Microsoft SQL Server/140/Tools/Binn/:/mnt/c/Devel/FASM:/mnt/c/Program Files/Microsoft SQL Server/150/Tools/Binn/:/mnt/c/Devel/qemu:/mnt/c/Devel/Bochs/2.7:/mnt/c/Devel/DOSBox-X:/mnt/c/Devel/WATCOM/binnt64:/mnt/c/Devel/IBMulator/0.13/bin:/mnt/c/Devel/Misc:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA NvDLISR:/mnt/c/Program Files/NVIDIA Corporation/Nsight Compute 2021.3.0/:/mnt/c/Devel/Microsoft Visual Studio/2022/Enterprise/MSBuild/Current/Bin:/mnt/c/Devel/nodejs/:/mnt/c/Devel/PuTTY/:/mnt/c/Devel/010 Editor:/mnt/c/Devel/CMake/bin:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Devel/Cicoparser:/mnt/c/Devel/upx-3.96-win64:/mnt/c/Devel/Git/cmd:/mnt/c/Devel/Git/mingw64/bin:/mnt/c/Devel/Git/usr/bin:/mnt/c/Devel/Rust/Cargo/bin:/mnt/c/Users/alex/.cargo/bin:/mnt/c/Devel/arm-gcc/10-2020-q4-major/bin:/mnt/c/Devel/Wincupl/WINCUPL/EXE:/mnt/c/Devel/Wincupl/WINCUPL/FITTERS:/mnt/c/Devel/Microsoft VS Code/bin:/mnt/c/Users/alex/go/bin:/mnt/c/Program Files (x86)/FreeArc/bin:/mnt/c/Devel/qemu:/mnt/c/Users/alex/AppData/Roaming/npm:/mnt/c/Devel/intelFPGA_lite/21.1/questa_fse/win64:/mnt/c/Devel/intelFPGA_lite/21.1/questa_fe/win64:/mnt/c/Users/alex/AppData/Local/Microsoft/WindowsApps:/mnt/c/Devel/Cicoparser:/snap/bin:/usr/bin/watcom/binl64
+PATH = /home/alex/.vscode-server/bin/92d25e35d9bf1a6b16f7d0758f25d48ace11e5b9/bin/remote-cli:/home/alex/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/VMware/VMware Workstation/bin/:/mnt/c/Devel/Java/jdk-17.0.2-ibm/bin:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Devel/Nvidia/CUDA/SDK/bin:/mnt/c/Devel/Nvidia/CUDA/SDK/libnvvp:/mnt/c/Devel/Python39/Scripts/:/mnt/c/Devel/Python39/:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/Devel/Python/Python39/Scripts/:/mnt/c/Devel/Python/Python39/:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/Microsoft SQL Server/130/Tools/Binn/:/mnt/c/Devel/gtkwave64/bin:/mnt/c/Devel/CC65/bin:/mnt/c/Devel/Far Manager:/mnt/c/Devel/avr-gcc-11.1.0-x64-windows/bin:/mnt/c/Devel/Golang/bin:/mnt/c/Program Files/Microsoft SQL Server/140/Tools/Binn/:/mnt/c/Devel/FASM:/mnt/c/Program Files/Microsoft SQL Server/150/Tools/Binn/:/mnt/c/Devel/qemu:/mnt/c/Devel/Bochs/2.7:/mnt/c/Devel/DOSBox-X:/mnt/c/Devel/WATCOM/binnt64:/mnt/c/Devel/IBMulator/0.13/bin:/mnt/c/Devel/Misc:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA NvDLISR:/mnt/c/Program Files/NVIDIA Corporation/Nsight Compute 2021.3.0/:/mnt/c/Devel/Microsoft Visual Studio/2022/Enterprise/MSBuild/Current/Bin:/mnt/c/Devel/nodejs/:/mnt/c/Devel/PuTTY/:/mnt/c/Devel/010 Editor:/mnt/c/Devel/CMake/bin:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Devel/Cicoparser:/mnt/c/Devel/upx-3.96-win64:/mnt/c/Devel/Git/cmd:/mnt/c/Devel/Git/mingw64/bin:/mnt/c/Devel/Git/usr/bin:/mnt/c/Devel/Rust/Cargo/bin:/mnt/c/Users/alex/.cargo/bin:/mnt/c/Devel/arm-gcc/10-2020-q4-major/bin:/mnt/c/Devel/Wincupl/WINCUPL/EXE:/mnt/c/Devel/Wincupl/WINCUPL/FITTERS:/mnt/c/Devel/Microsoft VS Code/bin:/mnt/c/Users/alex/go/bin:/mnt/c/Program Files (x86)/FreeArc/bin:/mnt/c/Devel/qemu:/mnt/c/Users/alex/AppData/Roaming/npm:/mnt/c/Devel/intelFPGA_lite/21.1/questa_fse/win64:/mnt/c/Devel/intelFPGA_lite/21.1/questa_fe/win64:/mnt/c/Users/alex/AppData/Local/Microsoft/WindowsApps:/mnt/c/Devel/Cicoparser:/snap/bin:/usr/bin/watcom/binl64:/usr/bin/watcom/binl64
 # default
 MAKEFILES := 
+# environment
+VSCODE_GIT_IPC_HANDLE = /mnt/wslg/runtime-dir/vscode-git-ab285ddeb5.sock
+# environment
+VSCODE_GIT_ASKPASS_NODE = /home/alex/.vscode-server/bin/92d25e35d9bf1a6b16f7d0758f25d48ace11e5b9/node
+# environment
+MOTD_SHOWN = update-motd
 # automatic
 ^F = $(notdir $^)
+# environment
+VSCODE_GIT_ASKPASS_MAIN = /home/alex/.vscode-server/bin/92d25e35d9bf1a6b16f7d0758f25d48ace11e5b9/extensions/git/dist/askpass-main.js
+# environment
+TERM_PROGRAM = vscode
 # environment
 LESSCLOSE = /usr/bin/lesspipe %s %s
 # automatic
@@ -105,17 +119,15 @@ LESSCLOSE = /usr/bin/lesspipe %s %s
 # environment
 NAME = DESKTOP-CJMKNH5
 # environment
-VSCODE_SERVER_TAR = /mnt/c/Users/alex/AppData/Local/Temp/vscode-remote-wsl/92d25e35d9bf1a6b16f7d0758f25d48ace11e5b9/vscode-server-stable-linux-x64.tar.gz
-# environment
 HOSTTYPE = x86_64
 # environment
-LS_COLORS = rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:
+LS_COLORS = rs
 # automatic
 +F = $(notdir $+)
 # environment
 WATCOM = /usr/bin/watcom
 # environment
-WSL_INTEROP = /run/WSL/12_interop
+WSL_INTEROP = /run/WSL/11_interop
 # 'override' directive
 GNUMAKEFLAGS := 
 # environment
@@ -131,11 +143,13 @@ USER = alex
 # default
 MAKE_VERSION := 4.3
 # environment
-_ = /home/alex/.vscode-server/bin/92d25e35d9bf1a6b16f7d0758f25d48ace11e5b9/node
+_ = /usr/bin/printenv
 # environment
 XDG_RUNTIME_DIR = /mnt/wslg/runtime-dir
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-cecb8f3f-6ed2-4763-80c4-bcd2671bb407.sock
+COLORTERM = truecolor
+# environment
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-1d99f70b-6277-4e66-a04d-70fa54de89b9.sock
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
@@ -154,8 +168,10 @@ SUFFIXES :=
 WSL_DISTRO_NAME = Ubuntu-20.04
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync check-symlink load
+# environment
+TERM_PROGRAM_VERSION = 1.69.0
 # variable set hash-table stats:
-# Load=71/1024=7%, Rehash=0, Collisions=1/98=1%
+# Load=79/1024=8%, Rehash=0, Collisions=1/106=1%
 
 # Pattern-specific Variable Values
 
@@ -163,7 +179,7 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 67, inode 106397541196631228): 23 files, no impossibilities.
+# . (device 66, inode 106397541196631228): 23 files, no impossibilities.
 
 # 23 files, no impossibilities in 1 directories.
 
@@ -221,6 +237,6 @@ GNUmakefile:
 # strcache performance: lookups = 34 / hit rate = 8%
 # hash-table stats:
 # Load=31/8192=0%, Rehash=0, Collisions=0/34=0%
-# Finished Make data base on Sun Jul 10 04:23:38 2022
+# Finished Make data base on Wed Jul 13 02:09:55 2022
 
  
