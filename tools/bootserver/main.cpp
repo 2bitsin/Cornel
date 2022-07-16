@@ -1,10 +1,15 @@
 #include <filesystem>
-#include <stop_token>
-#include <sstream>
 #include <iostream>
+#include <sstream>
 #include <vector>
+#include <stop_token>
 
+#include "error.hpp"
+#include "common/cxhash.hpp"
 #include "common/trim.hpp"
+#include "common/case.hpp"
+
+
 
 template <typename I_Stream_type, typename O_Stream_type>
 struct bootserver
@@ -19,89 +24,176 @@ struct bootserver
 		m_currdir { std::filesystem::absolute(base_dir) }
 	{}
 
-	void wdt_keep_alive()
-	{}
-
-	void list_directory()
+	void getline(std::string& line)
 	{
-		using dit = std::filesystem::directory_iterator;		
-		dit curr{ m_currdir }, end;
-		
-		for (; curr != end; ++curr)
+		line.clear();
+		int next_char;
+		while (true)
 		{
-			if (curr->is_directory())
-				m_ostream << "D";
-			else
-				m_ostream << "F";
-			m_ostream << " " << curr->path().filename() << "\n";
+			next_char = m_istream.get();
+			if (next_char < 0)
+				throw error_bad_stream(format_error, next_char);
+			if (next_char == '\n' || next_char == '\r')
+				continue;
+			break;
+		}
+		line.push_back(next_char);
+		while (true)
+		{
+			next_char = m_istream.get();
+			if (next_char < 0)
+				throw error_bad_stream(format_error, next_char);
+			if (next_char == '\n' || next_char == '\r')
+				break;			
+			line.push_back(next_char);			
 		}
 	}
 
-	void change_directory(std::vector<std::string> const& args)
+	void parse(std::string_view line, std::vector<std::string>& parts)
 	{
-		if (args.size() < 1)
-			throw std::runtime_error("ERROR 001 \"CD requires an argument\"");
-
-		if (!std::filesystem::is_directory(args[0]))
-			throw std::runtime_error("ERROR 002 \"CD argument is not a directory\"");					
-
-		auto new_directory = std::filesystem::absolute(m_currdir / args[0]);
+		std::string current_part;
+		parts.clear();
 		
-		if (!new_directory.string().starts_with(m_basedir.string()))
-			throw std::runtime_error("ERROR 003 \"Naughty naughty!\"");
-		
-		m_currdir = new_directory;
+		enum S_type
+		{
+			S_Normal,
+			S_Quotes,
+			S_Escape,
+			S_Whitespace
+		};
+
+		S_type curr_state{ S_Normal };
+		S_type prev_state{ S_Normal };
+		int ch{ 0 };
+
+		auto next_part	= [&] { parts.emplace_back(std::move(current_part)); };
+		auto next_state = [&] (S_type value) { prev_state = curr_state; curr_state = value; };
+
+		while (!line.empty ())
+		{
+			ch = line.front();
+			line = line.substr(1);
+			switch (curr_state)
+			{
+			case S_Normal: // Normal
+
+				// Transition to quotes
+				if (ch == '\"') {
+					if (prev_state != S_Whitespace)
+						next_part();
+					next_state(S_Quotes);
+					break;
+				}
+
+				// Transition to whitespace
+				if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') {
+					next_part();						
+					next_state(S_Whitespace);
+					break;
+				}
+
+				// Stay in current state	
+				current_part.push_back(ch);
+				break;
+
+			case S_Quotes: // Inside quotes
+
+				// Transition out of quotes
+				if (ch == '"') { 
+					next_part();
+					next_state(S_Normal);
+					break;
+				}
+
+				// Transition into escape
+				if (ch == '\\') {
+					next_state(S_Escape);
+					break;
+				}
+
+				// Stay in current state
+				current_part.push_back(ch);
+				break;
+
+ 			case S_Escape: // Escaping
+				if (ch == 'n') current_part.push_back('\n');
+				else if (ch == 'r') current_part.push_back('\r');
+				else if (ch == '\\')  current_part.push_back('\\');
+				else {
+					current_part.push_back('\\');
+					current_part.push_back(ch);
+				}
+				// Transition out of escape back into quotes
+				next_state(S_Quotes);
+				break;
+
+			case S_Whitespace: // White spaces
+				if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')
+					break;
+				if (ch == '\"') {
+					next_state(S_Quotes);
+					break;
+				}
+				current_part.push_back (ch);
+				next_state(S_Normal);
+				break;
+			}
+		}
+		if (!current_part.empty())
+			next_part();
 	}
+	
+	void CMD_ls(std::vector<std::string> const& args)
+	{}	
+
+	void CMD_cwd(std::vector<std::string> const& args)
+	{}	
+
+	void CMD_pwd(std::vector<std::string> const& args)
+	{}	
+
+	void CMD_get(std::vector<std::string> const& args)
+	{}	
+
+	void CMD_put(std::vector<std::string> const& args)
+	{}	
+
+	void CMD_bye(std::vector<std::string> const& args)
+	{}	
+
 		
 	int main(std::stop_token stop)
 	{
-		int next_char;
-		std::string line, cmd, arg;
-		std::vector<std::string> args;
-
 		while (!stop.stop_requested())
 		{
+			std::string line;
+			std::vector<std::string> args;
 			try
 			{
-			L_read_line:
-				next_char = m_istream.get();
-				wdt_keep_alive();
-				if (next_char != '\n' && next_char != '\r')
-				{
-					line.push_back(next_char & 0xff);
-					goto L_read_line;
-				}			
-				
-			L_interpret:
-				trim(line);
+				getline (line);
+				parse (line, args);
 
-				std::istringstream line_ss{ line };	
+				if (args.empty())
+					throw error_bad_format(format_error, line);
+
 				line.clear();
-				
-				if (!(line_ss >> std::quoted(cmd)))
-					goto L_read_line;
-				
-				while (line_ss >> std::quoted(arg))
-					args.push_back(arg);
-				
-				if (cmd == "LIST")
+				switch (cxhash(lowercase(args[0])))
 				{
-					list_directory();
-					goto L_read_line;
+				case "ls"_cxhash	: CMD_ls  (args, line); break;
+				case "cd"_cxhash	: CMD_cwd (args, line); break;
+				case "pwd"_cxhash	: CMD_pwd (args, line); break;
+				case "get"_cxhash : CMD_get (args, line); break;
+				case "put"_cxhash : CMD_put (args, line); break;
+				case "bye"_cxhash : CMD_bye (args, line); break;
+				default:
+					throw error_bad_command(format_error,line);
 				}
 
-				if (cmd == "CD")
-				{
-					change_directory(args);
-					goto L_read_line;
-				}
-					
-				throw std::runtime_error("ERROR 000 \"unknown or unsupported command\"");
-				goto L_read_line;			
+				m_ostream << 0 << " SUCCESS"
 			}
-			catch (const std::exception& ex)
+			catch (const generic_error& ex)
 			{
-				m_ostream << ex.what() << "\n";
+				m_ostream << ex.code() " ERROR " << " \"" << ex.what() << "\"\n";
 			}
 		}
 		return 0;
@@ -117,8 +209,9 @@ private:
 
 int main(int argc, char** argv)
 {
-	bootserver<std::istream, std::ostream> _bs{ std::cin, std::cout, "."};
+	bootserver _bs{ std::cin, std::cout, "." };
 	
 	std::stop_token st;
+
 	return _bs.main(st);	
 }
