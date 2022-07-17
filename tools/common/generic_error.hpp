@@ -20,6 +20,7 @@ struct generic_error_t: generic_error
 	generic_error_t(const generic_error_t&) = default;
 	generic_error_t(generic_error_t&&) = default;
 	
+	static constexpr const inline unsigned int value = Error_code;
 
 	template <typename... Args>	
 	generic_error_t(format_error_t, Args&&... args)
