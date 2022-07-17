@@ -35,6 +35,12 @@ packet_io_pipe::~packet_io_pipe()
 
 void packet_io_pipe::send(packet_buffer<byte> const& Qpacket)
 {
+	if (Qpacket.size() > 0x10000)
+	{
+		for (auto&& packet : Qpacket.split(0x10000))		
+			send(packet);
+		return;
+	}
 	
 }
 

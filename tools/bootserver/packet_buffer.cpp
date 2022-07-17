@@ -5,26 +5,29 @@
 #include "packet_buffer.hpp"
 #include "common/crc32.hpp"
 
-template <typename T>
-packet_buffer<T>::packet_buffer(packet_data databits, deleter_type deleter)
-:	m_databits { std::move(databits) },
-	m_deleter { std::move(deleter) }
+template <typename T, typename Allocator>
+packet_buffer<T, Allocator>::packet_buffer(packet_data databits, deleter_type deleter, allocator_type alloc)
+:	m_allocator { std::move(alloc) },
+ 	m_databits { std::move(databits) },
+	m_deleter { std::move(deleter) },
 {}
 
-template<typename T>
-packet_buffer<T>::packet_buffer(std::size_t allocate)
-:	m_databits { new T[allocate], allocate },
-	m_deleter { [](auto what){ delete [] what.data(); } }
+template<typename T, typename Allocator>
+packet_buffer<T, Allocator>::packet_buffer(std::size_t size, allocator_type alloc)
+: m_allocator { std::move(alloc) },
+ 	m_databits { m_allocator.allocate(size), size },
+	m_deleter { [this, size](auto what){ m_allocator.deallocate(what), size }},
 {}
 
-template <typename T>
-packet_buffer<T>::packet_buffer(packet_buffer&& other)
-:	m_databits { std::move(other.m_databits) },
-	m_deleter { std::move(other.m_deleter) }
+template <typename T, typename Allocator>
+packet_buffer<T, Allocator>::packet_buffer(packet_buffer&& other)
+:	m_allocator { std::move(other.m_allocator) },
+ 	m_databits { std::move(other.m_databits) },
+	m_deleter { std::move(other.m_deleter) },
 {}
 
-template <typename T>
-packet_buffer<T>::~packet_buffer()
+template <typename T, typename Allocator>
+packet_buffer<T, Allocator>::~packet_buffer()
 {
 	if (m_deleter)
 	{
@@ -32,52 +35,53 @@ packet_buffer<T>::~packet_buffer()
 	}
 }
 
-template <typename T>
-packet_buffer<T>& packet_buffer<T>::operator=(packet_buffer&& other)
+template <typename T, typename Allocator>
+auto packet_buffer<T, Allocator>::operator=(packet_buffer&& other) 
+	-> packet_buffer<T, Allocator>&
 {
 	~packet_data();
 	new (this) packet_buffer(std::move(other));
 	return *this;
 }
 
-template <typename T>
-auto packet_buffer<T>::data() const noexcept -> ct_packet_data
+template <typename T, typename Allocator>
+auto packet_buffer<T, Allocator>::data() const noexcept -> ct_packet_data
 {
 	return m_databits;
 }
 
-template <typename T>
-auto packet_buffer<T>::data() noexcept -> packet_data
+template <typename T, typename Allocator>
+auto packet_buffer<T, Allocator>::data() noexcept -> packet_data
 {
 	return m_databits;
 }
 
-template <typename T>
-auto packet_buffer<T>::size() const noexcept -> std::size_t
+template <typename T, typename Allocator>
+auto packet_buffer<T, Allocator>::size() const noexcept -> std::size_t
 {
 	return m_databits.size();
 }
 
-template<typename T>
-auto packet_buffer<T>::deleter() const noexcept -> deleter_type
+template<typename T, typename Allocator>
+auto packet_buffer<T, Allocator>::deleter() const noexcept -> deleter_type
 {
 	return m_deleter;
 }
 
-template<typename T>
-auto packet_buffer<T>::deleter(deleter_type deleter) noexcept -> deleter_type
+template<typename T, typename Allocator>
+auto packet_buffer<T, Allocator>::deleter(deleter_type deleter) noexcept -> deleter_type
 {
 	return std::exchange(m_deleter, std::move(deleter));
 }
 
-template<typename T>
-auto packet_buffer<T>::crc32() const noexcept -> std::uint32_t
+template<typename T, typename Allocator>
+auto packet_buffer<T, Allocator>::crc32() const noexcept -> std::uint32_t
 {
   return ::crc32(m_databits, 0u);
 }
 
-template<typename T>
-void packet_buffer<T>::clone_into(packet_buffer& other)
+template<typename T, typename Allocator>
+void packet_buffer<T, Allocator>::clone_into(packet_buffer& other)
 {
 	if (other.size() > size())
 	{
@@ -89,8 +93,8 @@ void packet_buffer<T>::clone_into(packet_buffer& other)
 		std::fill(other.data() + size(), other.data() + other.size(), 0);
 }
 
-template<typename T>
-bool packet_buffer<T>::clone_into(packet_buffer& other, std::error_code& ec) noexcept
+template<typename T, typename Allocator>
+bool packet_buffer<T, Allocator>::clone_into(packet_buffer& other, std::error_code& ec) noexcept
 {	
 	if (other.size() > size())
 	{
@@ -103,10 +107,29 @@ bool packet_buffer<T>::clone_into(packet_buffer& other, std::error_code& ec) noe
 	return true;
 }
 
-template<typename T>
-auto packet_buffer<T>::clone() -> packet_buffer
+template<typename T, typename Allocator>
+auto packet_buffer<T, Allocator>::clone() -> packet_buffer
 {
 	packet_buffer pbuf{ size() };
 	clone_into(pbuf);
 	return pbuf;
+}
+
+
+template<typename T, typename Allocator>
+auto packet_buffer<T, Allocator>::split(std::size_t chunk_size) const -> std::vector<packet_buffer>
+{
+	const auto number_of_chunks = ((*this).size() + chunk_size - 1u) / chunk_size;
+	
+	std::vector<packet_buffer> list;	
+	list.reserve(number_of_chunks);
+	
+	auto tmp = (*this).data();
+	while (!tmp.empty())
+	{
+		list.emplace_back(packet_buffer<T, Allocator>{ tmp.subspan(0, chunk_size), [] (auto...) {} });
+		tmp = tmp.subspan(chunk_size);
+	}
+
+	return list;
 }
