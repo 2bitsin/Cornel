@@ -53,6 +53,7 @@ auto packet_buffer<T, Allocator>::data() const noexcept -> ct_packet_data
 template <typename T, typename Allocator>
 auto packet_buffer<T, Allocator>::data() noexcept -> packet_data
 {
+
 	return m_databits;
 }
 
