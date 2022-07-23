@@ -19,7 +19,15 @@ struct errtab_t
 		/*  9 */ "Can't create named pipe '{}'.",
 		/* 10 */ "Can't open named pipe '{}'.",
 		/* 11 */ "Can't connect named pipe '{}'.",
-		/* 12 */ "Can't write named pipe '{}'.",
+		/* 12 */ "Can't write pipe.",
+		/* 13 */ "Can't read pipe.",
+		/* 14 */ "Buffer too large for write or read operation.",
+		/* 15 */ "Can't send packet header.",
+		/* 16 */ "Can't send packet data.",
+		/* 17 */ "Can't receive packet header.",
+		/* 18 */ "Can't receive packet data.",
+		/* 19 */ "Invalid header signature.",
+		/* 20 */ "Invalid packet checksum.",
 	};
 
 	static constexpr auto value()
@@ -43,3 +51,10 @@ using error_cant_open_pipe		= generic_error_t<10, errtab_t>;
 using error_cant_connect_pipe	= generic_error_t<11, errtab_t>;
 using error_cant_write_pipe		= generic_error_t<12, errtab_t>;
 using error_cant_read_pipe		= generic_error_t<13, errtab_t>;
+using error_buffer_too_big    = generic_error_t<14, errtab_t>;
+using error_cant_send_header	= generic_error_t<15, errtab_t>;
+using error_cant_send_payload = generic_error_t<16, errtab_t>;
+using error_cant_read_header  =	generic_error_t<17, errtab_t>;
+using error_cant_read_payload =	generic_error_t<18, errtab_t>;
+using error_invalid_header		= generic_error_t<19, errtab_t>;
+using error_invalid_checksum	= generic_error_t<20, errtab_t>;

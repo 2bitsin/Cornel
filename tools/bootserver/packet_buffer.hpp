@@ -27,10 +27,11 @@ struct packet_buffer
 	bool clone_into(packet_buffer& other, std::error_code& ec) noexcept;
 	auto clone() -> packet_buffer;
 
-	auto data() const noexcept -> ct_packet_data;
-	auto data() noexcept -> packet_data;
+	auto bytes() const noexcept -> ct_packet_data;
+	auto bytes() noexcept -> packet_data;
 
 	auto size() const noexcept -> std::size_t;	
+	auto data() const noexcept -> const T*;
 	auto deleter() const noexcept -> deleter_type;
 	auto deleter(deleter_type deleter) noexcept -> deleter_type;
 

@@ -18,7 +18,10 @@ struct packet_io_pipe
 	
 	void send(packet_buffer<byte> const&) override;
 	auto recv() -> packet_buffer<byte> override;
-	
+protected:
+	auto send_bytes(const byte* bytes, std::size_t size) -> std::size_t;
+	auto recv_bytes(byte* byte, std::size_t size) -> std::size_t;
+
 private:
 	HANDLE m_handle { nullptr };
 };

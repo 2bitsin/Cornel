@@ -9,21 +9,21 @@ template <typename T, typename Allocator>
 packet_buffer<T, Allocator>::packet_buffer(packet_data databits, deleter_type deleter, allocator_type alloc)
 :	m_allocator { std::move(alloc) },
  	m_databits { std::move(databits) },
-	m_deleter { std::move(deleter) },
+	m_deleter { std::move(deleter) }
 {}
 
 template<typename T, typename Allocator>
 packet_buffer<T, Allocator>::packet_buffer(std::size_t size, allocator_type alloc)
 : m_allocator { std::move(alloc) },
  	m_databits { m_allocator.allocate(size), size },
-	m_deleter { [this, size](auto what){ m_allocator.deallocate(what), size }},
+	m_deleter { [this, size](auto what){ m_allocator.deallocate(what, size); }}
 {}
 
 template <typename T, typename Allocator>
 packet_buffer<T, Allocator>::packet_buffer(packet_buffer&& other)
 :	m_allocator { std::move(other.m_allocator) },
  	m_databits { std::move(other.m_databits) },
-	m_deleter { std::move(other.m_deleter) },
+	m_deleter { std::move(other.m_deleter) }
 {}
 
 template <typename T, typename Allocator>
@@ -45,15 +45,15 @@ auto packet_buffer<T, Allocator>::operator=(packet_buffer&& other)
 }
 
 template <typename T, typename Allocator>
-auto packet_buffer<T, Allocator>::data() const noexcept -> ct_packet_data
+auto packet_buffer<T, Allocator>::bytes() const noexcept -> ct_packet_data
 {
 	return m_databits;
 }
 
 template <typename T, typename Allocator>
-auto packet_buffer<T, Allocator>::data() noexcept -> packet_data
+auto packet_buffer<T, Allocator>::bytes() noexcept -> packet_data
 {
-
+	
 	return m_databits;
 }
 
@@ -61,6 +61,12 @@ template <typename T, typename Allocator>
 auto packet_buffer<T, Allocator>::size() const noexcept -> std::size_t
 {
 	return m_databits.size();
+}
+
+template<typename T, typename Allocator>
+auto packet_buffer<T, Allocator>::data() const noexcept -> const T*
+{
+	return m_databits.data();
 }
 
 template<typename T, typename Allocator>
@@ -89,9 +95,9 @@ void packet_buffer<T, Allocator>::clone_into(packet_buffer& other)
 		throw std::logic_error("Can't clone into smaller packet then the original packet.");
 	}
 
-	std::copy(data(), data() + size(), other.data());
+	std::copy(bytes(), bytes() + size(), other.bytes());
 	if (other.size() > size())
-		std::fill(other.data() + size(), other.data() + other.size(), 0);
+		std::fill(other.bytes() + size(), other.bytes() + other.size(), 0);
 }
 
 template<typename T, typename Allocator>
@@ -102,9 +108,9 @@ bool packet_buffer<T, Allocator>::clone_into(packet_buffer& other, std::error_co
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		return false;
 	}
-	std::copy(data(), data() + other.size(), other.data());
+	std::copy(bytes(), bytes() + other.size(), other.bytes());
 	if (other.size() > size())
-		std::fill(other.data() + size(), other.data() + other.size(), 0);
+		std::fill(other.bytes() + size(), other.bytes() + other.size(), 0);
 	return true;
 }
 
@@ -125,7 +131,7 @@ auto packet_buffer<T, Allocator>::split(std::size_t chunk_size) const -> std::ve
 	std::vector<packet_buffer> list;	
 	list.reserve(number_of_chunks);
 	
-	auto tmp = (*this).data();
+	auto tmp = (*this).bytes();
 	while (!tmp.empty())
 	{
 		list.emplace_back(packet_buffer<T, Allocator>{ tmp.subspan(0, chunk_size), [] (auto...) {} });
