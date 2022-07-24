@@ -25,68 +25,76 @@ struct basic_cobs_decoder
 	auto init() -> void 
 	{
 		m_deque.clear();
+		m_packets.clear();
 	}
 
-	template <typename Output>
-	auto done(Output&& frames) -> void		
+	auto done() -> void		
 	{
 		if (!m_deque.empty()) {
-			return decode_packet(frames);		
+			return decode_packet();		
 		}
 	}
 	
-	template <typename Output>
-	auto write(const void* data, std::size_t size, Output&& frames) -> void
+	auto write(const void* data, std::size_t size) -> void
 	{				
 		for (auto&& value : std::span{ (const uint8_t*)data, size })
 		{
-			if (value != COBS_MARK)
-			{
-				m_deque.push_back(value);
+			if (value == COBS_MARK) {
+				decode_packet();
 				continue;
-			}
-			decode_packet(frames);
+			}			
+			m_deque.push_back(value);
 		}		
 	}
 
-	template <typename T, typename Output>
-	auto write(std::span<T> value, Output&& frames) 
+	template <typename T>
+	auto write(std::span<T> value) 
 		-> std::vector<buffer_type>
 	{
-		return write(value.data(), value.size()*sizeof(T), frames);
+		return write(value.data(), value.size()*sizeof(T));
 	}
 
-	template <typename T, typename Output>
-	auto write(std::span<const T> value, Output&& frames) 		
+	template <typename T>
+	auto write(std::span<const T> value) 		
 	{
-		return write(value.data(), value.size()*sizeof(T), frames);
+		return write(value.data(), value.size()*sizeof(T));
 	}
 
-	template <typename Output>
-	auto decode_packet(Output&& frames) 
-		
+	template <typename T>
+	auto pop_front(T&& what)
+	{
+		const auto value = std::move(what.front());
+		what.pop_front();
+		return value;
+	}
+
+	auto decode_packet()		
 	{		
 		buffer_type packet(m_alloc);
 		while(!m_deque.empty())
 		{
-			auto length = m_deque.front();
-			m_deque.pop_front();
-			for (auto i = 1u; i < length; ++i)
-			{
+			const auto len = pop_front(m_deque);
+			for (auto i = 1u; i < len; ++i) {
 				if (m_deque.empty())
 					throw std::runtime_error("cobs_decoder: unexpected end of packet");					
-				packet.push_back(m_deque.front());
-				m_deque.pop_front();
+				packet.emplace_back(pop_front(m_deque));				
 			}
-			if (length < 0xffu)
+			if (len < 0xffu && !m_deque.empty()) {
 				packet.push_back(COBS_MARK);
+			}
 		}
-		frames.emplace_back(std::move(packet));
+		m_packets.emplace_back(std::move(packet));
 	}
 		
+	auto packets() const -> std::vector<buffer_type> const&
+	{
+		return m_packets;
+	}
+
 private:
 	allocator_type const& m_alloc;
 	deque_type m_deque;
+	std::vector<buffer_type> m_packets;
 };
 
 using cobs_decoder = basic_cobs_decoder<>;

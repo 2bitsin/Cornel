@@ -28,6 +28,7 @@ struct errtab_t
 		/* 18 */ "Can't receive packet data.",
 		/* 19 */ "Invalid header signature.",
 		/* 20 */ "Invalid packet checksum.",
+		/* 21 */ "Failed to decode packet correctly.",
 	};
 
 	static constexpr auto value()
@@ -58,3 +59,4 @@ using error_cant_read_header  =	generic_error_t<17, errtab_t>;
 using error_cant_read_payload =	generic_error_t<18, errtab_t>;
 using error_invalid_header		= generic_error_t<19, errtab_t>;
 using error_invalid_checksum	= generic_error_t<20, errtab_t>;
+using error_decode_failed			= generic_error_t<21, errtab_t>;
