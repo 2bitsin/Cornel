@@ -3,6 +3,7 @@
 #include <memory_resource>
 #include <cstdint>
 #include <cstddef>
+#include <vector>
 #include <cassert>
 
 template <typename Allocator = std::pmr::polymorphic_allocator<std::uint8_t>>
@@ -29,6 +30,10 @@ struct basic_cobs_encoder
 	template <typename T>
 	requires (std::is_trivially_copyable<T>::value)
 	auto write(std::span<const T>) -> void;
+
+	template <typename T>
+	requires (std::is_trivially_copyable<T>::value)
+	auto write(std::span<T>) -> void;
 
 	
 	auto data() const noexcept -> const uint8_t*;
@@ -104,15 +109,12 @@ inline auto basic_cobs_encoder<Allocator>::init() noexcept -> void
 template<typename Allocator>
 inline auto basic_cobs_encoder<Allocator>::done() noexcept -> void
 {
+	assert(m_ahead.size() < 0xffu);
+	m_buffer.push_back((m_ahead.size() + 1u) & 0xff);
 	if (m_ahead.size() > 0)
-	{
-		assert(m_ahead.size() < 0xffu);
-		m_buffer.push_back((m_ahead.size() + 1u) & 0xff);
 		m_buffer.insert(m_buffer.end(), m_ahead.begin(), m_ahead.end());
-		m_buffer.push_back(COBS_MARK);
-		m_ahead.clear();
-		
-	}
+	m_buffer.push_back(COBS_MARK);		
+	m_ahead.clear();	
 }
 
 template <typename Allocator>
@@ -138,5 +140,14 @@ inline auto basic_cobs_encoder<Allocator>::write(std::span<const T> value) -> vo
 {
 	write(value.data(), sizeof(T)*value.size());
 }
+
+template <typename Allocator>
+template <typename T>
+requires (std::is_trivially_copyable<T>::value)
+inline auto basic_cobs_encoder<Allocator>::write(std::span<T> value) -> void
+{
+	write(value.data(), sizeof(T)*value.size());
+}
+
 
 using cobs_encoder = basic_cobs_encoder<>;

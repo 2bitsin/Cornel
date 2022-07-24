@@ -63,7 +63,7 @@ void packet_io_pipe::send(packet_buffer<byte> const& packet)
 
 auto packet_io_pipe::recv() -> packet_buffer<byte>
 {
-  return { 1 };
+  return packet_buffer<byte>{ 0 };
 }
 
 auto packet_io_pipe::send_bytes(const byte* bytes, std::size_t size) -> std::size_t
