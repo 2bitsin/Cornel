@@ -1,18 +1,22 @@
+#include "packet_io_win32.hpp"
 #include <limits>
 #include <array>
 
 #include "packet_io_win32.hpp"
 #include "cobs_encoder.hpp"
+#include "cobs_decoder.hpp"
 #include "error.hpp"
 #include "common/crc32.hpp"
+#include "common/span_utility.hpp"
 
-packet_io_win32::packet_io_win32(pipe_t, std::string_view name, client_vs_server_type cvs)
+
+packet_io_win32::packet_io_win32(pipe_t, std::string_view name, client_versus_server_type cvs)
 : m_handle{ INVALID_HANDLE_VALUE }
 {
   HANDLE handle{ INVALID_HANDLE_VALUE };
   if (cvs == as_client)
   {
-    handle = CreateFile(name.data(), GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    handle = CreateFileA(name.data(), GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (handle == INVALID_HANDLE_VALUE || handle == nullptr)
       throw error_cant_open_pipe(format_error, name);
   }
@@ -29,6 +33,76 @@ packet_io_win32::packet_io_win32(pipe_t, std::string_view name, client_vs_server
     throw error_invalid_parameter(format_error, "client_vs_server");
   }
   m_handle = handle;
+}
+
+void packet_io_win32::init_comm_state(std::string_view name, HANDLE handle, serial_params_type const& params)
+{
+	DCB dcb;
+	RtlSecureZeroMemory(&dcb, sizeof(dcb));
+	dcb.DCBlength = sizeof(dcb);
+	if (!GetCommState(handle, &dcb))
+		throw error_cant_get_com_state(format_error, name);
+	
+	dcb.fBinary = TRUE;
+	dcb.fOutxCtsFlow = FALSE;
+	dcb.fOutxDsrFlow = FALSE;
+	dcb.fDtrControl = DTR_CONTROL_DISABLE;
+	dcb.fOutX = FALSE;
+	dcb.fInX = FALSE;
+	dcb.fAbortOnError = FALSE;
+	
+	dcb.BaudRate = params.baud_rate;
+	dcb.ByteSize = params.data_bits;
+	switch (params.parity)
+	{
+	case parity_odd:
+		dcb.fParity = TRUE;
+		dcb.Parity = ODDPARITY;
+		break;
+	case parity_even:
+		dcb.fParity = TRUE;
+		dcb.Parity = EVENPARITY;
+		break;
+	case parity_mark:
+		dcb.fParity = TRUE;
+		dcb.Parity = MARKPARITY;
+		break;
+	case parity_space:
+		dcb.fParity = TRUE;
+		dcb.Parity = SPACEPARITY;
+		break;
+	case parity_none:
+	default:
+		dcb.fParity = FALSE;
+		dcb.Parity = NOPARITY;
+		break;
+	}
+
+	switch (params.stop_bits)
+	{
+	case 2:
+		dcb.StopBits = TWOSTOPBITS;
+		break;
+	default:
+	case 1:
+		dcb.StopBits = ONESTOPBIT;
+		break;
+	}
+
+	if (!SetCommState(handle, &dcb)) {
+		throw error_cant_set_com_state(format_error, name);
+	}
+	
+}
+
+packet_io_win32::packet_io_win32(serial_t, std::string_view name, serial_params_type const& params)
+{
+  HANDLE handle{ INVALID_HANDLE_VALUE };
+	handle = CreateFileA(name.data(), GENERIC_READ|GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
+	if (handle == INVALID_HANDLE_VALUE || handle == nullptr)
+		throw error_cant_open_serial(format_error, name);
+	init_comm_state(name, handle, params);
+	m_handle = handle;	
 }
 
 packet_io_win32::~packet_io_win32()
@@ -49,40 +123,55 @@ void packet_io_win32::send(packet_buffer<byte> const& packet)
     return;
   } 
 
-	static thread_local cobs_encoder e;
+	static thread_local cobs_encoder encoder;
 
-	e.init();
-	e.write<std::uint32_t>('!GSM');
-	e.write<std::uint16_t>(packet.size());
-	e.write(packet.data(), packet.size());
-	e.write<std::uint32_t>(packet.crc32());
-	e.done();
+	encoder.init();
+	encoder.write<std::uint16_t>(PACKET_SIGNATURE);
+	encoder.write<std::uint16_t>(packet.size());
+	encoder.write<std::uint32_t>(packet.crc32());
+	encoder.write(packet.data(), packet.size());
+	encoder.done();
 	
-	send_bytes(e.data(), e.size());	
+	send_bytes(encoder.data(), encoder.size());	
 }
 
 auto packet_io_win32::recv() -> packet_buffer<byte>
 {
 	static thread_local std::vector<uint8_t> temp;
-	static thread_local cobs_decoder d;
+	static thread_local cobs_decoder decoder;
 	
 	std::uint8_t value;
 	
 	temp.clear();
 	while (recv_bytes(&value, 1) == 1 && value != 0)
-		temp.push_back(value);
+		temp.emplace_back(value);
 	
-	d.init();
-	d.write(std::span{ temp });
-	d.done();
+	decoder.init();
+	decoder.write(std::span{ temp });
+	decoder.done();
 	
-	if (d.packets().size() != 1)
+	if (decoder.packets().size() != 1)
 		throw error_decode_failed(format_error);
 
-	auto pbits = std::span{ d.packets().front() };
+	std::span packet_bits{ decoder.packets()[0] };
 	
+	auto signature = take_one<std::uint16_t>(packet_bits);
+	auto packetlen = take_one<std::uint16_t>(packet_bits);
+	auto packetcrc = take_one<std::uint32_t>(packet_bits);
 	
+	if (signature != PACKET_SIGNATURE)
+		throw error_bad_packet_magic(format_error);
 	
+	if (packetlen != packet_bits.size())
+		throw error_bad_packet_size(format_error);
+
+	if (packetcrc != crc32(packet_bits))
+		throw error_bad_packet_crc(format_error);
+	
+	return packet_buffer<byte>(
+		packet_buffer<>::copy_from_flag, 
+		packet_bits 
+	);	
 }
 
 auto packet_io_win32::send_bytes(const byte* bytes, std::size_t size) -> std::size_t

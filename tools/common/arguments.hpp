@@ -81,10 +81,10 @@ protected:
   static auto lexical_cast (std::string_view _value) -> _Output_type
   {
     std::istringstream conv { std::string(_value) };
-    _Output_type result;
-    if (!(conv >> result))
+    _Output_type value;
+    if (!(conv >> value))
       throw std::logic_error("Bad type conversion");
-    return result;
+    return value;
   }
 
 

@@ -3,7 +3,7 @@
 #include <memory>
 #include "packet_buffer.hpp"
 
-struct Ipacket_io
+struct packet_io_interface
 {
 	virtual void send(const packet_buffer<byte>& buffer) = 0;
 	virtual auto recv() -> packet_buffer<byte> = 0;	
@@ -20,7 +20,7 @@ struct packet_io_connect
 		parity_mark
 	};
 
-	enum client_vs_server_type
+	enum client_versus_server_type
 	{
 		as_client,
 		as_server
@@ -34,7 +34,7 @@ struct packet_io_connect
 		parity_type parity { parity_none };
 	};
 	
-	static auto serial(std::string_view port, serial_params_type params = serial_params_type{})->std::unique_ptr<Ipacket_io>;
-	static auto pipe(std::string_view name, client_vs_server_type client_vs_server = as_client) -> std::unique_ptr<Ipacket_io>;
-	static auto network(std::string_view address, uint8_t port, client_vs_server_type client_vs_server = as_client)	-> std::unique_ptr<Ipacket_io>;
+	static auto serial(std::string_view port, serial_params_type params = serial_params_type{}) -> std::unique_ptr<packet_io_interface>;
+	static auto pipe(std::string_view name, client_versus_server_type client_vs_server = as_client) -> std::unique_ptr<packet_io_interface>;
+	static auto network(std::string_view address, uint8_t port, client_versus_server_type client_vs_server = as_client)	-> std::unique_ptr<packet_io_interface>;
 };

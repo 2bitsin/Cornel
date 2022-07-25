@@ -9,8 +9,14 @@ add_library(bootserver_library STATIC
 	packet_buffer.cpp
 	packet_io.hpp
   packet_io.cpp
+	packet_io_win32.hpp
+	packet_io_win32.cpp
 	packet_io_pipe.hpp
-	packet_io_pipe.cpp)
+	packet_io_pipe.cpp
+	packet_io_serial.hpp
+	packet_io_serial.cpp
+)
+	
 set_property(TARGET bootserver_library PROPERTY CXX_STANDARD 23)
 
 add_executable(bootserver server_main.cpp)

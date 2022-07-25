@@ -8,18 +8,15 @@
 #include <cassert>
 #include <optional>
 
-template <typename Allocator = std::pmr::polymorphic_allocator<std::uint8_t>>
-struct basic_cobs_decoder
-{
-	using allocator_type = Allocator;
-	using buffer_type = std::vector<uint8_t, allocator_type>;
-	using deque_type = std::deque<uint8_t, allocator_type>;
+
+struct cobs_decoder
+{	
+	using buffer_type = std::vector<uint8_t>;
+	using deque_type = std::deque<uint8_t>;
 
 	static inline const constexpr uint8_t COBS_MARK = 0u;
 	
-	basic_cobs_decoder(allocator_type const& alloc = allocator_type())
-	: m_alloc(alloc),
-		m_deque(alloc)
+	cobs_decoder()	
 	{}
 		
 	auto init() -> void 
@@ -31,7 +28,7 @@ struct basic_cobs_decoder
 	auto done() -> void		
 	{
 		if (!m_deque.empty()) {
-			return decode_packet();		
+			decode_packet();		
 		}
 	}
 	
@@ -48,14 +45,13 @@ struct basic_cobs_decoder
 	}
 
 	template <typename T>
-	auto write(std::span<T> value) 
-		-> std::vector<buffer_type>
+	auto write(std::span<T> value) -> void		
 	{
 		return write(value.data(), value.size()*sizeof(T));
 	}
 
 	template <typename T>
-	auto write(std::span<const T> value) 		
+	auto write(std::span<const T> value) -> void
 	{
 		return write(value.data(), value.size()*sizeof(T));
 	}
@@ -68,9 +64,9 @@ struct basic_cobs_decoder
 		return value;
 	}
 
-	auto decode_packet()		
+	auto decode_packet() -> void
 	{		
-		buffer_type packet(m_alloc);
+		buffer_type packet;
 		while(!m_deque.empty())
 		{
 			const auto len = pop_front(m_deque);
@@ -92,9 +88,6 @@ struct basic_cobs_decoder
 	}
 
 private:
-	allocator_type const& m_alloc;
 	deque_type m_deque;
 	std::vector<buffer_type> m_packets;
 };
-
-using cobs_decoder = basic_cobs_decoder<>;

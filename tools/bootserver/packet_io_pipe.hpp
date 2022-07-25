@@ -3,5 +3,5 @@
 struct packet_io_pipe
 :	packet_io_win32
 {
-	packet_io_pipe (std::string_view target, client_vs_server_type cvs);
+	packet_io_pipe (std::string_view target, client_versus_server_type cvs);
 };
