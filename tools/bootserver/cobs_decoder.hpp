@@ -8,6 +8,8 @@
 #include <cassert>
 #include <optional>
 
+#include "error.hpp"
+
 
 struct cobs_decoder
 {	
@@ -72,7 +74,7 @@ struct cobs_decoder
 			const auto len = pop_front(m_deque);
 			for (auto i = 1u; i < len; ++i) {
 				if (m_deque.empty())
-					throw std::runtime_error("cobs_decoder: unexpected end of packet");					
+					throw error_decode_failed (format_error);					
 				packet.emplace_back(pop_front(m_deque));				
 			}
 			if (len < 0xffu && !m_deque.empty()) {

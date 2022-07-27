@@ -5,8 +5,8 @@
 
 struct packet_io_interface
 {
-	virtual void send(const packet_buffer<byte>& buffer) = 0;
-	virtual auto recv() -> packet_buffer<byte> = 0;	
+	virtual void send(const packet_buffer<byte>& buffer, std::uint32_t to = 0) = 0;
+	virtual auto recv(std::uint32_t to = 0) -> packet_buffer<byte> = 0;	
 };
 
 struct packet_io_connect
@@ -31,7 +31,7 @@ struct packet_io_connect
 		uint32_t baud_rate { 115200 };
 		uint8_t data_bits { 8 };
 		uint8_t stop_bits { 1 };
-		parity_type parity { parity_none };
+		parity_type parity { parity_none };		
 	};
 	
 	static auto serial(std::string_view port, serial_params_type params = serial_params_type{}) -> std::unique_ptr<packet_io_interface>;

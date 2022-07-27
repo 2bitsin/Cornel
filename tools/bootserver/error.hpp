@@ -19,8 +19,8 @@ struct errtab_t
 		/*  9 */ "Can't create named pipe '{}'.",
 		/* 10 */ "Can't open named pipe '{}'.",
 		/* 11 */ "Can't connect named pipe '{}'.",
-		/* 12 */ "Can't write pipe.",
-		/* 13 */ "Can't read pipe.",
+		/* 12 */ "Can't write pipe (error: {:#08x}). ",
+		/* 13 */ "Can't read pipe (error: {:#08x}).",
 		/* 14 */ "Buffer too large for write or read operation.",
 		/* 15 */ "Can't send packet header.",
 		/* 16 */ "Can't send packet data.",
@@ -35,6 +35,10 @@ struct errtab_t
 		/* 25 */ "Can't open serial port '{}'.",
 		/* 26 */ "Can't get state for port '{}'.",
 		/* 27 */ "Can't set state for port '{}'.",
+		/* 28 */ "Can't get timeouts.",
+		/* 29 */ "Can't set timeouts.",
+		/* 30 */ "Receive operation has timed out.",
+		/* 31 */ "Sending operation has timed out.",
 		
 	};
 
@@ -73,3 +77,7 @@ using error_bad_packet_size			= generic_error_t<24, errtab_t>;
 using error_cant_open_serial		= generic_error_t<25, errtab_t>;
 using error_cant_get_com_state	= generic_error_t<26, errtab_t>;
 using error_cant_set_com_state	= generic_error_t<27, errtab_t>;
+using error_cant_get_timeout		= generic_error_t<28, errtab_t>;
+using error_cant_set_timeout		= generic_error_t<29, errtab_t>;
+using error_recv_timeout				= generic_error_t<30, errtab_t>;
+using error_send_timeout				= generic_error_t<31, errtab_t>;

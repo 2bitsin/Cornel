@@ -111,8 +111,11 @@ packet_io_win32::~packet_io_win32()
     CloseHandle(m_handle);
 }
 
-void packet_io_win32::send(packet_buffer<byte> const& packet)
+void packet_io_win32::send(packet_buffer<byte> const& packet, std::uint32_t to)
 {
+	using clock = std::chrono::high_resolution_clock;
+	using namespace std::chrono_literals;
+
   if (packet.size() < 1)
     throw error_invalid_parameter(format_error, "packet size");
   
@@ -132,20 +135,53 @@ void packet_io_win32::send(packet_buffer<byte> const& packet)
 	encoder.write(packet.data(), packet.size());
 	encoder.done();
 	
-	send_bytes(encoder.data(), encoder.size());	
+	auto t0 = clock::now();
+	auto t1 = t0;
+
+	std::uint32_t sent_bytes;
+	do
+	{
+		if (to != 0u) 
+		{
+			t1 = clock::now();
+			if (t1 - t0 > to * 1ms)
+				throw error_send_timeout(format_error);		
+		}
+		sent_bytes = send_bytes(encoder.data(), encoder.size(), to);	
+	}
+	while(sent_bytes < encoder.size());
 }
 
-auto packet_io_win32::recv() -> packet_buffer<byte>
+auto packet_io_win32::recv(std::uint32_t to) -> packet_buffer<byte>
 {
+	using clock = std::chrono::high_resolution_clock;
+	using namespace std::chrono_literals;
+
 	static thread_local std::vector<uint8_t> temp;
 	static thread_local cobs_decoder decoder;
 	
+	std::uint32_t received_bytes;
 	std::uint8_t value;
 	
 	temp.clear();
-	while (recv_bytes(&value, 1) == 1 && value != 0)
-		temp.emplace_back(value);
-	
+	auto t0 = clock::now();
+	auto t1 = t0;
+	do
+	{
+	L_retry:
+		if (to != 0)
+		{
+			t1 = clock::now();
+			if ((t1 - t0) > (to * 1ms))
+				throw error_recv_timeout(format_error);		
+		}
+		received_bytes = recv_bytes(&value, sizeof(value), to);
+		if (received_bytes != sizeof(value))
+			goto L_retry;		
+		temp.push_back(value);
+	}
+	while(value != 0);
+
 	decoder.init();
 	decoder.write(std::span{ temp });
 	decoder.done();
@@ -174,26 +210,47 @@ auto packet_io_win32::recv() -> packet_buffer<byte>
 	);	
 }
 
-auto packet_io_win32::send_bytes(const byte* bytes, std::size_t size) -> std::size_t
+auto packet_io_win32::send_bytes(const byte* bytes, std::size_t size, std::uint32_t to) -> std::size_t
 {
   unsigned long nWritten{ 0 };
   if constexpr (sizeof(size) > sizeof(DWORD)) {
     if (size > std::numeric_limits<DWORD>::max())
       throw error_buffer_too_big(format_error);
   }
+
+	COMMTIMEOUTS ctos;
+	RtlSecureZeroMemory(&ctos, sizeof(ctos));
+	if (!GetCommTimeouts(m_handle, &ctos))
+		throw error_cant_get_timeout(format_error);
+	ctos.WriteTotalTimeoutConstant = to;
+	ctos.WriteTotalTimeoutMultiplier = 0;
+	if (!SetCommTimeouts(m_handle, &ctos))
+		throw error_cant_set_timeout(format_error);
+	
   if (!WriteFile(m_handle, bytes, (unsigned long)size, &nWritten, nullptr))
-    throw error_cant_write_pipe(format_error);
+    throw error_cant_write_pipe(format_error, GetLastError());
   return nWritten;  
 }
 
-auto packet_io_win32::recv_bytes(byte* byte, std::size_t size) -> std::size_t
+auto packet_io_win32::recv_bytes(byte* byte, std::size_t size, std::uint32_t to) -> std::size_t
 {
   unsigned long nRead{ 0 };
   if constexpr (sizeof(size) > sizeof(DWORD)) {
     if (size > std::numeric_limits<DWORD>::max())
       size = std::numeric_limits<DWORD>::max();
   }
-  if (!ReadFile(m_handle, byte, (unsigned long)size, &nRead, nullptr))
-    throw error_cant_read_pipe(format_error);
+	
+	COMMTIMEOUTS ctos;
+	RtlSecureZeroMemory(&ctos, sizeof(ctos));
+	if (!GetCommTimeouts(m_handle, &ctos))
+		throw error_cant_get_timeout(format_error);
+	ctos.ReadIntervalTimeout = 0;
+	ctos.ReadTotalTimeoutConstant = to;
+	ctos.ReadTotalTimeoutMultiplier = 0;
+	if (!SetCommTimeouts(m_handle, &ctos))
+		throw error_cant_set_timeout(format_error);
+
+  if (!ReadFile(m_handle, byte, (unsigned long)size, &nRead, nullptr)) 
+    throw error_cant_read_pipe(format_error, GetLastError());
   return nRead;
 }
