@@ -11,4 +11,3 @@ void v4_init_sockaddr(struct sockaddr& target, std::size_t len, const struct v4_
 auto v4_parse_address(std::string_view what) -> uint32_t;
 auto v4_parse_address_and_port(std::string_view what) -> std::pair<uint32_t, uint16_t>;
 auto v4_address_to_string(std::uint32_t) -> std::string;
-auto v4_resolve_single(std::string_view target) -> std::uint32_t;
