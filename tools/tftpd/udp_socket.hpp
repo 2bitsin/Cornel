@@ -5,5 +5,6 @@
 struct udp_socket
 {
 	udp_socket(const v4_address& addr);
+	udp_socket
 
 };

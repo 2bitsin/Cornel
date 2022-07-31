@@ -38,7 +38,7 @@ static void v4_initialize()
 	});
 }
 
-static auto v4_resolve(std::string_view target) -> std::uint32_t
+auto v4_resolve_single(std::string_view target) -> std::uint32_t
 {
 	using namespace std::string_literals;
 	std::string tmp{ target };
@@ -89,7 +89,7 @@ auto v4_parse_address_and_port(std::string_view what) -> std::pair<uint32_t, uin
 	}		
 	tmp = what;
 	if (!inet_pton(AF_INET, tmp.c_str(), &address)) {
-		return { v4_resolve(tmp), port };
+		return { v4_resolve_single(tmp), port };
 	}
 	return { net_to_host(address.S_un.S_addr), port };
 }
