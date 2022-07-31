@@ -23,7 +23,3 @@ add_executable(bootserver server_main.cpp)
 target_link_libraries(bootserver PRIVATE common bootserver_library)
 set_property(TARGET bootserver PROPERTY CXX_STANDARD 23)
 
-add_executable(bootserver_client client_main.cpp)
-target_link_libraries(bootserver_client PRIVATE common bootserver_library)
-set_property(TARGET bootserver_client PROPERTY CXX_STANDARD 23)
-
