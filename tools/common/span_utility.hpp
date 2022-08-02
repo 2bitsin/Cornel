@@ -3,8 +3,9 @@
 #include <span>
 #include <stdexcept>
 
-template <typename T>
-auto take_one(std::span<const uint8_t>& bits) -> const T&
+template <typename T, typename Q>
+requires (sizeof (Q) == 1)
+auto take_one(std::span<const Q>& bits) -> const T&
 {	
 	if (sizeof(T) > bits.size())
 		throw std::runtime_error("not enough bytes in span");

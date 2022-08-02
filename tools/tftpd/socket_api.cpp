@@ -4,6 +4,7 @@
 #include <mutex>
 #include <system_error>
 #include <iostream>
+#include <charconv>
 
 #include "socket_api.hpp"
 #include "byteorder.hpp"
@@ -327,4 +328,27 @@ auto v4_socket_send(int_socket_type socket, std::span<const std::byte>& buffer, 
 	throw std::runtime_error("failed to send bytes trough socket, error code : "s + 
 													 last_error_as_string());
 
+}
+
+static auto to_hex(std::uint8_t value) -> std::string
+{
+	static constexpr const char x [] = "0123456789ABCDEF";
+	return std::string{ x[(value >> 4) & 0xf], x[value & 0xf] };
+}
+
+auto mac_address_to_string(std::span<const std::uint8_t> data)
+	-> std::string
+{
+	using namespace std::string_literals;
+	if (data.size () < 1u)
+		throw std::runtime_error("address is empty"s);
+	
+	std::string value;	
+	value.append(to_hex(data.front()));
+	for (auto&& a_byte : data.subspan(1u))
+	{
+		value.push_back('-');
+		value.append(to_hex(a_byte));
+	}
+	return value;
 }

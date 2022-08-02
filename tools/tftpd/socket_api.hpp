@@ -23,3 +23,4 @@ void v4_socket_bind(int_socket_type socket, const struct v4_address& address);
 void v4_socket_close(int_socket_type socket);
 auto v4_socket_recv(int_socket_type socket, std::span<std::byte>& buffer, struct v4_address& address, std::uint32_t flags) -> std::size_t;
 auto v4_socket_send(int_socket_type socket, std::span<const std::byte>& buffer, const struct v4_address& address, std::uint32_t flags) -> std::size_t;
+auto mac_address_to_string(std::span<const std::uint8_t> data) -> std::string;

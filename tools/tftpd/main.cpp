@@ -3,6 +3,7 @@
 #include <vector>
 #include <span>
 
+#include "v4_dhcp.hpp"
 #include "v4_address.hpp"
 
 int main(int argc, char** argv)
@@ -16,7 +17,9 @@ try
 	v4_address source;
 	while (dhcp_sock.recv(buffer_s, source, 0u))
 	{
+		std::cout << "\n **** \n\n";
 		std::cout << "Received " << buffer_s.size() << " bytes from " << source.to_string() << std::endl;
+		v4_dhcp::parse(buffer_s).pretty_print(std::cout);
 		buffer_s = buffer_vec;
 	}
 
