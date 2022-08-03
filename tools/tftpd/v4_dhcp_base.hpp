@@ -26,23 +26,24 @@ struct v4_dhcp_base
 	v4_dhcp_base() 
 	{}
 
-	template <is_required_type Is_required = required, auto ... Q>
-	auto deserialize(serdes<serdes_reader, Q...>& _serdes)
+	template <auto ... Q>
+	auto& deserialize(serdes<serdes_reader, Q...>& _serdes)
 	{
-		_serdes.deserialize<Is_required, network_byte_order>(opcode);
-		_serdes.deserialize<Is_required, network_byte_order>(hardware_type);
-		_serdes.deserialize<Is_required, network_byte_order>(hardware_address_length);
-		_serdes.deserialize<Is_required, network_byte_order>(number_of_hops);
-		_serdes.deserialize<Is_required, network_byte_order>(transaction_id);
-		_serdes.deserialize<Is_required, network_byte_order>(seconds_elapsed);
-		_serdes.deserialize<Is_required, network_byte_order>(flags);
-		_serdes.deserialize<Is_required, network_byte_order>(client_ip_address_v4);
-		_serdes.deserialize<Is_required, network_byte_order>(your_ip_address_v4);
-		_serdes.deserialize<Is_required, network_byte_order>(server_ip_address_v4);
-		_serdes.deserialize<Is_required, network_byte_order>(gateway_ip_address_v4);
-		_serdes.deserialize<Is_required, network_byte_order>(client_hardware_address);
-		_serdes.deserialize<Is_required, network_byte_order>(server_host_name);
-		_serdes.deserialize<Is_required, network_byte_order>(boot_file_name);
-		_serdes.deserialize<Is_required, network_byte_order>(magic_cookie);
+		_serdes.deserialize(opcode);
+		_serdes.deserialize(hardware_type);
+		_serdes.deserialize(hardware_address_length);
+		_serdes.deserialize(number_of_hops);
+		_serdes.deserialize(transaction_id);
+		_serdes.deserialize(seconds_elapsed);
+		_serdes.deserialize(flags);
+		_serdes.deserialize(client_ip_address_v4);
+		_serdes.deserialize(your_ip_address_v4);
+		_serdes.deserialize(server_ip_address_v4);
+		_serdes.deserialize(gateway_ip_address_v4);
+		_serdes.deserialize(client_hardware_address);
+		_serdes.deserialize(server_host_name);
+		_serdes.deserialize(boot_file_name);
+		_serdes.deserialize(magic_cookie);
+		return *this;
 	}
 };
