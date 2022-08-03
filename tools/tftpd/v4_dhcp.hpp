@@ -6,34 +6,14 @@
 #include <span>
 #include <iostream>
 
+#include "v4_dhcp_base.hpp"
+
 struct v4_dhcp
 {
-	#pragma pack(push, 1)
-	struct basic_info
-	{
-		std::uint8_t	opcode;
-		std::uint8_t	hardware_type;
-		std::uint8_t	hardware_address_length;
-		std::uint8_t	number_of_hops;
-		std::uint32_t transaction_id;
-		std::uint16_t seconds_elapsed;
-		std::uint16_t flags;
-		std::uint32_t client_ip_address_v4;
-		std::uint32_t your_ip_address_v4;
-		std::uint32_t server_ip_address_v4;
-		std::uint32_t gateway_ip_address_v4;
-		std::uint8_t	client_hardware_address [16];
-		char					server_host_name [64];
-		char					boot_file_name [128];	
-		std::uint32_t	magic_cookie;
-	};
-	#pragma pack(pop)
-
-
 	enum opcode : uint8_t
 	{
-		REQUEST		= 1u,
-		REPLY			= 2u
+		REQUEST				= 1u,
+		REPLY					= 2u
 	};
 	
 	enum message_type : uint8_t
@@ -50,7 +30,7 @@ struct v4_dhcp
 
 	enum hardware_type : uint8_t
 	{
-		ETHERNET	= 1u		
+		ETHERNET			= 1u		
 	};
 
 	using mac_address_type = std::uint8_t[6];
@@ -63,6 +43,6 @@ protected:
 	static auto parse(v4_dhcp& target, std::span<const std::byte> bits) -> void;
 	
 private:
-	basic_info m_info;
+	v4_dhcp_base m_base;
 	
 };

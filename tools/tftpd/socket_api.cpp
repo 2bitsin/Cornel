@@ -7,7 +7,7 @@
 #include <charconv>
 
 #include "socket_api.hpp"
-#include "byteorder.hpp"
+#include "common/byte_order.hpp"
 #include "v4_address.hpp"
 
 #define WIN32_LEAN_AND_MEAN
