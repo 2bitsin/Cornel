@@ -27,7 +27,8 @@ struct v4_dhcp_base
 	{}
 
 	template <auto ... Q>
-	auto& deserialize(serdes<serdes_reader, Q...>& _serdes)
+	auto deserialize(serdes<serdes_reader, Q...>& _serdes) 
+		-> serdes<serdes_reader, Q...>&
 	{
 		_serdes.deserialize(opcode);
 		_serdes.deserialize(hardware_type);
@@ -43,7 +44,7 @@ struct v4_dhcp_base
 		_serdes.deserialize(client_hardware_address);
 		_serdes.deserialize(server_host_name);
 		_serdes.deserialize(boot_file_name);
-		_serdes.deserialize(magic_cookie);
-		return *this;
+		_serdes.deserialize(magic_cookie);		
+		return _serdes;
 	}
 };

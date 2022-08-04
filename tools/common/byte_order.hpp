@@ -8,7 +8,6 @@
 
 namespace details
 {
-	template <typename T>
 	inline void reverse_bytes_inplace(void* bytes, std::size_t len)
 	{
 		std::reverse((std::byte*)(bytes), (std::byte*)(bytes) + len);

@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdint>
 #include <span>
+#include <type_traits>
 
 enum byte_order_type : bool
 {
@@ -47,16 +48,17 @@ struct serdes<serdes_reader, Byte_order>
 	template <typename T>
 	requires requires (T& value) 
 	{ value.deserialize(std::declval<serdes&>()); }
-	auto& deserialize(T& value)
+	auto deserialize(T& value) -> serdes&
 	{
 		value.deserialize(*this);
 		return *this;
 	}
 
-	template <typename T>
-	requires (std::is_triavial_v<T>)
-	auto& deserialize(T& value) 
+	template <typename T>	
+	requires (std::is_trivial_v<T>)
+	auto deserialize(T& value) -> serdes&
 	{
+		static_assert(std::is_trivial_v<T>);
 		if (m_curr.size() < sizeof(T)) {
 			throw std::runtime_error("deserialize: not enough data");
 			return *this;
@@ -68,20 +70,29 @@ struct serdes<serdes_reader, Byte_order>
 		m_curr = m_curr.subspan(sizeof(T));
 		return *this;
 	}
-
+	
 	template <typename T, std::size_t N>
-	auto& deserialize(T (&value)[N])
+	auto deserialize(T (&value)[N]) -> serdes&
 	{
 		for (std::size_t i = 0; i < N; ++i)
 			deserialize (value[i]);
 		return *this;
 	}
-		
-	template <array_subtype Array_subtype = zero_terminated, typename Array_container>
-	requires (!std::is_trivial_v<Array_container>)
-	auto& desrialize_array_to_container(Array_container& output_value)
+
+	template <typename T>
+	auto deserialize(std::span<T> output_value) -> serdes&
 	{
-		using value_type = typename Array_container::value_type;
+		for(auto&& value : output_value) {
+			deserialize(value);
+		}	
+		return *this;
+	}
+			
+	template <array_subtype Array_subtype = zero_terminated, typename Array_container>
+	requires (!std::is_trivial_v<Array_container> && std::is_trivial_v<typename Array_container::value_type>)
+	auto desrialize_array_to_container(Array_container& output_value) -> serdes&
+	{
+		using value_type = typename Array_container::value_type;		
 
 		value_type char_value;
 		Array_container value;
@@ -114,23 +125,15 @@ struct serdes<serdes_reader, Byte_order>
 	}
 	
 	template <array_subtype Array_subtype, typename T>
-	auto& deserialize(std::vector<T>& output_value)
+	auto deserialize(std::vector<T>& output_value) -> serdes&
 	{
 		return deserialize_array_to_cotainer<Array_subtype>(output_value);
 	}
 
 	template <array_subtype Array_subtype, typename T>
-	auto& deserialize(std::basic_string<T>& output_value)
+	auto deserialize(std::basic_string<T>& output_value) -> serdes&
 	{
 		return deserialize_array_to_cotainer<Array_subtype>(output_value);
-	}
-
-	template <typename T>
-	auto& deserialize(std::span<T>& output_value)
-	{
-		for(auto&& value : output_value) {
-			deserialize(value);
-		}	
 	}
 	
 	auto& skip(std::size_t number_of_bytes)
