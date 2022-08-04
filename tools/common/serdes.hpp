@@ -14,19 +14,7 @@ enum byte_order_type : bool
 	host_byte_order = false
 };
 
-enum is_required_type : bool
-{
-	required = true,
-	optional = false
-};
-
-enum array_subtype: uint8_t
-{
-	zero_terminated,
-	length_prefixed
-};
-
-enum serdes_type : uint8_t
+enum serdes_type : bool
 {
 	serdes_reader,
 	serdes_writter
@@ -46,17 +34,24 @@ struct serdes<serdes_reader, Byte_order>
 	{}
 
 	template <typename T>
+	requires (std::is_trivial_v<T> && sizeof(T) == 1u && !std::is_const_v<T>)
+	serdes(std::span<T> bits)
+	: serdes(std::span<const T>(bits))
+	{}
+
+
+	template <typename T>
 	requires requires (T& value) 
-	{ value.deserialize(std::declval<serdes&>()); }
-	auto deserialize(T& value) -> serdes&
+	{ value.serdes(std::declval<serdes&>()); }
+	auto operator () (T& value, std::string_view = "") -> serdes&
 	{
-		value.deserialize(*this);
+		value.serdes(*this);
 		return *this;
 	}
 
 	template <typename T>	
 	requires (std::is_trivial_v<T>)
-	auto deserialize(T& value) -> serdes&
+	auto operator () (T& value, std::string_view = "") -> serdes&
 	{
 		static_assert(std::is_trivial_v<T>);
 		if (m_curr.size() < sizeof(T)) {
@@ -72,68 +67,20 @@ struct serdes<serdes_reader, Byte_order>
 	}
 	
 	template <typename T, std::size_t N>
-	auto deserialize(T (&value)[N]) -> serdes&
+	auto operator () (T (&output_value)[N], std::string_view = "") -> serdes&
 	{
-		for (std::size_t i = 0; i < N; ++i)
-			deserialize (value[i]);
+		for (auto&& value : output_value)
+			(*this)(value);
 		return *this;
 	}
 
 	template <typename T>
-	auto deserialize(std::span<T> output_value) -> serdes&
+	auto operator () (std::span<T> output_value, std::string_view = "") -> serdes&
 	{
 		for(auto&& value : output_value) {
-			deserialize(value);
+			(*this)(value);
 		}	
 		return *this;
-	}
-			
-	template <array_subtype Array_subtype = zero_terminated, typename Array_container>
-	requires (!std::is_trivial_v<Array_container> && std::is_trivial_v<typename Array_container::value_type>)
-	auto desrialize_array_to_container(Array_container& output_value) -> serdes&
-	{
-		using value_type = typename Array_container::value_type;		
-
-		value_type char_value;
-		Array_container value;
-		
-		if constexpr (Array_subtype == zero_terminated)
-		{
-		L_next_char:
-			deserialize (char_value);
-			if (char_value == value_type(0)) {
-				output_value = std::move(value);
-				return *this;
-			}
-			value.push_back(char_value);
-			goto L_next_char;			
-		}
-		
-		if constexpr (Array_subtype == length_prefixed)
-		{
-			deserialize (char_value);
-			auto remaining_chars = (std::size_t)char_value;
-		L_next_char:
-			deserialize (char_value);
-			value.push_back(char_value);
-			--remaining_chars;
-			if (remaining_chars > 0)
-				goto L_next_char;		
-			output_value = std::move(value);
-			return *this;
-		}		
-	}
-	
-	template <array_subtype Array_subtype, typename T>
-	auto deserialize(std::vector<T>& output_value) -> serdes&
-	{
-		return deserialize_array_to_cotainer<Array_subtype>(output_value);
-	}
-
-	template <array_subtype Array_subtype, typename T>
-	auto deserialize(std::basic_string<T>& output_value) -> serdes&
-	{
-		return deserialize_array_to_cotainer<Array_subtype>(output_value);
 	}
 	
 	auto& skip(std::size_t number_of_bytes)
@@ -165,3 +112,5 @@ private:
 	std::span<const std::byte> m_curr;
 	std::span<const std::byte> m_data;
 };
+
+#define SERDES_APPLY(serdes, variable) serdes(variable, #variable)

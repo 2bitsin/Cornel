@@ -14,12 +14,16 @@ try
 	std::vector<std::byte> buffer_vec(8u*1024u, std::byte{});
 	
 	std::span<std::byte> buffer_s = buffer_vec;
+	
+
 	v4_address source;
 	while (dhcp_sock.recv(buffer_s, source, 0u))
 	{
 		std::cout << "\n **** \n\n";
 		std::cout << "Received " << buffer_s.size() << " bytes from " << source.to_string() << std::endl;
-		v4_dhcp::parse(buffer_s).pretty_print(std::cout);
+
+		serdes<serdes_reader, network_byte_order> sdr(buffer_s);
+		v4_dhcp(sdr).pretty_print(std::cout);
 		buffer_s = buffer_vec;
 	}
 

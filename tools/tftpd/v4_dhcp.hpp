@@ -3,55 +3,68 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <span>
 #include <iostream>
+#include <span>
+#include <optional>
 
-#include "v4_dhcp_base.hpp"
-#include "v4_dhcp_opts.hpp"
+#include "common/serdes.hpp"
 
 struct v4_dhcp
 {
-	enum opcode : uint8_t
-	{
-		REQUEST				= 1u,
-		REPLY					= 2u
-	};
-	
-	enum message_type : uint8_t
-	{
-		DHCPDISCOVER	= 1u,
-		DHCPOFFER			= 2u,
-		DHCPRQUEST		= 3u,
-		DHCPDECLINE		= 4u,
-		DHCPACK				= 5u,
-		DHCPNAK				= 6u,
-		DHCPRELEASE		= 7u,
-		DHCPINFORM		= 8u
-	};
 
-	enum hardware_type : uint8_t
+	using mac_address_type = std::uint8_t[6];	
+
+
+	template <auto... U>
+	v4_dhcp(serdes<U...>& _serdes)
 	{
-		ETHERNET			= 1u		
-	};
+		_serdes(*this);
+	}
 
-	using mac_address_type = std::uint8_t[6];
-	
-	static auto parse(std::span<const std::byte> bits) -> v4_dhcp;
 
+	template <typename _Serdes>
+	auto serdes(_Serdes& _serdes) -> _Serdes&
+	{
+		SERDES_APPLY(_serdes, m_opcode);
+		SERDES_APPLY(_serdes, m_hardware_type);
+		SERDES_APPLY(_serdes, m_hardware_address_length);
+		SERDES_APPLY(_serdes, m_number_of_hops);
+		SERDES_APPLY(_serdes, m_transaction_id);
+		SERDES_APPLY(_serdes, m_seconds_elapsed);
+		SERDES_APPLY(_serdes, m_flags);
+		SERDES_APPLY(_serdes, m_client_ip_address_v4);
+		SERDES_APPLY(_serdes, m_your_ip_address_v4);
+		SERDES_APPLY(_serdes, m_server_ip_address_v4);
+		SERDES_APPLY(_serdes, m_gateway_ip_address_v4);
+		SERDES_APPLY(_serdes, m_client_hardware_address);
+		SERDES_APPLY(_serdes, m_server_host_name);
+		SERDES_APPLY(_serdes, m_boot_file_name);
+		SERDES_APPLY(_serdes, m_magic_cookie);		
+		return _serdes;
+	}
 
 	auto pretty_print(std::ostream& oss) -> std::ostream&;
 
 protected:
-	static auto parse(v4_dhcp& target, std::span<const std::byte> bits) -> void;
 
-	auto pretty_print_option(std::ostream& oss, v4_dhcp_opts::option<v4_dhcp_opts::CODE_MESSAGE_TYPE> const& item) -> std::ostream&;
-	auto pretty_print_option(std::ostream& oss, v4_dhcp_opts::option<v4_dhcp_opts::CODE_CLIEANT_SYSTEM_ARCHITECTURE> const& item) -> std::ostream&;
-	auto pretty_print_option(std::ostream& oss, v4_dhcp_opts::option<v4_dhcp_opts::CODE_PARAMETER_REQUEST_LIST> const& item) -> std::ostream&;
+	// Primary
+	std::uint8_t	m_opcode;
+	std::uint8_t	m_hardware_type;
+	std::uint8_t	m_hardware_address_length;
+	std::uint8_t	m_number_of_hops;
+	std::uint32_t m_transaction_id;
+	std::uint16_t m_seconds_elapsed;
+	std::uint16_t m_flags;
+	std::uint32_t m_client_ip_address_v4;
+	std::uint32_t m_your_ip_address_v4;
+	std::uint32_t m_server_ip_address_v4;
+	std::uint32_t m_gateway_ip_address_v4;
+	std::uint8_t	m_client_hardware_address [16];
+	char					m_server_host_name [64];
+	char					m_boot_file_name [128];	
+	std::uint32_t	m_magic_cookie;
 
-	template<typename T>
-	auto& pretty_print_option(std::ostream& oss, T const& value);
-	
-private:
-	v4_dhcp_base m_base;
-	v4_dhcp_opts m_opts;
+	// Secondary
+
+	std::unique_ptr<uint8_t[]> m_options[256];
 };
