@@ -8,6 +8,7 @@
 #include <optional>
 
 #include "common/serdes.hpp"
+#include "v4_dhcp_options.hpp"
 
 struct v4_dhcp
 {
@@ -39,7 +40,8 @@ struct v4_dhcp
 		SERDES_APPLY(_serdes, m_client_hardware_address);
 		SERDES_APPLY(_serdes, m_server_host_name);
 		SERDES_APPLY(_serdes, m_boot_file_name);
-		SERDES_APPLY(_serdes, m_magic_cookie);		
+		SERDES_APPLY(_serdes, m_magic_cookie);
+		SERDES_APPLY(_serdes, m_options);
 		return _serdes;
 	}
 
@@ -48,23 +50,20 @@ struct v4_dhcp
 protected:
 
 	// Primary
-	std::uint8_t	m_opcode;
-	std::uint8_t	m_hardware_type;
-	std::uint8_t	m_hardware_address_length;
-	std::uint8_t	m_number_of_hops;
-	std::uint32_t m_transaction_id;
-	std::uint16_t m_seconds_elapsed;
-	std::uint16_t m_flags;
-	std::uint32_t m_client_ip_address_v4;
-	std::uint32_t m_your_ip_address_v4;
-	std::uint32_t m_server_ip_address_v4;
-	std::uint32_t m_gateway_ip_address_v4;
-	std::uint8_t	m_client_hardware_address [16];
-	char					m_server_host_name [64];
-	char					m_boot_file_name [128];	
-	std::uint32_t	m_magic_cookie;
-
-	// Secondary
-
-	std::unique_ptr<uint8_t[]> m_options[256];
+	std::uint8_t		m_opcode;
+	std::uint8_t		m_hardware_type;
+	std::uint8_t		m_hardware_address_length;
+	std::uint8_t		m_number_of_hops;
+	std::uint32_t		m_transaction_id;
+	std::uint16_t		m_seconds_elapsed;
+	std::uint16_t		m_flags;
+	std::uint32_t		m_client_ip_address_v4;
+	std::uint32_t		m_your_ip_address_v4;
+	std::uint32_t		m_server_ip_address_v4;
+	std::uint32_t		m_gateway_ip_address_v4;
+	std::uint8_t		m_client_hardware_address [16];
+	char						m_server_host_name [64];
+	char						m_boot_file_name [128];	
+	std::uint32_t		m_magic_cookie;
+	v4_dhcp_options m_options;
 };
