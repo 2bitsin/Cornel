@@ -3,10 +3,10 @@
 #include <format>
 
 #include "socket_api.hpp"
-#include "v4_dhcp.hpp"
-#include "common/byte_order.hpp"
-#include "common/span_utility.hpp"
-#include "common/serdes.hpp"
+#include "v4_dhcp_packet.hpp"
+#include <common/byte_order.hpp>
+#include <common/span_utility.hpp>
+#include <common/serdes.hpp>
 
 
 
@@ -49,7 +49,7 @@ static auto v4_dhcp_bootp_flags_to_string(std::uint16_t flags)
 }
 
 
-auto v4_dhcp::pretty_print(std::ostream& oss)->std::ostream&
+auto v4_dhcp_packet::pretty_print(std::ostream& oss)->std::ostream&
 {
 	using namespace std::string_view_literals;
 	oss << std::format("Opcode ................... : {} \n"sv, v4_dhcp_opcode_to_string(m_opcode));

@@ -352,3 +352,76 @@ auto mac_address_to_string(std::span<const std::uint8_t> data)
 	}
 	return value;
 }
+
+static int socket_option_to_integer(socket_option option)
+{
+	switch (option)
+	{
+	case socket_option::broadcast:							return SO_BROADCAST;
+	case socket_option::conditional_accept:			return SO_CONDITIONAL_ACCEPT;
+	case socket_option::debug:									return SO_DEBUG;		
+	case socket_option::dont_linger:						return SO_DONTLINGER;
+	case socket_option::dont_route:							return SO_DONTROUTE;
+	case socket_option::group_priority:					return SO_GROUP_PRIORITY;
+	case socket_option::keep_alive:							return SO_KEEPALIVE;
+	case socket_option::linger:									return SO_LINGER;
+	case socket_option::oob_inline:							return SO_OOBINLINE;
+	case socket_option::receive_buffer_size:		return SO_RCVBUF;
+	case socket_option::reuse_address:					return SO_REUSEADDR;
+	case socket_option::exclusive_address_use:	return SO_EXCLUSIVEADDRUSE;
+	case socket_option::receve_timeout:					return SO_RCVTIMEO;
+	case socket_option::send_timeout:						return SO_SNDTIMEO;
+	case socket_option::accepting_connections:	return SO_ACCEPTCONN;
+	case socket_option::socket_type:						return SO_TYPE;
+	defaut:
+		throw std::runtime_error("unknown socket option");
+	}
+}
+
+static auto integer_to_socket_option(int value) -> socket_option
+{
+	switch (value)
+	{
+	case SO_BROADCAST:					return socket_option::broadcast;
+	case SO_CONDITIONAL_ACCEPT: return socket_option::conditional_accept;
+	case SO_DEBUG:							return socket_option::debug;
+	case SO_DONTLINGER:					return socket_option::dont_linger;
+	case SO_DONTROUTE:					return socket_option::dont_route;
+	case SO_GROUP_PRIORITY:			return socket_option::group_priority;
+	case SO_KEEPALIVE:					return socket_option::keep_alive;
+	case SO_LINGER:							return socket_option::linger;
+	case SO_OOBINLINE:					return socket_option::oob_inline;
+	case SO_RCVBUF:							return socket_option::receive_buffer_size;
+	case SO_REUSEADDR:					return socket_option::reuse_address;
+	case SO_EXCLUSIVEADDRUSE:		return socket_option::exclusive_address_use;
+	case SO_RCVTIMEO:						return socket_option::receve_timeout;
+	case SO_SNDTIMEO:						return socket_option::send_timeout;
+	case SO_ACCEPTCONN:					return socket_option::accepting_connections;
+	case SO_TYPE:								return socket_option::socket_type;
+	case SO_ERROR:							return socket_option::error;		
+	default:
+		throw std::runtime_error("unknown socket option");
+	}
+}
+
+auto socket_option_get(int_socket_type s, socket_option o, void const* v, int& sz) -> void
+{
+	using namespace std::string_literals;
+	int sl = SOL_SOCKET;
+	int so = socket_option_to_integer(o);
+	if (auto r = getsockopt(s, sl, so, (char*)v, &sz); r != 0) {
+		throw std::runtime_error("failed to get socket option, error code : "s + 
+			                       last_error_as_string());
+	}
+}
+
+auto socket_option_set(int_socket_type s, socket_option o, void* v, int sz) -> void
+{
+	using namespace std::string_literals;
+	int sl = SOL_SOCKET;
+	int so = socket_option_to_integer(o);
+	if (auto r = setsockopt(s, sl, so, (char const*)v, sz); r != 0) {
+		throw std::runtime_error("failed to set socket option, error code : "s + 
+			                       last_error_as_string());
+	}
+}

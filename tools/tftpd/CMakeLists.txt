@@ -8,8 +8,8 @@ add_executable(tftpd
 	v4_address.cpp
 	udp_socket.hpp
   udp_socket.cpp 
-  v4_dhcp.hpp
-  v4_dhcp.cpp
+  v4_dhcp_packet.hpp
+  v4_dhcp_packet.cpp
 )
 
 target_link_libraries(tftpd PRIVATE common)

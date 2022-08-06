@@ -8,6 +8,27 @@
 #include <span>
 
 using int_socket_type = std::intptr_t;
+	
+enum class socket_option : int
+{
+	broadcast,
+	conditional_accept,
+	debug,
+	dont_linger,
+	dont_route,
+	group_priority,
+	keep_alive,
+	linger,
+	oob_inline,
+	receive_buffer_size,
+	reuse_address,
+	exclusive_address_use,
+	receve_timeout,
+	send_timeout,
+	accepting_connections,
+	socket_type,
+	error
+};
 
 void v4_init_sockaddr(struct sockaddr_in& target, std::size_t len, const struct v4_address& source);
 void v4_init_sockaddr(struct sockaddr& target, std::size_t len, const struct v4_address& source);
@@ -23,4 +44,8 @@ void v4_socket_bind(int_socket_type socket, const struct v4_address& address);
 void v4_socket_close(int_socket_type socket);
 auto v4_socket_recv(int_socket_type socket, std::span<std::byte>& buffer, struct v4_address& address, std::uint32_t flags) -> std::size_t;
 auto v4_socket_send(int_socket_type socket, std::span<const std::byte>& buffer, const struct v4_address& address, std::uint32_t flags) -> std::size_t;
+
+auto socket_option_get(int_socket_type socket, socket_option option, void const* value, int& size) -> void;
+auto socket_option_set(int_socket_type socket, socket_option option, void* value, int size) -> void;
+
 auto mac_address_to_string(std::span<const std::uint8_t> data) -> std::string;

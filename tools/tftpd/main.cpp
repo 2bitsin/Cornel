@@ -5,7 +5,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include "v4_dhcp.hpp"
+#include "v4_dhcp_packet.hpp"
 #include "v4_address.hpp"
 
 #include <common/config_ini.hpp>
@@ -31,7 +31,7 @@ try
 			std::cout << "[[Received " << buffer_s.size() << " bytes from " << source.to_string() << "]]\n";
 
 			serdes<serdes_reader, network_byte_order> sdr(buffer_s);
-			v4_dhcp packet{ sdr };
+			v4_dhcp_packet packet{ sdr };
 
 			packet.pretty_print(std::cout);
 			

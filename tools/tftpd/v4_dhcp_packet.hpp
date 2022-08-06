@@ -7,17 +7,17 @@
 #include <span>
 #include <optional>
 
-#include "common/serdes.hpp"
+#include <common/serdes.hpp>
 #include "v4_dhcp_options.hpp"
 
-struct v4_dhcp
+struct v4_dhcp_packet
 {
 
 	using mac_address_type = std::uint8_t[6];	
 
 
 	template <auto... U>
-	v4_dhcp(serdes<U...>& _serdes)
+	v4_dhcp_packet(serdes<U...>& _serdes)
 	{
 		_serdes(*this);
 	}
