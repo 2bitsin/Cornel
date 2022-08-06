@@ -10,13 +10,19 @@
 static inline void ltrim(std::string_view& sv)
 {
 	using namespace std::string_view_literals;
-	sv.remove_prefix(sv.find_first_not_of(" \t\n\r\f\v"sv));
+	if (sv.empty())
+		return;	
+	auto pos = sv.find_first_not_of(" \t\n\r\f\v"sv);	
+	sv.remove_prefix(pos);
 }
 
 static inline void rtrim(std::string_view& sv)
 {
 	using namespace std::string_view_literals;
-	sv.remove_suffix(sv.find_last_not_of(" \t\n\r\f\v"sv) + 1);
+	if (sv.empty())
+		return;
+	auto pos = sv.find_last_not_of(" \t\n\r\f\v"sv);
+	sv.remove_suffix(sv.size() - pos - 1u);
 }
 
 static inline void trim(std::string_view& sv)

@@ -115,6 +115,18 @@ struct v4_dhcp_options
 		return get(code, values, std::make_index_sequence<sizeof...(Q)>());	
 	}
 
+	auto assign(std::uint8_t code, v4_dhcp_options const& from)
+	{
+		using std::make_unique;
+		if (from.m_values[code - 1u] == nullptr)
+			return false;
+		auto& src_value = from.m_values[code - 1u];
+		auto& dst_value = m_values[code - 1u];
+		dst_value = make_unique<uint8_t[]>(src_value[0] + 1u);
+		std::copy(src_value.get(), src_value.get() + src_value[0] + 1u, dst_value.get());
+		return true;
+	}
+	
 	
 protected:
 	template <typename Tuple, std::size_t ... Index>
