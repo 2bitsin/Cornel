@@ -18,7 +18,7 @@ try
 
 	config_ini _config(std::ifstream("config.ini"));
 	 
-	auto bind_to = v4_address(0x0A000001, 67);	
+	auto bind_to = v4_address("10.0.0.1", 67);	
 	std::cout << "Starting server on " << bind_to.to_string() << " ...\n";
 	auto dhcp_sock = bind_to.make_udp();	
 	
@@ -26,7 +26,8 @@ try
 	std::span<std::byte> buffer_s = buffer_vec;	
 
 	v4_address source;
-	dhcp_sock.option<so_broadcast>(so_true);	
+	v4_dhcp_packet packet;
+	dhcp_sock.option<so_broadcast>(so_true);
 	while (dhcp_sock.recv(buffer_s, source, 0u))
 	{
 		try
@@ -34,9 +35,8 @@ try
 			std::cout << "\n **** \n\n";
 			std::cout << "[[Received " << buffer_s.size() << " bytes from " << source.to_string() << "]]\n";
 
-			serdes<serdes_reader, network_byte_order> sdr(buffer_s);
-			v4_dhcp_packet packet{ sdr };
-
+			serdes<serdes_reader, network_byte_order> _serdes(buffer_s);
+			packet.serdes(_serdes);
 			packet.pretty_print(std::cout);
 			
 			buffer_s = buffer_vec;

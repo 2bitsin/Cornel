@@ -22,6 +22,9 @@ struct v4_dhcp_packet
 		_serdes(*this);
 	}
 
+	v4_dhcp_packet()
+	{}
+
 
 	template <typename _Serdes>
 	auto serdes(_Serdes& _serdes) -> _Serdes&
