@@ -7,6 +7,7 @@ inline static const constexpr std::uint32_t message_peek_flag						= 0x02u;
 inline static const constexpr std::uint32_t message_dont_route_flag			= 0x04u;
 inline static const constexpr std::uint32_t message_wait_all_flag				= 0x08u;
 
+#include "socket_api.hpp"
 
 struct udp_socket
 {
@@ -25,6 +26,19 @@ struct udp_socket
 
 	/* buffer will be adjusted to span only the bytes not sent */
 	auto send(std::span<const std::byte>& buffer, const struct v4_address& target, uint32_t flags) -> std::size_t;
+
+	template <typename O>
+	auto option(const typename O::value_type& value) const -> void
+	{
+		return socket_option<O>(m_sock, value);
+	}
+
+	template <typename O>
+	auto option() const -> typename O::value_type
+	{
+		return socket_option<O>(m_sock);
+	}
+		
 protected:
 	udp_socket(int_socket_type int_sock);
 private:

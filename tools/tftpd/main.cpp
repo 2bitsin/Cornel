@@ -17,12 +17,16 @@ try
 	std::filesystem::current_path(R"(C:\Users\alex\Desktop\projects\leisure\Cornel\tools\workspace)");
 
 	config_ini _config(std::ifstream("config.ini"));
+	 
+	auto bind_to = v4_address(0x0A000001, 67);	
+	std::cout << "Starting server on " << bind_to.to_string() << " ...\n";
+	auto dhcp_sock = bind_to.make_udp();	
 	
-	auto dhcp_sock = v4_address::any(67).make_udp();	
 	std::vector<std::byte> buffer_vec(8u*1024u, std::byte{});	
 	std::span<std::byte> buffer_s = buffer_vec;	
 
 	v4_address source;
+	dhcp_sock.option<so_broadcast>(so_true);	
 	while (dhcp_sock.recv(buffer_s, source, 0u))
 	{
 		try
