@@ -11,6 +11,10 @@ udp_socket::udp_socket()
 :	udp_socket(v4_socket_make_invalid())
 {}
 
+udp_socket::udp_socket(int_socket_type int_sock)
+:	m_sock{ int_sock }
+{}
+
 udp_socket::udp_socket(const struct v4_address& addr)
 :	udp_socket(v4_socket_make_udp(addr))
 {}
@@ -19,14 +23,10 @@ udp_socket::udp_socket(udp_socket&& from)
 :	m_sock{ exchange(from.m_sock, v4_socket_make_invalid()) }
 {}
 
-udp_socket::udp_socket(int_socket_type int_sock)
-:	m_sock{ int_sock }
-{}
-
 auto udp_socket::operator = (udp_socket&& from) -> udp_socket&
 {
 	udp_socket tmp(std::move(from));
-	std::swap(tmp, *this);	
+	tmp.swap(*this);
 	return *this;
 }
 

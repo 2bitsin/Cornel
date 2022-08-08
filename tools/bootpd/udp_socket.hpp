@@ -58,6 +58,7 @@ struct udp_socket
 		const auto to = duration_cast<milliseconds>(dur);
 		option<so_sndtimeo>((std::uint32_t)to.count());		
 	}
+
 protected:
 	udp_socket(int_socket_type int_sock);
 private:

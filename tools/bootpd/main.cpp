@@ -5,18 +5,24 @@
 #include <fstream>
 #include <filesystem>
 
-#include "v4_dhcp_packet.hpp"
 #include "v4_address.hpp"
+#include "v4_dhcp_packet.hpp"
+#include "v4_dhcp_listener.hpp"
 
 #include <common/config_ini.hpp>
 #include <common/lexical_cast.hpp>
 
+#define NOMINMAX
+#include <Windows.h>
 
 int main(int argc, char** argv)
 try
 {
 	std::filesystem::current_path(R"(C:\Users\alex\Desktop\projects\leisure\Cornel\tools\workspace)");
-	config_ini _config(std::ifstream("config.ini"));
+	config_ini config_ini_(std::ifstream("config.ini"));
+	v4_dhcp_listener listener_;
+	listener_.initialize(config_ini_);
+	listener_.start();
 
 /*
 	auto bind_to = v4_address("10.0.0.1", 67);	
@@ -47,7 +53,27 @@ try
 			std::cout << "I AM ERROR: " << ex.what() << "\n";
 		}
 	}
+	
 	*/
+	
+	static std::stop_source ctrl_c_source;
+	
+	auto bool_ = SetConsoleCtrlHandler([](unsigned long type) -> int {
+		if (type == CTRL_BREAK_EVENT)
+		{
+			auto q = ctrl_c_source.stop_requested();
+			return TRUE;
+		}
+		return FALSE;
+	}, TRUE);
+
+	auto signal = ctrl_c_source.get_token();
+	while(!signal.stop_requested())
+	{
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for(1s);
+	}
+
 	return 0;
 }
 catch (std::exception const& ex)

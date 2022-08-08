@@ -15,7 +15,7 @@
 
 struct v4_dhcp_listener
 {
-	using packet_queue_type = concurrent_queue<std::vector<std::byte>>;
+	using packet_queue_type = concurrent_queue<std::tuple<v4_address, std::vector<std::byte>>>;
 	
 	v4_dhcp_listener();
  ~v4_dhcp_listener();
@@ -32,14 +32,17 @@ private:
 private:
 	
 	udp_socket				m_socket;	
-	std::jthread			m_receiver_th;
-	std::jthread			m_responder_th;		
+	std::jthread			m_run_receiver;
+	std::jthread			m_run_responder;		
 	packet_queue_type m_packets;
-
+	v4_address				m_bind_address;
+	
+	/*
 	std::uint32_t			m_client_address;
 	std::uint32_t			m_server_address;
 	std::uint32_t			m_gateway_address;
 	std::string				m_boot_file_name;
 	std::string				m_server_host_name;	
 	v4_dhcp_options		m_dhcp_options;	
+	*/
 };
