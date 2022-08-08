@@ -66,6 +66,6 @@ auto v4_dhcp_packet::pretty_print(std::ostream& oss)->std::ostream&
 	oss << std::format("Client hardware address .. : {} \n"sv, mac_address_to_string({m_client_hardware_address, m_hardware_address_length}));
 	oss << std::format("Server host name ......... : {} \n"sv, std::string(m_server_host_name).c_str());
 	oss << std::format("Boot file name ........... : {} \n"sv, std::string(m_boot_file_name).c_str());
-	oss << std::format("Magic cookie ............. : {:#08x} \n"sv, m_magic_cookie);
+	
 	return oss;
 }

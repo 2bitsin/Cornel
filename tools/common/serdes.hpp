@@ -26,6 +26,9 @@ struct serdes;
 template <byte_order_type Byte_order>
 struct serdes<serdes_reader, Byte_order>
 {
+	static inline const constexpr auto byte_order = Byte_order;
+	static inline const constexpr auto serdes_type = serdes_reader;
+
 	template <typename T>
 	requires (std::is_trivial_v<T> && sizeof(T) == 1u)
 	serdes(std::span<const T> bits)
@@ -107,6 +110,11 @@ struct serdes<serdes_reader, Byte_order>
 		return seek(0u);
 	}
 
+	auto remaining_bytes() const noexcept -> std::size_t
+	{
+		return m_curr.size();
+	}
+
 private:
 	std::span<const std::byte> m_curr;
 	std::span<const std::byte> m_data;
@@ -115,6 +123,9 @@ private:
 template <byte_order_type Byte_order>
 struct serdes<serdes_writter, Byte_order>
 {
+	static inline const constexpr auto byte_order = Byte_order;
+	static inline const constexpr auto serdes_type = serdes_writter;
+	
 	template <typename T>
 	requires (std::is_trivial_v<T> && !std::is_const_v<T> && sizeof(T) == 1u)
 	serdes(std::span<T> bits)
@@ -164,6 +175,15 @@ struct serdes<serdes_writter, Byte_order>
 		return *this;
 	}
 	
+	template <typename T>
+	auto operator () (std::span<T> output_value, std::string_view = "") -> serdes&
+	{
+		for(const auto& value : output_value) 
+			(*this)(value);		
+		return *this;
+	}
+
+	
 	auto& skip(std::size_t number_of_bytes)
 	{
 		if (m_curr.size() < number_of_bytes) {
@@ -187,6 +207,11 @@ struct serdes<serdes_writter, Byte_order>
 	auto& rewind()
 	{
 		return seek(0u);
+	}
+
+	auto remaining_bytes() const noexcept -> std::size_t
+	{
+		return m_curr.size();
 	}
 	
 private:

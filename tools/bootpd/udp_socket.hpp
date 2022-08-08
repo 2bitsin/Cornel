@@ -1,6 +1,7 @@
 #pragma once
 
 #include <span>
+#include <chrono>
 
 inline static const constexpr std::uint32_t message_out_of_bounds_flag	= 0x01u;
 inline static const constexpr std::uint32_t message_peek_flag						= 0x02u;
@@ -27,6 +28,9 @@ struct udp_socket
 	/* buffer will be adjusted to span only the bytes not sent */
 	auto send(std::span<const std::byte>& buffer, const struct v4_address& target, uint32_t flags) -> std::size_t;
 
+	auto recv(uint32_t flags) -> std::tuple<v4_address, std::vector<std::byte>>;
+	
+
 	template <typename O>
 	auto option(const typename O::value_type& value) const -> void
 	{
@@ -38,7 +42,22 @@ struct udp_socket
 	{
 		return socket_option<O>(m_sock);
 	}
+
+	template <typename... D>
+	void timeout_recv(std::chrono::duration<D...> const& dur)
+	{
+		using namespace std::chrono;
+		const auto to = duration_cast<milliseconds>(dur);
+		option<so_rcvtimeo>((std::uint32_t)to.count());		
+	}
 		
+	template <typename... D>
+	void timeout_send(std::chrono::duration<D...> const& dur)
+	{
+		using namespace std::chrono;
+		const auto to = duration_cast<milliseconds>(dur);
+		option<so_sndtimeo>((std::uint32_t)to.count());		
+	}
 protected:
 	udp_socket(int_socket_type int_sock);
 private:

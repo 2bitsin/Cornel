@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <type_traits>
 #include <tuple>
+#include <ctime>
 
 enum so_bool: int
 {
@@ -42,8 +43,8 @@ DEFINE_SOCKET_OPTION(rcvbuf,							int32_t)
 DEFINE_SOCKET_OPTION(reuseaddr,						so_bool)
 DEFINE_SOCKET_OPTION(exclusiveaddruse,		so_bool)
 DEFINE_SOCKET_OPTION(rcvtimeo,						uint32_t)
-DEFINE_SOCKET_OPTION(sndbuf,							int32_t)				
 DEFINE_SOCKET_OPTION(sndtimeo,						uint32_t)
+DEFINE_SOCKET_OPTION(sndbuf,							int32_t)				
 DEFINE_SOCKET_OPTION(acceptconn,					so_bool)
 DEFINE_SOCKET_OPTION(rcvlowat,						int32_t)
 DEFINE_SOCKET_OPTION(sndlowat,						int32_t)

@@ -9,15 +9,16 @@
 #include "v4_address.hpp"
 
 #include <common/config_ini.hpp>
+#include <common/lexical_cast.hpp>
 
 
 int main(int argc, char** argv)
 try
 {
 	std::filesystem::current_path(R"(C:\Users\alex\Desktop\projects\leisure\Cornel\tools\workspace)");
-
 	config_ini _config(std::ifstream("config.ini"));
-	 
+
+/*
 	auto bind_to = v4_address("10.0.0.1", 67);	
 	std::cout << "Starting server on " << bind_to.to_string() << " ...\n";
 	auto dhcp_sock = bind_to.make_udp();	
@@ -46,7 +47,7 @@ try
 			std::cout << "I AM ERROR: " << ex.what() << "\n";
 		}
 	}
-	
+	*/
 	return 0;
 }
 catch (std::exception const& ex)

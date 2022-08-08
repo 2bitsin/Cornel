@@ -2,6 +2,9 @@
 #include "socket_api.hpp"
 #include "udp_socket.hpp"
 
+#include <vector>
+#include <array>
+
 using std::exchange;
 
 udp_socket::udp_socket()
@@ -51,4 +54,17 @@ auto udp_socket::recv(std::span<std::byte>& buffer, v4_address& source, uint32_t
 auto udp_socket::send(std::span<const std::byte>& buffer, const v4_address& target, uint32_t flags) -> std::size_t
 {
 	return v4_socket_send(m_sock, buffer, target, flags);
+}
+
+auto udp_socket::recv(uint32_t flags) -> std::tuple<v4_address, std::vector<std::byte>>
+{
+  thread_local std::array<std::byte, 0x10000u> array_buffer;
+	std::span<std::byte> buffer_s{ array_buffer };
+	v4_address source;
+	if ((*this).recv(buffer_s, source, flags) > 0u)
+	{
+		std::vector<std::byte> received_bytes(buffer_s.begin(), buffer_s.end());
+		return std::tuple(std::move(source), std::move(received_bytes));
+	}		
+	throw std::runtime_error("recv failed");
 }

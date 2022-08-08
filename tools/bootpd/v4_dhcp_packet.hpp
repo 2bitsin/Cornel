@@ -12,19 +12,21 @@
 
 struct v4_dhcp_packet
 {
-
 	using mac_address_type = std::uint8_t[6];	
+	v4_dhcp_packet()
+	{}
 
+	v4_dhcp_packet(std::span<const std::uint8_t> bits)
+	{
+		::serdes<serdes_reader, network_byte_order> _serdes (bits);
+		_serdes(*this);
+	}
 
 	template <auto... U>
 	v4_dhcp_packet(serdes<U...>& _serdes)
 	{
 		_serdes(*this);
 	}
-
-	v4_dhcp_packet()
-	{}
-
 
 	template <typename _Serdes>
 	auto serdes(_Serdes& _serdes) -> _Serdes&
@@ -42,8 +44,7 @@ struct v4_dhcp_packet
 		SERDES_APPLY(_serdes, m_gateway_ip_address_v4);
 		SERDES_APPLY(_serdes, m_client_hardware_address);
 		SERDES_APPLY(_serdes, m_server_host_name);
-		SERDES_APPLY(_serdes, m_boot_file_name);
-		SERDES_APPLY(_serdes, m_magic_cookie);
+		SERDES_APPLY(_serdes, m_boot_file_name);		
 		SERDES_APPLY(_serdes, m_options);
 		return _serdes;
 	}
@@ -67,6 +68,5 @@ protected:
 	std::uint8_t		m_client_hardware_address [16];
 	char						m_server_host_name [64];
 	char						m_boot_file_name [128];	
-	std::uint32_t		m_magic_cookie;
 	v4_dhcp_options m_options;
 };

@@ -10,6 +10,29 @@
 
 struct v4_dhcp_options
 {
+	static inline const constexpr std::uint32_t DHCP_COOKIE = 0x63825363u;
+
+	v4_dhcp_options(): m_values{  } {}
+
+	v4_dhcp_options(v4_dhcp_options const&) = delete;
+	v4_dhcp_options& operator=(v4_dhcp_options const&) = delete;
+	
+	v4_dhcp_options(v4_dhcp_options&& prev) noexcept
+	:	m_values{ std::move(prev.m_values) }
+	{}
+	
+	auto operator = (v4_dhcp_options&& prev) noexcept -> v4_dhcp_options& 
+	{
+		auto tmp = std::move(prev);
+		std::swap(tmp, *this);
+		return *this;
+	}
+
+	void swap(v4_dhcp_options& other) noexcept
+	{
+		std::swap(m_values, other.m_values);
+	}
+
 	template <byte_order_type Byte_order>
 	auto serdes(::serdes<serdes_reader, Byte_order>& _serdes) 
 		-> ::serdes<serdes_reader, Byte_order>&
@@ -22,6 +45,12 @@ struct v4_dhcp_options
 		unique_ptr<uint8_t[]> data;
 		uint8_t code;
 		uint8_t size;
+		
+		if (_serdes.remaining_bytes() < sizeof (m_cookie))
+			return _serdes;
+		_serdes(m_cookie);
+		if (m_cookie != DHCP_COOKIE)
+			return _serdes;
 		
 		while(true)
 		{
@@ -97,7 +126,7 @@ struct v4_dhcp_options
 		::serdes<serdes_writter, network_byte_order> _serdes (
 			std::span(m_values[code - 1u].get() + 1u, total_size)
 		);
-		(_serdes(std::forward<Q>(args)), ...);
+		((_serdes(std::forward<Q>(args))), ...);
 		return true;
 	}
 
@@ -145,5 +174,6 @@ protected:
 	}
 
 private:
-	std::unique_ptr<std::uint8_t[]> m_values[254u];
+	std::uint32_t m_cookie;
+	std::array<std::unique_ptr<std::uint8_t[]>, 254u> m_values;
 };

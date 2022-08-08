@@ -5,8 +5,25 @@
 #include <type_traits>
 #include <typeinfo>
 
+struct bad_lexical_cast
+: public std::exception 
+{
+	bad_lexical_cast() noexcept 
+	{}
+
+	bad_lexical_cast(std::string_view message) noexcept
+	: m_message(message) 
+	{}
+
+	const char* what() const noexcept override 
+	{ return m_message.c_str(); }
+	
+private:
+	std::string m_message;
+};
+
 template <typename T>
-auto lexical_cast(std::string_view what)
+auto lexical_cast(std::string_view what) -> T
 {
 	using namespace std::string_literals;
 	using namespace std::string_view_literals;
@@ -55,9 +72,10 @@ auto lexical_cast(std::string_view what)
 				value = static_cast<T>(std::stod(std::string(what), nullptr));			
 		} 
 		if (offs != what.size()) {
-			throw std::bad_cast("Invalid value: "s + std::string(what));
+			throw bad_lexical_cast("Invalid value: "s + std::string(what));
 		}
 		
+		return value;
 	} else
 	if constexpr (std::is_same_v<T, bool>)
 	{
@@ -69,7 +87,7 @@ auto lexical_cast(std::string_view what)
 			return false;
 		}
 		
-		throw std::bad_cast("Invalid boolean value : "s + std::string(what));		
+		throw bad_lexical_cast("Invalid boolean value : "s + std::string(what));		
 	}
 	else
 	{

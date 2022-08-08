@@ -35,7 +35,7 @@ namespace detail
 }
 
 template <typename O>
-void socket_option(int_socket_type target, const typename O::value_type& value)
+void socket_option(int_socket_type target, typename O::value_type const& value)
 {
 	using namespace detail;
 	socket_option_set(target, O::level(), O::option(), &value, sizeof(value));
@@ -49,5 +49,4 @@ auto socket_option(int_socket_type target) -> typename O::value_type
 	socket_option_get(target, O::level(), O::option(), &value, sizeof(value));
 	return value;	
 }
-
 
