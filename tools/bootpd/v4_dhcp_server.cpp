@@ -25,13 +25,13 @@ v4_dhcp_server::~v4_dhcp_server()
 
 void v4_dhcp_server::initialize(config_ini const& cfg)
 {	
-	
-	m_bind_address = v4_address(cfg.get("v4_bind_address").value_or("0.0.0.0"), 
-		lexical_cast<uint16_t>(cfg.get("dhcp_listen_port").value_or("67")));
+	using namespace std::string_view_literals;
+	m_bind_address = v4_address(cfg.value_or("v4_bind_address"sv, "0.0.0.0"sv), 
+		lexical_cast<uint16_t>(cfg.value_or("dhcp_listen_port"sv, "67"sv)));
 
 	for (auto&& client_mac : cfg.sections())
 	{
-		initialize_client(m_clients[client_mac], cfg, client_mac);
+		initialize_client(m_clients[std::string(client_mac)], cfg, client_mac);
 	}
 }
 
@@ -70,10 +70,7 @@ void v4_dhcp_server::run_receiver(std::stop_token st)
 			if (packet.size() < 1) 
 				continue;
 			Glog.info("Received {} bytes from '{}'.", packet.size(), source.to_string());
-			m_packets.push(std::tuple{ 
-				std::move(source), 
-				std::move(packet) 
-			});			
+			m_packets.push(std::tuple{ std::move(source), std::move(packet) });			
 		}
 		catch (socket_error_timedout const& e)
 		{ continue; }
@@ -114,14 +111,15 @@ void v4_dhcp_server::run_responder(std::stop_token st)
 
 void v4_dhcp_server::initialize_client(client& client_v, config_ini const& cfg, std::string_view client_mac)
 {
-	client_v.client_address		= v4_parse_address(cfg.get("v4_client_address", client_mac).value_or("0.0.0.0"));
-	client_v.server_address		= v4_parse_address(cfg.get("v4_server_address", client_mac).value_or("0.0.0.0"));
-	client_v.gateway_address	= v4_parse_address(cfg.get("v4_gateway_address", client_mac).value_or("0.0.0.0"));
-	client_v.boot_file_name		= cfg.get("boot_file_name", client_mac).value_or("");
-	client_v.server_host_name = cfg.get("server_host_name", client_mac).value_or("");
+	using namespace std::string_view_literals;
+	client_v.client_address		= v4_parse_address(cfg.value_or({"v4_client_address"sv,  client_mac}, "0.0.0.0"sv));
+	client_v.server_address		= v4_parse_address(cfg.value_or({"v4_server_address"sv,  client_mac}, "0.0.0.0"sv));
+	client_v.gateway_address	= v4_parse_address(cfg.value_or({"v4_gateway_address"sv, client_mac}, "0.0.0.0"sv));
+	client_v.boot_file_name		= cfg.value_or({"boot_file_name"sv,   client_mac}, ""sv);
+	client_v.server_host_name = cfg.value_or({"server_host_name"sv, client_mac}, ""sv);
 	
-	client_v.dhcp_options.set(0x01u, v4_parse_address(cfg.get("v4_subnet_mask", client_mac).value_or("0.0.0.0")));
-	client_v.dhcp_options.set(0x03u, v4_parse_address(cfg.get("v4_router_address", client_mac).value_or(v4_address_to_string(client_v.client_address))));
+	client_v.dhcp_options.set(0x01u, v4_parse_address(cfg.value({"v4_subnet_mask"sv,    client_mac}).value_or("0.0.0.0"sv)));
+	client_v.dhcp_options.set(0x03u, v4_parse_address(cfg.value({"v4_router_address"sv, client_mac}).value_or(v4_address_to_string(client_v.client_address))));
 	client_v.dhcp_options.set(0x43u, std::span<char>(client_v.boot_file_name));
 	client_v.dhcp_options.set(0x0Cu, std::span<char>(client_v.server_host_name));
 }

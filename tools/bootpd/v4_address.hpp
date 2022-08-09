@@ -22,6 +22,32 @@ struct v4_address
 	auto addr() const noexcept -> uint32_t;	
 	auto net_port() const noexcept -> uint16_t;
 	auto net_addr() const noexcept -> uint32_t;
+
+	auto port(std::uint16_t value) noexcept 
+		-> v4_address& 
+	{ 
+		m_port = value;
+		return *this; 
+	}
+
+	auto addr(std::uint32_t value) noexcept 
+		-> v4_address& 
+	{ 
+		m_addr = value;
+		return *this; 
+	}
+
+	auto port(std::uint16_t value) const noexcept 
+		-> v4_address
+	{ 
+		return v4_address(m_addr, value);
+	}
+
+	auto addr(std::uint32_t value) const noexcept 
+		-> v4_address 
+	{ 
+		return v4_address(value, m_port);	
+	}
 	
 	template <typename T>
 	auto assign_to(T& s) const

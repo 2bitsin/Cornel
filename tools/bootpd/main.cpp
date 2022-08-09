@@ -21,10 +21,8 @@ try
 		std::filesystem::current_path(R"(C:\Users\alex\Desktop\projects\leisure\Cornel\tools\workspace)");
 		config_ini config_ini_v(std::ifstream("config.ini"));
 		
-		v4_dhcp_server dhcp_listener_v;
-		dhcp_listener_v.initialize(config_ini_v);
-		dhcp_listener_v.start();
-			
+		v4_dhcp_server dhcp_server_v (config_ini_v);		
+		dhcp_server_v.start();			
 		while(!control_c::stop_requested())
 		{
 			using namespace std::chrono_literals;

@@ -131,17 +131,17 @@ struct v4_dhcp_options
 	}
 
 	template <typename... Q>
-	auto get(std::uint8_t code, std::tuple<Q...>& values)
+	auto value(std::uint8_t code, std::tuple<Q...>& values)
 		-> bool
 	{
-		return get(code, values, std::make_index_sequence<sizeof...(Q)>());	
+		return value(code, values, std::make_index_sequence<sizeof...(Q)>());	
 	}
 
 	template <typename... Q>
-	auto get(std::uint8_t code, std::tuple<Q&...> values)
+	auto value(std::uint8_t code, std::tuple<Q&...> values)
 		-> bool
 	{
-		return get(code, values, std::make_index_sequence<sizeof...(Q)>());	
+		return value(code, values, std::make_index_sequence<sizeof...(Q)>());	
 	}
 
 	auto assign(std::uint8_t code, v4_dhcp_options const& from)
@@ -159,7 +159,7 @@ struct v4_dhcp_options
 	
 protected:
 	template <typename Tuple, std::size_t ... Index>
-	auto get(std::uint8_t code, Tuple& values, std::index_sequence<Index...>)
+	auto value(std::uint8_t code, Tuple& values, std::index_sequence<Index...>)
 		-> bool
 	{
 		if (code < 1u || code > 254u || !m_values[code - 1u])

@@ -31,19 +31,19 @@ auto config_ini::parse(std::istream& iss)
 	return *this;
 }
 
-auto config_ini::sections() const -> std::vector<std::string>
+auto config_ini::sections() const -> std::vector<std::string_view>
 {
-	std::vector<std::string> result;
+	std::vector<std::string_view> result;
 	for(auto&& [section_name, _] : m_data)
 		result.emplace_back(section_name);
 	return result;
 }
 
-auto config_ini::keys(std::string_view section) const -> std::vector<std::string>
+auto config_ini::keynames(std::string_view section) const -> std::vector<std::string_view>
 {
 	if (auto section_it = m_data.find(std::string(section)); section_it != m_data.end())
 	{
-		std::vector<std::string> result;
+		std::vector<std::string_view> result;
 		for(auto&& [key, _] : section_it->second)
 			result.emplace_back(key);
 		return result;
@@ -51,12 +51,12 @@ auto config_ini::keys(std::string_view section) const -> std::vector<std::string
 	return {};
 }
 
-auto config_ini::get(std::string_view key, std::string_view section) const -> std::optional<std::string>
+auto config_ini::value(accessor_type index) const -> std::optional<std::string_view>
 {	
-	if (auto section_it = m_data.find(std::string(section)); section_it != m_data.end())
+	if (auto section_it = m_data.find(std::string(index.section)); section_it != m_data.end())
 	{
 		const auto& sect_data = section_it->second;
-		if (auto value_it = sect_data.find(std::string(key)); value_it != sect_data.end())
+		if (auto value_it = sect_data.find(std::string(index.keyname)); value_it != sect_data.end())
 			return (*value_it).second;
 	}
 	return std::nullopt;
