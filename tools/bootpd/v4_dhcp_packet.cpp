@@ -17,9 +17,9 @@ static auto v4_dhcp_opcode_to_string(std::uint8_t opcode)
 	using namespace std::string_literals;
 	switch (opcode)
 	{
-	case 0:
-		return "Request"s;
 	case 1:
+		return "Request"s;
+	case 2:
 		return "Reply"s;
 	default:
 		return "Other ("s + std::to_string(opcode) + ")"s;

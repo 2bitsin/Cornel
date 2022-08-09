@@ -28,21 +28,26 @@ struct v4_dhcp_listener
 private:
 	void run_receiver(std::stop_token st);
 	void run_responder(std::stop_token st);
-	
+
+protected:
+	struct client
+	{
+		std::uint32_t			m_client_address;
+		std::uint32_t			m_server_address;
+		std::uint32_t			m_gateway_address;
+		std::string				m_boot_file_name;
+		std::string				m_server_host_name;	
+		v4_dhcp_options		m_dhcp_options;			
+
+		client(config_ini const& cfg);
+			
+	};	
+
 private:
-	
+
 	udp_socket				m_socket;	
 	std::jthread			m_run_receiver;
 	std::jthread			m_run_responder;		
 	packet_queue_type m_packets;
 	v4_address				m_bind_address;
-	
-	/*
-	std::uint32_t			m_client_address;
-	std::uint32_t			m_server_address;
-	std::uint32_t			m_gateway_address;
-	std::string				m_boot_file_name;
-	std::string				m_server_host_name;	
-	v4_dhcp_options		m_dhcp_options;	
-	*/
 };

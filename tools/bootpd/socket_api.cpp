@@ -4,11 +4,14 @@
 #include <mutex>
 #include <system_error>
 #include <iostream>
+#include <system_error>
 #include <charconv>
 
+#include <common/byte_order.hpp>
+
 #include "socket_api.hpp"
-#include "common/byte_order.hpp"
 #include "v4_address.hpp"
+#include "socket_error.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -19,10 +22,20 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-static auto last_error_as_string() -> std::string
+
+static auto socket_last_error() -> std::int32_t
 {
-	using namespace std::string_literals;
-	const auto last_error = WSAGetLastError();
+	return WSAGetLastError();
+}
+
+static auto is_time_out_error(std::int32_t error)
+{
+	return WSAETIMEDOUT == error;
+}
+
+static auto last_error_as_string(std::int32_t last_error = socket_last_error()) -> std::string
+{
+	using namespace std::string_literals;	
 	switch(last_error)
 	{
 	case WSAEINTR                         : return "WSAEINTR"s										;
@@ -284,6 +297,8 @@ auto v4_socket_close(int_socket_type socket) -> void
 	}
 }
 
+
+
 auto v4_socket_recv(int_socket_type socket, std::span<std::byte>& buffer, v4_address& address, std::uint32_t flags) -> std::size_t
 {
 	using namespace std::string_literals;
@@ -305,6 +320,9 @@ auto v4_socket_recv(int_socket_type socket, std::span<std::byte>& buffer, v4_add
 		return received_bytes;
 	}
 
+	if (const auto error_code = socket_last_error(); is_time_out_error(error_code))
+		throw  socket_error_timedout{ "receive operation timed out." };
+
 	throw std::runtime_error("failed to receive bytes from socket, error code : "s + 
 													 last_error_as_string());
 }
@@ -325,9 +343,11 @@ auto v4_socket_send(int_socket_type socket, std::span<const std::byte>& buffer, 
 		return sent_bytes;
 	}
 
+	if (const auto error_code = socket_last_error(); is_time_out_error(error_code))
+		throw socket_error_timedout("send operation timed out.");
+
 	throw std::runtime_error("failed to send bytes trough socket, error code : "s + 
 													 last_error_as_string());
-
 }
 
 static auto to_hex(std::uint8_t value) -> std::string

@@ -4,5 +4,5 @@ add_library(common STATIC
 	arguments.cpp 
 	crc32.cpp
 	config_ini.cpp
-)
+ "control_c.cpp")
 set_property(TARGET common PROPERTY CXX_STANDARD 23)

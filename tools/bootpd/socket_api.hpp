@@ -8,6 +8,7 @@
 #include <span>
 
 #include "socket_option.hpp"
+#include "socket_error.hpp"
 
 using int_socket_type = std::intptr_t;
 

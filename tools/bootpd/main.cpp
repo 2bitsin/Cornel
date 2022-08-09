@@ -9,6 +9,7 @@
 #include "v4_dhcp_packet.hpp"
 #include "v4_dhcp_listener.hpp"
 
+#include <common/control_c.hpp>
 #include <common/config_ini.hpp>
 #include <common/lexical_cast.hpp>
 
@@ -56,19 +57,8 @@ try
 	
 	*/
 	
-	static std::stop_source ctrl_c_source;
 	
-	auto bool_ = SetConsoleCtrlHandler([](unsigned long type) -> int {
-		if (type == CTRL_BREAK_EVENT)
-		{
-			auto q = ctrl_c_source.stop_requested();
-			return TRUE;
-		}
-		return FALSE;
-	}, TRUE);
-
-	auto signal = ctrl_c_source.get_token();
-	while(!signal.stop_requested())
+	for(auto _ = control_c::get_token(); !_.stop_requested();)
 	{
 		using namespace std::chrono_literals;
 		std::this_thread::sleep_for(1s);

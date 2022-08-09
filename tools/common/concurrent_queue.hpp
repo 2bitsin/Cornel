@@ -12,6 +12,10 @@ struct concurrent_queue
 {
   T pop(std::stop_token const& st)
   {
+		std::stop_callback please_stop(st, [this] () {
+			m_covar.notify_all();
+		});
+		
     std::unique_lock<std::mutex> mlock(m_mutex);
     while (m_queue.empty())			
     {
@@ -26,6 +30,9 @@ struct concurrent_queue
   } 
   void pop(T& value, std::stop_token const& st)
   {
+		std::stop_callback please_stop(st, [this] () {
+			m_covar.notify_all();
+		});
     std::unique_lock<std::mutex> mlock(m_mutex);
     while (m_queue.empty())
     {
