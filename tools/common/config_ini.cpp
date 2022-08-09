@@ -31,6 +31,11 @@ auto config_ini::parse(std::istream& iss)
 	return *this;
 }
 
+auto config_ini::operator[](accessor_type index) const -> std::optional<std::string_view>
+{
+	return value(index);
+}
+
 auto config_ini::sections() const -> std::vector<std::string_view>
 {
 	std::vector<std::string_view> result;

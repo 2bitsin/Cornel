@@ -5,22 +5,22 @@
 #include <fstream>
 #include <filesystem>
 
-#include "v4_address.hpp"
-#include "v4_dhcp_packet.hpp"
-#include "v4_dhcp_server.hpp"
-
+#include <common/v4_address.hpp>
 #include <common/lexical_cast.hpp>
 #include <common/control_c.hpp>
 #include <common/config_ini.hpp>
 #include <common/logger.hpp>
+
+#include "v4_dhcp_packet.hpp"
+#include "v4_dhcp_server.hpp"
+
 
 int main(int argc, char** argv)
 try
 {
 	{
 		std::filesystem::current_path(R"(C:\Users\alex\Desktop\projects\leisure\Cornel\tools\workspace)");
-		config_ini config_ini_v(std::ifstream("config.ini"));
-		
+		config_ini config_ini_v(std::ifstream("config.ini"));		
 		v4_dhcp_server dhcp_server_v (config_ini_v);		
 		dhcp_server_v.start();			
 		while(!control_c::stop_requested())

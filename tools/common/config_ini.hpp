@@ -13,19 +13,31 @@ struct config_ini
 {
 	struct accessor_type
 	{
-		accessor_type(std::string_view keyname, std::string_view section)
-		:	keyname(keyname),
-			section(section)
+		accessor_type(std::string_view keyname, std::string_view section): 
+			keyname(keyname),
+			section(section) 
+		{}
+		
+		accessor_type(std::string_view keyname): 
+			accessor_type(keyname, "")
 		{}
 
-		accessor_type(std::string_view keyname)
-		:	accessor_type(keyname, "")
-		{}
-							
 		const std::string_view keyname;
 		const std::string_view section;
 	};
 	
+	struct section_type
+	{
+		section_type(std::string_view section): 
+			section(section) 
+		{}		
+		
+		const std::string_view section;
+
+		auto operator [] (std::string_view keyname) -> accessor_type 
+		{ return accessor_type(keyname, section); }
+		
+	};	
 
 	config_ini();
 	config_ini(std::istream& iss);
@@ -33,7 +45,7 @@ struct config_ini
 
 	auto parse(std::istream& iss) -> config_ini&;
 		
-	auto operator [](accessor_type index) const -> std::string_view;
+	auto operator [](accessor_type index) const -> std::optional<std::string_view>;
 
 	auto sections() const -> std::vector<std::string_view>;
 	auto keynames(std::string_view section = "") const -> std::vector<std::string_view>;		

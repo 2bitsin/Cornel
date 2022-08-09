@@ -59,6 +59,15 @@ struct udp_socket
 		option<so_sndtimeo>((std::uint32_t)to.count());		
 	}
 
+	template <typename... D>
+	void timeout(std::chrono::duration<D...> const& dur)
+	{
+		using namespace std::chrono;
+		const auto to = duration_cast<milliseconds>(dur);
+		option<so_rcvtimeo>((std::uint32_t)to.count());
+		option<so_sndtimeo>((std::uint32_t)to.count());		
+	}
+
 protected:
 	udp_socket(int_socket_type int_sock);
 private:

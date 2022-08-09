@@ -2,12 +2,12 @@
 
 #include <cstddef>
 #include <cstdint>
-
 #include <iostream>
 #include <span>
 #include <optional>
 
 #include <common/serdes.hpp>
+
 #include "v4_dhcp_options.hpp"
 
 struct v4_dhcp_packet

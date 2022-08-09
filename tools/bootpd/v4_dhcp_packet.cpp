@@ -2,14 +2,12 @@
 #include <array>
 #include <format>
 
-#include "socket_api.hpp"
-#include "v4_dhcp_packet.hpp"
+#include <common/socket_api.hpp>
 #include <common/byte_order.hpp>
 #include <common/span_utility.hpp>
 #include <common/serdes.hpp>
 
-
-
+#include "v4_dhcp_packet.hpp"
 
 static auto v4_dhcp_opcode_to_string(std::uint8_t opcode)
 	-> std::string

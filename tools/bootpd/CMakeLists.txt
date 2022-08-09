@@ -2,19 +2,11 @@ cmake_minimum_required(VERSION 3.18)
 project(bootpd)
 add_executable(bootpd	
 	main.cpp 
-	socket_api.hpp
-	socket_api.cpp
-	v4_address.hpp
-	v4_address.cpp
-	udp_socket.hpp
-  udp_socket.cpp 
   v4_dhcp_packet.hpp
   v4_dhcp_packet.cpp
 	v4_dhcp_server.hpp	
 	v4_dhcp_server.cpp	
 	v4_dhcp_options.hpp
-	socket_option.hpp
-  socket_option.cpp 
 )
 
 target_link_libraries(bootpd PRIVATE common)
