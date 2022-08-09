@@ -10,8 +10,8 @@ add_executable(bootpd
   udp_socket.cpp 
   v4_dhcp_packet.hpp
   v4_dhcp_packet.cpp
-	v4_dhcp_listener.cpp
-	v4_dhcp_listener.hpp
+	v4_dhcp_server.hpp	
+	v4_dhcp_server.cpp	
 	v4_dhcp_options.hpp
 	socket_option.hpp
   socket_option.cpp 

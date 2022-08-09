@@ -5,8 +5,16 @@
 #include <mutex>
 #include <condition_variable>
 #include <stop_token>
+#include <exception>
  
- 
+struct stop_requested_error: std::exception
+{
+	stop_requested_error(std::string_view message): m_message(message) {}
+	const char* what() const noexcept override { return m_message.c_str(); }
+private:
+	std::string m_message;
+};
+
 template <typename T>
 struct concurrent_queue
 {
@@ -21,7 +29,7 @@ struct concurrent_queue
     {
       m_covar.wait(mlock);
 			if (st.stop_requested() || m_cease.load()) {
-				throw std::runtime_error("stop requested");
+				throw stop_requested_error("stop requested");
 			}
 		}
     const auto value = std::move(m_queue.front());
@@ -38,7 +46,7 @@ struct concurrent_queue
     {
       m_covar.wait(mlock);
 			if (st.stop_requested() || m_cease.load()) {
-				throw std::runtime_error("stop requested");
+				throw stop_requested_error("stop requested");
 			}
     }
     value = std::move(m_queue.front());
