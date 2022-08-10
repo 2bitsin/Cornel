@@ -63,6 +63,10 @@ struct v4_dhcp_packet
 			return mto.value() == msg_type;
 		return false;
 	}
+	auto message_type(std::uint8_t msg_type)			
+	{
+		m_options.message_type(msg_type);
+	}
 	
 	auto requested_parameters() const
 		-> std::span<const std::uint8_t>
@@ -134,7 +138,7 @@ struct v4_dhcp_packet
 	{
 		return m_flags;
 	}
-	auto host_name () const -> std::string_view
+	auto server_host_name () const -> std::string_view
 	{
 		return { m_server_host_name, strnlen_s(m_server_host_name, sizeof(m_server_host_name)) };
 	}
@@ -168,7 +172,7 @@ struct v4_dhcp_packet
 	{ m_seconds_elapsed = value; }
 	auto flags(std::uint16_t value) 
 	{ m_flags = value; }
-	auto host_name(std::string_view value) 
+	auto server_host_name(std::string_view value) 
 	{
 		if (value.size() > sizeof(m_server_host_name))
 			throw std::logic_error("host_name too large");

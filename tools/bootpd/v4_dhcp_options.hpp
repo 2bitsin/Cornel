@@ -24,7 +24,7 @@ struct v4_dhcp_options
 			if (!p.m_values[i])
 				continue;
 			auto size = p.m_values[i][0] + 1u;
-			auto data = std::make_unique<std::uint8_t[]>(size);			
+			auto data = std::make_unique<std::uint8_t[]>(size);
 			std::copy(p.m_values[i].get(), p.m_values[i].get() + size, data.get());
 			m_values[i] = std::move(data);
 		}
@@ -184,6 +184,11 @@ struct v4_dhcp_options
 		if (value(0x35, std::tie(mt_val)))
 			return mt_val;
 		return std::nullopt;
+	}
+	
+	auto message_type(std::uint8_t msg_type)
+	{
+		set(0x35, msg_type);
 	}
 
 	auto requested_parameters() const 
