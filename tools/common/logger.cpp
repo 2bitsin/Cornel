@@ -16,6 +16,7 @@ auto basic_logger::filter_level_to_string(filter_level level) -> std::string
 	case info:		return "INFO   "s;
 	case debug:		return "DEBUG  "s;
 	case trace:		return "TRACE  "s;
+	default:      return "-------"s;
 	}
 }
 

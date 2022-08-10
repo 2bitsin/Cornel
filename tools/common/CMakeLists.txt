@@ -17,7 +17,7 @@ add_library(common STATIC
 	socket_api.cpp
 	socket_error.hpp
 	udp_socket.hpp
-	udp_socket.cpp	
+	"socket_udp.cpp"	
 	v4_address.hpp
 	v4_address.cpp
 )

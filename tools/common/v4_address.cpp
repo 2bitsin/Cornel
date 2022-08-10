@@ -39,9 +39,9 @@ auto v4_address::to_string() const noexcept -> std::string
 	return v4_address_to_string(m_addr) + ":"s + std::to_string(m_port);
 }
 
-auto v4_address::make_udp() const -> udp_socket
+auto v4_address::make_udp() const -> socket_udp
 {
-	return udp_socket(*this);
+	return socket_udp(*this);
 }
 
 auto v4_address::any(std::uint16_t port) -> v4_address

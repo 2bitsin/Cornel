@@ -7,7 +7,7 @@
 #include "cobs_decoder.hpp"
 #include "error.hpp"
 #include "common/crc32.hpp"
-#include "common/span_utility.hpp"
+#include "common/utility_span.hpp"
 
 
 packet_io_win32::packet_io_win32(pipe_t, std::string_view name, client_versus_server_type cvs)

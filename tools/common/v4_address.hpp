@@ -7,7 +7,7 @@
 
 #include "common/byte_order.hpp"
 #include "socket_api.hpp"
-#include "udp_socket.hpp"
+#include "socket_udp.hpp"
 
 struct v4_address
 {
@@ -70,7 +70,7 @@ struct v4_address
 	}
 
 	auto to_string() const noexcept -> std::string;
-	auto make_udp() const -> udp_socket;
+	auto make_udp() const -> socket_udp;
 	static auto any(std::uint16_t port = 0) -> v4_address;
 	static auto everyone(std::uint16_t port = 0) -> v4_address;
 

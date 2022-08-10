@@ -7,7 +7,7 @@
 #include <common/lexical_cast.hpp>
 #include <common/concurrent_queue.hpp>
 #include <common/v4_address.hpp>
-#include <common/udp_socket.hpp>
+#include <common/socket_udp.hpp>
 
 #include "v4_dhcp_options.hpp"
 #include "v4_dhcp_packet.hpp"
@@ -25,12 +25,9 @@ struct v4_dhcp_server
 	void start();
 	void cease();
 	
-private:
-	void thread_incoming(std::stop_token st);
-	void thread_outgoing(std::stop_token st);
 
 protected:
-	struct client
+	struct offer_params
 	{
 		std::uint32_t			client_address;
 		std::uint32_t			server_address;
@@ -39,13 +36,18 @@ protected:
 		std::string				server_host_name;	
 		v4_dhcp_options		dhcp_options;			
 	};	
-	using client_map_type = std::unordered_map<std::string, client>;
+	
+	using client_map_type = std::unordered_map<std::string, offer_params>;
 
-	void initialize_client(client& client_v, config_ini const& cfg, std::string_view client_mac);
+	void initialize_client(offer_params& client_v, config_ini const& cfg, std::string_view client_mac);
 
+	auto offer(v4_dhcp_packet const& packet, offer_params const& client_v) -> v4_dhcp_packet;
+	
 private:
+	void thread_incoming(std::stop_token st);
+	void thread_outgoing(std::stop_token st);
 
-	udp_socket					m_socket;	
+	socket_udp					m_socket;	
 	std::jthread				m_thread_incoming;
 	std::jthread				m_thread_outgoing;		
 	packet_queue_type		m_packets;

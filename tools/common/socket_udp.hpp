@@ -10,16 +10,16 @@ inline static const constexpr std::uint32_t message_wait_all_flag				= 0x08u;
 
 #include "socket_api.hpp"
 
-struct udp_socket
+struct socket_udp
 {
-	udp_socket();
-	udp_socket(const struct v4_address& addr);
-	udp_socket(udp_socket&& from);
-	udp_socket& operator = (udp_socket && from);
-	udp_socket(const udp_socket&) = delete;
-	udp_socket& operator = (const udp_socket&) = delete;
- ~udp_socket();
-  void swap(udp_socket& other);
+	socket_udp();
+	socket_udp(const struct v4_address& addr);
+	socket_udp(socket_udp&& from);
+	socket_udp& operator = (socket_udp && from);
+	socket_udp(const socket_udp&) = delete;
+	socket_udp& operator = (const socket_udp&) = delete;
+ ~socket_udp();
+  void swap(socket_udp& other);
 	void bind(const struct v4_address& addr);
 	
 	/* buffer will be adjusted to span only the bytes received */
@@ -69,7 +69,7 @@ struct udp_socket
 	}
 
 protected:
-	udp_socket(int_socket_type int_sock);
+	socket_udp(int_socket_type int_sock);
 private:
 	int_socket_type m_sock;
 };

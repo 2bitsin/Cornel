@@ -1,5 +1,5 @@
 #include "config_ini.hpp"
-#include "trim.hpp"
+#include "utility_trim.hpp"
 #include <string>
 #include <string_view>
 #include <regex>

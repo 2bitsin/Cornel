@@ -6,13 +6,14 @@
 #include <common/socket_error.hpp>
 #include <common/logger.hpp>
 
+#include "v4_dhcp_consts.hpp"
 #include "v4_dhcp_server.hpp"
 
 v4_dhcp_server::v4_dhcp_server()
 {}
 
 v4_dhcp_server::v4_dhcp_server(config_ini const& cfg)
-	: v4_dhcp_server()
+: v4_dhcp_server()
 {
 	initialize(cfg);
 }
@@ -96,12 +97,24 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 			auto [source, packet_bits] = m_packets.pop(st);
 			Glog.info("Responding to '{}'.", source.to_string());
 			serdes<serdes_reader, network_byte_order> _serdes(std::span{ packet_bits });
-			v4_dhcp_packet dhcp_packet;
-			_serdes(dhcp_packet);
-			std::ostringstream oss;
-			oss << "\n\n";
-			dhcp_packet.pretty_print(oss);
-			Glog.info(oss.str());
+			v4_dhcp_packet packet_s;
+			_serdes(packet_s);
+			
+		#ifdef _DEBUG
+			{
+				std::ostringstream oss;
+				oss << "\n\n" << packet_s;			
+				Glog.info("{}", oss.str());
+			}
+		#endif
+
+			if (packet_s.is_request())
+				continue;
+			
+			if (packet_s.is_message_type(DHCP_MESSAGE_TYPE_DISCOVER))
+			{
+				continue;	
+			}								
 		}
 		catch (socket_error_timedout const& e)
 		{ continue; }
@@ -115,7 +128,7 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 	Glog.info("* Responder thread stopped.");
 }
 
-void v4_dhcp_server::initialize_client(client& client_v, config_ini const& cfg, std::string_view client_mac)
+void v4_dhcp_server::initialize_client(offer_params& client_v, config_ini const& cfg, std::string_view client_mac)
 {
 	using namespace std::string_view_literals;
 
@@ -131,5 +144,13 @@ void v4_dhcp_server::initialize_client(client& client_v, config_ini const& cfg, 
 	client_v.dhcp_options.set(0x03u, v4_parse_address(cfg.value_or(mac["v4_router_address"sv], v4_address_to_string(client_v.client_address))));
 	client_v.dhcp_options.set(0x43u, std::span<char>(client_v.boot_file_name));
 	client_v.dhcp_options.set(0x0Cu, std::span<char>(client_v.server_host_name));
+}
+
+auto v4_dhcp_server::offer(v4_dhcp_packet const& source_v, offer_params const& params_v) -> v4_dhcp_packet
+{
+	auto offered_packet_v = source_v;
+
+
+	return offered_packet_v;
 }
 

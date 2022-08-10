@@ -7,15 +7,36 @@
 #include <utility>
 
 #include <common/serdes.hpp>
+#include "v4_dhcp_consts.hpp"
 
 struct v4_dhcp_options
 {
-	static inline const constexpr std::uint32_t DHCP_COOKIE = 0x63825363u;
+	v4_dhcp_options()
+	: m_cookie{ DHCP_MAGIC_COOKIE }, 
+		m_values{} 
+	{}
+	
+	v4_dhcp_options(v4_dhcp_options const& p)
+	:	v4_dhcp_options()
+	{
+		for (auto i = 0u; i < m_values.size(); ++i)
+		{
+			if (!p.m_values[i])
+				continue;
+			auto size = p.m_values[i][0] + 1u;
+			auto data = std::make_unique<std::uint8_t[]>(size);			
+			std::copy(p.m_values[i].get(), p.m_values[i].get() + size, data.get());
+			m_values[i] = std::move(data);
+		}
+	}
 
-	v4_dhcp_options(): m_values{  } {}
-
-	v4_dhcp_options(v4_dhcp_options const&) = delete;
-	v4_dhcp_options& operator=(v4_dhcp_options const&) = delete;
+	auto operator = (v4_dhcp_options const& p) 
+		-> v4_dhcp_options&
+	{
+		this->~v4_dhcp_options();
+		new (this) v4_dhcp_options(p);		
+		return *this;
+	}
 	
 	v4_dhcp_options(v4_dhcp_options&& prev) noexcept
 	:	m_values{ std::move(prev.m_values) }
@@ -49,7 +70,7 @@ struct v4_dhcp_options
 		if (_serdes.remaining_bytes() < sizeof (m_cookie))
 			return _serdes;
 		_serdes(m_cookie);
-		if (m_cookie != DHCP_COOKIE)
+		if (m_cookie != DHCP_MAGIC_COOKIE)
 			return _serdes;
 		
 		while(true)
@@ -86,7 +107,7 @@ struct v4_dhcp_options
 		return _serdes;
 	}
 	
-	auto operator[] (std::uint8_t index) 
+	auto operator[] (std::uint8_t index) const
 		-> std::span<const std::uint8_t>
 	{
 		if (m_values [index] == nullptr) 
@@ -131,14 +152,14 @@ struct v4_dhcp_options
 	}
 
 	template <typename... Q>
-	auto value(std::uint8_t code, std::tuple<Q...>& values)
+	auto value(std::uint8_t code, std::tuple<Q...>& values) const
 		-> bool
 	{
 		return value(code, values, std::make_index_sequence<sizeof...(Q)>());	
 	}
 
 	template <typename... Q>
-	auto value(std::uint8_t code, std::tuple<Q&...> values)
+	auto value(std::uint8_t code, std::tuple<Q&...> values) const
 		-> bool
 	{
 		return value(code, values, std::make_index_sequence<sizeof...(Q)>());	
@@ -156,10 +177,24 @@ struct v4_dhcp_options
 		return true;
 	}
 	
+	auto message_type() const 
+		-> std::optional<std::uint8_t>
+	{
+		std::uint8_t mt_val = 0u;
+		if (value(0x35, std::tie(mt_val)))
+			return mt_val;
+		return std::nullopt;
+	}
+
+	auto requested_parameters() const 
+		-> std::span<const std::uint8_t>
+	{
+		return (*this)[0x37];
+	}
 	
 protected:
 	template <typename Tuple, std::size_t ... Index>
-	auto value(std::uint8_t code, Tuple& values, std::index_sequence<Index...>)
+	auto value(std::uint8_t code, Tuple& values, std::index_sequence<Index...>) const
 		-> bool
 	{
 		if (code < 1u || code > 254u || !m_values[code - 1u])
