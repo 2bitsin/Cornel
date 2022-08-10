@@ -30,6 +30,27 @@ struct v4_dhcp_packet
 	}
 
 	template <typename _Serdes>
+	auto serdes(_Serdes& _serdes) const -> _Serdes&
+	{
+		SERDES_APPLY(_serdes, m_opcode);
+		SERDES_APPLY(_serdes, m_hardware_type);
+		SERDES_APPLY(_serdes, m_hardware_address_length);
+		SERDES_APPLY(_serdes, m_number_of_hops);
+		SERDES_APPLY(_serdes, m_transaction_id);
+		SERDES_APPLY(_serdes, m_seconds_elapsed);
+		SERDES_APPLY(_serdes, m_flags);
+		SERDES_APPLY(_serdes, m_client_ip_address_v4);
+		SERDES_APPLY(_serdes, m_your_ip_address_v4);
+		SERDES_APPLY(_serdes, m_server_ip_address_v4);
+		SERDES_APPLY(_serdes, m_gateway_ip_address_v4);
+		SERDES_APPLY(_serdes, m_client_hardware_address);
+		SERDES_APPLY(_serdes, m_server_host_name);
+		SERDES_APPLY(_serdes, m_boot_file_name);		
+		SERDES_APPLY(_serdes, m_options);
+		return _serdes;
+	}
+	
+	template <typename _Serdes>
 	auto serdes(_Serdes& _serdes) -> _Serdes&
 	{
 		SERDES_APPLY(_serdes, m_opcode);
@@ -187,6 +208,25 @@ struct v4_dhcp_packet
 		std::copy(value.begin(), value.end(), m_boot_file_name);
 	}
 	
+	auto serdes_size_hint() const -> std::size_t
+	{
+		return 
+			  m_options.serdes_size_hint()
+			+ sizeof(m_opcode)
+			+ sizeof(m_hardware_type)
+			+ sizeof(m_hardware_address_length)
+			+ sizeof(m_number_of_hops)
+			+ sizeof(m_transaction_id)
+			+ sizeof(m_seconds_elapsed)
+			+ sizeof(m_flags)
+			+ sizeof(m_client_ip_address_v4)
+			+ sizeof(m_your_ip_address_v4)
+			+ sizeof(m_server_ip_address_v4)
+			+ sizeof(m_gateway_ip_address_v4)
+			+ sizeof(m_client_hardware_address)
+			+ sizeof(m_server_host_name)
+			+ sizeof(m_boot_file_name);			
+	}
 
 protected:
 
@@ -194,17 +234,18 @@ protected:
 	std::uint8_t		m_opcode;
 	std::uint8_t		m_hardware_type;
 	std::uint8_t		m_hardware_address_length;
-	std::uint8_t		m_number_of_hops;
-	std::uint32_t		m_transaction_id;
+	std::uint8_t		m_number_of_hops;	
+	std::uint32_t		m_transaction_id;	
 	std::uint16_t		m_seconds_elapsed;
-	std::uint16_t		m_flags;
+	std::uint16_t		m_flags;	
 	std::uint32_t		m_client_ip_address_v4;
 	std::uint32_t		m_your_ip_address_v4;
 	std::uint32_t		m_server_ip_address_v4;
-	std::uint32_t		m_gateway_ip_address_v4;
+	std::uint32_t		m_gateway_ip_address_v4;	
 	std::uint8_t		m_client_hardware_address [16];
 	char						m_server_host_name [64];
 	char						m_boot_file_name [128];	
 	v4_dhcp_options m_options;
 };
+
 

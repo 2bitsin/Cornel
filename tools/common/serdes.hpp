@@ -115,6 +115,11 @@ struct serdes<serdes_reader, Byte_order>
 		return m_curr.size();
 	}
 
+	auto consumed_bytes() const noexcept -> std::size_t
+	{
+		return m_data.size() - m_curr.size();
+	}
+
 private:
 	std::span<const std::byte> m_curr;
 	std::span<const std::byte> m_data;
@@ -213,6 +218,11 @@ struct serdes<serdes_writter, Byte_order>
 	{
 		return m_curr.size();
 	}
+
+	auto consumed_bytes() const noexcept -> std::size_t
+	{
+		return m_data.size() - m_curr.size();
+	}
 	
 private:
 	std::span<const std::byte> m_curr;
@@ -220,3 +230,16 @@ private:
 };
 
 #define SERDES_APPLY(serdes, variable) serdes(variable, #variable)
+
+
+template <byte_order_type Byte_order = network_byte_order, typename T = void>
+requires requires (T const& t) { { t.serdes_size_hint() } -> std::convertible_to<std::size_t>; }
+inline auto quick_serialize(T const& t) -> std::vector<std::byte>
+{
+	std::vector<std::byte> temp_v( t.serdes_size_hint() + 128u );
+	std::span<std::byte> temp_s{ temp_v };
+	serdes<serdes_writter, Byte_order> _serdes(temp_s);
+	_serdes(t);
+	temp_v.resize(_serdes.consumed_bytes());
+	return temp_v;
+}

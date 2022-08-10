@@ -41,7 +41,7 @@ protected:
 
 	void initialize_client(offer_params& client_v, config_ini const& cfg, std::string_view client_mac);
 
-	auto offer(v4_dhcp_packet const& packet, offer_params const& client_v) -> v4_dhcp_packet;
+	auto make_offer(v4_dhcp_packet const& packet, offer_params const& client_v) -> v4_dhcp_packet;
 	
 private:
 	void thread_incoming(std::stop_token st);

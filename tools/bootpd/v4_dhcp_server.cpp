@@ -108,15 +108,17 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 			}
 		#endif
 
-			if (packet_s.is_request())
+			if (!packet_s.is_request())
 				continue;
 			
 			if (packet_s.is_message_type(DHCP_MESSAGE_TYPE_DISCOVER))
 			{
 				const auto mac_address_v = mac_address_to_string (packet_s.hardware_address());
 				const auto& offer_params_v = m_clients.at(mac_address_v);
-				auto offer_packet = offer (packet_s, offer_params_v);
-				// TODO : serialize packet
+				auto offer_packet = make_offer (packet_s, offer_params_v);
+				auto offer_bits = quick_serialize<network_byte_order>(offer_packet);
+				std::span<const std::byte> offer_bits_s{ offer_bits };
+				m_socket.send(offer_bits_s, v4_address::everyone(), 0u);
 				continue;	
 			}								
 		}
@@ -150,7 +152,7 @@ void v4_dhcp_server::initialize_client(offer_params& client_v, config_ini const&
 	client_v.dhcp_options.set(0x0Cu, std::span<char>(client_v.server_host_name));
 }
 
-auto v4_dhcp_server::offer(v4_dhcp_packet const& source_v, offer_params const& params_v) -> v4_dhcp_packet
+auto v4_dhcp_server::make_offer(v4_dhcp_packet const& source_v, offer_params const& params_v) -> v4_dhcp_packet
 {
 	auto offered_packet_v = source_v;
 	offered_packet_v.assign_options(params_v.dhcp_options, source_v.requested_parameters());

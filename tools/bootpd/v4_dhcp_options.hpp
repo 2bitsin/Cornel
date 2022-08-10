@@ -4,6 +4,7 @@
 #include <memory>
 #include <span>
 #include <tuple>
+#include <algorithm>
 #include <utility>
 
 #include <common/serdes.hpp>
@@ -88,7 +89,7 @@ struct v4_dhcp_options
 	}
 
 	template <byte_order_type Byte_order>
-	auto serdes(::serdes<serdes_writter, Byte_order>& _serdes) 
+	auto serdes(::serdes<serdes_writter, Byte_order>& _serdes) const
 		-> ::serdes<serdes_writter, Byte_order>&
 	{
 		using std::make_unique;
@@ -96,7 +97,7 @@ struct v4_dhcp_options
 		using std::uint8_t;
 		using std::span;
 		
-		const auto count_options = std::min(std::size(m_values), 254u);
+		const auto count_options = std::min<std::size_t>(std::size(m_values), 254u);
 		for (auto i = 0u; i < count_options; ++i)
 		{
 			if (m_values[i] == nullptr)
@@ -195,6 +196,19 @@ struct v4_dhcp_options
 		-> std::span<const std::uint8_t>
 	{
 		return (*this)[0x37];
+	}
+
+	auto serdes_size_hint() const 
+		-> std::size_t
+	{
+		std::size_t total_sum = sizeof(std::uint8_t) + sizeof(m_cookie);
+		for(auto&& value : m_values)
+		{
+			if (value == nullptr)
+				continue;
+			total_sum += (value[0] + 2*sizeof(std::uint8_t));
+		}
+		return total_sum;
 	}
 	
 protected:
