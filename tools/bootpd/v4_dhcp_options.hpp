@@ -97,6 +97,7 @@ struct v4_dhcp_options
 		using std::uint8_t;
 		using std::span;
 		
+		_serdes(std::uint32_t(DHCP_MAGIC_COOKIE));
 		const auto count_options = std::min<std::size_t>(std::size(m_values), 254u);
 		for (auto i = 0u; i < count_options; ++i)
 		{
@@ -105,6 +106,7 @@ struct v4_dhcp_options
 			_serdes(std::uint8_t(i + 1u));
 			_serdes(span{ m_values[i].get(), m_values[i].get()[0] + 1u});
 		}	
+		_serdes(std::uint8_t(0xff));
 		return _serdes;
 	}
 	

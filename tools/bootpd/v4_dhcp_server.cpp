@@ -5,6 +5,7 @@
 
 #include <common/socket_error.hpp>
 #include <common/logger.hpp>
+#include <common/case.hpp>
 
 #include "v4_dhcp_consts.hpp"
 #include "v4_dhcp_server.hpp"
@@ -31,7 +32,7 @@ void v4_dhcp_server::initialize(config_ini const& cfg)
 
 	for (auto&& client_mac : cfg.sections())
 	{
-		initialize_client(m_clients[std::string(client_mac)], cfg, client_mac);
+		initialize_client(m_clients[std::string(client_mac)], cfg, lowercase(std::string(client_mac)));
 	}
 }
 
@@ -113,7 +114,7 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 			
 			if (packet_s.is_message_type(DHCP_MESSAGE_TYPE_DISCOVER))
 			{
-				const auto mac_address_v = mac_address_to_string (packet_s.hardware_address());
+				const auto mac_address_v = lowercase(mac_address_to_string (packet_s.hardware_address()));				
 				const auto& offer_params_v = m_clients.at(mac_address_v);
 				auto offer_packet = make_offer (packet_s, offer_params_v);
 				auto offer_bits = quick_serialize<network_byte_order>(offer_packet);
