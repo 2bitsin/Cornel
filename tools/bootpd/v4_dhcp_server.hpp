@@ -30,6 +30,7 @@ protected:
 	struct offer_params
 	{
 		std::uint32_t			client_address;
+		std::uint32_t			your_address;
 		std::uint32_t			server_address;
 		std::uint32_t			gateway_address;
 		std::string				boot_file_name;

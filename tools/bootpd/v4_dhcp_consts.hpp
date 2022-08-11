@@ -19,5 +19,5 @@ static inline constexpr const std::uint8_t DHCP_HARDWARE_TYPE_ETHERNET = 1u;
 static inline constexpr const std::uint8_t DHCP_OPCODE_REQUEST = 1u;
 static inline constexpr const std::uint8_t DHCP_OPCODE_RESPONSE = 2u;
 
-static inline constexpr const std::uint8_t DHCP_FLAGS_BROADCAST = 0x8000u;
+static inline constexpr const std::uint16_t DHCP_FLAGS_BROADCAST = 0x8000u;
 

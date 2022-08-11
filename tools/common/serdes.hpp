@@ -179,7 +179,7 @@ struct serdes<serdes_writter, Byte_order>
 			(*this)(value);		
 		return *this;
 	}
-	
+		
 	template <typename T>
 	auto operator () (std::span<T> output_value, std::string_view = "") -> serdes&
 	{
@@ -188,6 +188,22 @@ struct serdes<serdes_writter, Byte_order>
 		return *this;
 	}
 
+	template <typename T>
+	auto operator () (std::basic_string_view<T> output_value, std::string_view = "") -> serdes&
+	{
+		for(const auto& value : output_value) 
+			(*this)(value);		
+		return *this;
+	}
+
+	template <typename T>
+	auto operator () (std::basic_string<T> const& output_value, std::string_view = "") -> serdes&
+	{
+		for(const auto& value : output_value) 
+			(*this)(value);		
+		return *this;
+	}
+	
 	
 	auto& skip(std::size_t number_of_bytes)
 	{
@@ -234,7 +250,7 @@ private:
 
 template <byte_order_type Byte_order = network_byte_order, typename T = void>
 requires requires (T const& t) { { t.serdes_size_hint() } -> std::convertible_to<std::size_t>; }
-inline auto quick_serialize(T const& t) -> std::vector<std::byte>
+inline auto serialize_to_vector(T const& t) -> std::vector<std::byte>
 {
 	std::vector<std::byte> temp_v( t.serdes_size_hint() + 128u );
 	std::span<std::byte> temp_s{ temp_v };

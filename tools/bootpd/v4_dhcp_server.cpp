@@ -95,31 +95,33 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 	{
 		try
 		{
-			auto [source, packet_bits] = m_packets.pop(st);
-			Glog.info("Responding to '{}'.", source.to_string());
+			auto [source, packet_bits] = m_packets.pop(st);			
 			serdes<serdes_reader, network_byte_order> _serdes(std::span{ packet_bits });
 			v4_dhcp_packet packet_s;
 			_serdes(packet_s);
-			
-		#ifdef _DEBUG
-			{
-				std::ostringstream oss;
-				oss << "\n\n" << packet_s;			
-				Glog.info("{}", oss.str());
-			}
-		#endif
 
 			if (!packet_s.is_request())
 				continue;
 			
-			if (packet_s.is_message_type(DHCP_MESSAGE_TYPE_DISCOVER))
+			if (packet_s.is_message_type(DHCP_MESSAGE_TYPE_DISCOVER) 
+			  ||packet_s.is_message_type(DHCP_MESSAGE_TYPE_REQUEST))
 			{
 				const auto mac_address_v = lowercase(mac_address_to_string (packet_s.hardware_address()));				
 				const auto& offer_params_v = m_clients.at(mac_address_v);
-				auto offer_packet = make_offer (packet_s, offer_params_v);
-				auto offer_bits = quick_serialize<network_byte_order>(offer_packet);
-				std::span<const std::byte> offer_bits_s{ offer_bits };
-				m_socket.send(offer_bits_s, v4_address::everyone(), 0u);
+				auto offer_packet_v = make_offer (packet_s, offer_params_v);
+				
+				if (packet_s.is_message_type(DHCP_MESSAGE_TYPE_DISCOVER)) {
+					Glog.info("Responding to '{}' (transaction {:#08x}) DHCP.DISCOVER packet with DHCP.OFFER packet.", source.to_string(), packet_s.transaction_id());
+					offer_packet_v.message_type(DHCP_MESSAGE_TYPE_OFFER);
+				}
+				else if (packet_s.is_message_type(DHCP_MESSAGE_TYPE_REQUEST)) {
+					Glog.info("Responding to '{}' (transaction {:#08x}) DHCP.REQUEST packet with DHCP.ACK packet.", source.to_string(), packet_s.transaction_id());
+					offer_packet_v.message_type(DHCP_MESSAGE_TYPE_ACK);
+				}
+
+				auto offer_buffer_v = serialize_to_vector<network_byte_order>(offer_packet_v);
+				std::span<const std::byte> offer_buffer_s{ offer_buffer_v };
+				m_socket.send(offer_buffer_s, v4_address::everyone().port(source.port()), 0u);
 				continue;	
 			}								
 		}
@@ -135,35 +137,56 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 	Glog.info("* Responder thread stopped.");
 }
 
-void v4_dhcp_server::initialize_client(offer_params& client_v, config_ini const& cfg, std::string_view client_mac)
+void v4_dhcp_server::initialize_client(offer_params& params_v, config_ini const& cfg, std::string_view client_mac)
 {
 	using namespace std::string_view_literals;
 
 	config_ini::section_type mac(client_mac);
 
-	client_v.client_address = v4_parse_address(cfg.value_or(mac["v4_client_address"sv], "0.0.0.0"sv));
-	client_v.server_address = v4_parse_address(cfg.value_or(mac["v4_server_address"sv], "0.0.0.0"sv));
-	client_v.gateway_address = v4_parse_address(cfg.value_or(mac["v4_gateway_address"sv], "0.0.0.0"sv));
-	client_v.server_host_name = cfg.value_or(mac["server_host_name"sv], ""sv);
-	client_v.boot_file_name = cfg.value_or(mac["boot_file_name"sv], ""sv);
+	params_v.client_address = v4_parse_address(cfg.value_or(mac["v4_client_address"sv], "0.0.0.0"sv));
+	params_v.your_address = v4_parse_address(cfg.value_or(mac["v4_your_address"sv], "0.0.0.0"sv));
+	params_v.server_address = v4_parse_address(cfg.value_or(mac["v4_server_address"sv], "0.0.0.0"sv));
+	params_v.gateway_address = v4_parse_address(cfg.value_or(mac["v4_gateway_address"sv], "0.0.0.0"sv));
+	params_v.server_host_name = cfg.value_or(mac["server_host_name"sv], ""sv);
+	params_v.boot_file_name = cfg.value_or(mac["boot_file_name"sv], ""sv);
 
-	client_v.dhcp_options.set(0x01u, v4_parse_address(cfg.value_or(mac["v4_subnet_mask"sv], "0.0.0.0"sv)));
-	client_v.dhcp_options.set(0x03u, v4_parse_address(cfg.value_or(mac["v4_router_address"sv], v4_address_to_string(client_v.client_address))));
-	client_v.dhcp_options.set(0x43u, std::span<char>(client_v.boot_file_name));
-	client_v.dhcp_options.set(0x0Cu, std::span<char>(client_v.server_host_name));
+	params_v.dhcp_options.set(0x01u, v4_parse_address(cfg.value_or(mac["v4_subnet_mask"sv], "0.0.0.0"sv)));
+	params_v.dhcp_options.set(0x03u, v4_parse_address(cfg.value_or(mac["v4_router_address"sv], v4_address_to_string(params_v.server_address))));
+	params_v.dhcp_options.set(0x07u, v4_parse_address(cfg.value_or(mac["v4_log_server_address"sv], v4_address_to_string(params_v.server_address))));
+	params_v.dhcp_options.set(0x0Cu, params_v.server_host_name);
+	params_v.dhcp_options.set(0x0Fu, cfg.value_or(mac["domain_name"sv], "localhost"sv));
+	
+	params_v.dhcp_options.set(0x33u, cfg.value_or(mac["address_lease_time"sv], std::uint32_t(172800)));
+	params_v.dhcp_options.set(0x36u, v4_parse_address(cfg.value_or(mac["v4_dhcp_server_address"sv], v4_address_to_string(params_v.server_address))));
+	params_v.dhcp_options.set(0x3Au, cfg.value_or(mac["address_renewal_time"sv], std::uint32_t(86400)));
+	params_v.dhcp_options.set(0x3Bu, cfg.value_or(mac["address_rebinding_time"sv], std::uint32_t(7200)));
+
+	params_v.dhcp_options.set(0x43u, params_v.boot_file_name);	
 }
 
 auto v4_dhcp_server::make_offer(v4_dhcp_packet const& source_v, offer_params const& params_v) -> v4_dhcp_packet
 {
-	auto offered_packet_v = source_v;
-	offered_packet_v.assign_options(params_v.dhcp_options, source_v.requested_parameters());
-	offered_packet_v.message_type(DHCP_MESSAGE_TYPE_OFFER);
+	v4_dhcp_packet offered_packet_v;	
+	offered_packet_v.opcode(DHCP_OPCODE_RESPONSE);
+	offered_packet_v.hardware_type(DHCP_HARDWARE_TYPE_ETHERNET);
+	offered_packet_v.hardware_address(source_v.hardware_address());
+
+	offered_packet_v.number_of_hops(0);
+	offered_packet_v.flags(DHCP_FLAGS_BROADCAST);
+	offered_packet_v.seconds_elapsed(source_v.seconds_elapsed());	
+	
+	offered_packet_v.transaction_id(source_v.transaction_id());
+	
+	offered_packet_v.client_address(params_v.client_address);	
+	offered_packet_v.your_address(params_v.your_address);
 	offered_packet_v.server_address(params_v.server_address);
-	offered_packet_v.client_address(params_v.client_address);
-	offered_packet_v.your_address(params_v.client_address);
 	offered_packet_v.gateway_address(params_v.gateway_address);
+	
 	offered_packet_v.boot_file_name(params_v.boot_file_name);
 	offered_packet_v.server_host_name(params_v.server_host_name);		
+
+	offered_packet_v.assign_options(params_v.dhcp_options, source_v.requested_parameters());
+	offered_packet_v.assign_options(params_v.dhcp_options, { 54, 51, 58, 59, 7, 15 });
 	return offered_packet_v;
 }
 

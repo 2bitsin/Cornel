@@ -113,13 +113,13 @@ struct v4_dhcp_options
 	auto operator[] (std::uint8_t index) const
 		-> std::span<const std::uint8_t>
 	{
-		if (m_values [index] == nullptr) 
-		{
+		using namespace std::string_literals;
+		if (index <= 0x00u || index >= 0xffu)
+			throw std::out_of_range("Accessing invalid option: "s + std::to_string(index));
+		if (m_values [index - 1u] == nullptr) 
 			return {};
-		}
-		
-		return { m_values [index].get() + 1u, 
-			       m_values [index][0] };
+		const auto option_bytes = m_values [index - 1u].get();
+		return { option_bytes + 1u, option_bytes[0u]};
 	}
 
 	auto set(std::uint8_t code, std::span<const std::uint8_t> data)
