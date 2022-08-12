@@ -17,7 +17,12 @@ namespace details
 	requires(std::is_trivial_v<T>)
 	inline void reverse_bytes_inplace(T& value)
 	{
-		if constexpr (std::is_integral_v<T>)
+		if constexpr (std::is_enum_v<T>)
+		{
+			return reverse_bytes_inplace((std::underlying_type_t<T>&)value);
+		}
+		
+		if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>)
 		{
 		#ifdef _MSC_VER
 
@@ -77,14 +82,14 @@ inline auto net_to_host(T value) -> T
 }
 
 template <typename T>
-requires (std::is_integral_v<T>)
+requires (std::is_integral_v<T> || std::is_enum_v<T> || std::is_floating_point_v<T>)
 inline auto host_to_net_inplace(T& value) -> void
 {
 	details::reverse_bytes_inplace(value);
 }
 
 template <typename T>
-requires (std::is_integral_v<T>)
+requires (std::is_integral_v<T> || std::is_enum_v<T> || std::is_floating_point_v<T>)
 inline auto net_to_host_inplace(T& value) -> void
 {
 	details::reverse_bytes_inplace(value);

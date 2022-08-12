@@ -48,7 +48,7 @@ struct serdes<serdes_reader, Byte_order>
 
 	template <typename T>
 	requires (std::is_trivial_v<T>)
-	auto operator () (std::basic_string<T>& output_value, serdes_asciiz_flag_t)
+	auto operator () (std::basic_string<T>& output_value, serdes_asciiz_flag_t, std::string_view = "")
 	{
 		std::basic_string<T> value;
 		while(true)
@@ -83,7 +83,7 @@ struct serdes<serdes_reader, Byte_order>
 		
 		value = *(const T*)(m_curr.data());
 		if constexpr (Byte_order == network_byte_order)
-			net_to_host_inplace(value);
+			net_to_host_inplace(*(T*)&value);
 		m_curr = m_curr.subspan(sizeof(T));
 		return *this;
 	}
@@ -173,7 +173,7 @@ struct serdes<serdes_writter, Byte_order>
 
 	template <typename T>
 	requires (std::is_trivial_v<T>)
-	auto operator () (std::basic_string<T> const& value, serdes_asciiz_flag_t)
+	auto operator () (std::basic_string<T> const& value, serdes_asciiz_flag_t, std::string_view = "")
 	{
 		for(auto&& char_v : value)
 			(*this)(char_v);
@@ -193,6 +193,7 @@ struct serdes<serdes_writter, Byte_order>
 		*(T*)(m_curr.data()) = value;
 		if constexpr (Byte_order == network_byte_order)
 			host_to_net_inplace(*(T*)(m_curr.data()));
+
 		m_curr = m_curr.subspan(sizeof(T));
 		return *this;
 	}
