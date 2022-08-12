@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cstddef>
 
 #ifdef _MSC_VER
 	#include <intrin.h>
@@ -17,32 +18,27 @@ namespace details
 	requires(std::is_trivial_v<T>)
 	inline void reverse_bytes_inplace(T& value)
 	{
-		if constexpr (std::is_enum_v<T>)
-		{
-			return reverse_bytes_inplace((std::underlying_type_t<T>&)value);
-		}
-		
-		if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>)
+		if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_enum_v<T>)
 		{
 		#ifdef _MSC_VER
 
-			if constexpr (sizeof(T) == 2u)
-				value = (T &&)_byteswap_ushort((unsigned short const&)value);
-			else if constexpr (sizeof(T) == 4u)
-				value = (T &&)_byteswap_ulong((unsigned long const&)value);
-			else if constexpr (sizeof(T) == 8u)
-				value = (T &&)_byteswap_uint64((unsigned long long const&)value);
+			if constexpr (sizeof(T) == sizeof(std::uint16_t))
+				value = (T)_byteswap_ushort((std::uint16_t const&)value);
+			else if constexpr (sizeof(T) == sizeof(std::uint32_t))
+				value = (T)_byteswap_ulong((std::uint32_t const&)value);
+			else if constexpr (sizeof(T) == sizeof(std::uint64_t))
+				value = (T)_byteswap_uint64((std::uint64_t const&)value);
 			else 
 				reverse_bytes_inplace(&value, sizeof(value));
 			
 		#elif defined(__GNUC__) || defined(__clang__)
 
-			if constexpr (sizeof(T) == 2u)
-				value = (T &&)__builtin_bswap16(value);
-			else if constexpr (sizeof(T) == 4u)
-				value = (T &&)__builtin_bswap32(value);
-			else if constexpr (sizeof(T) == 8u)
-				value = (T &&)__builtin_bswap64(value);
+			if constexpr (sizeof(T) == sizeof(std::uint16_t))
+				value = (T)__builtin_bswap16((std::uint16_t const&)value);
+			else if constexpr (sizeof(T) == sizeof(std::uint32_t))
+				value = (T)__builtin_bswap32((std::uint32_t const&)value);
+			else if constexpr (sizeof(T) == sizeof(std::uint64_t))
+				value = (T)__builtin_bswap64((std::uint64_t const&)value);
 			else 
 				reverse_bytes_inplace(&value, sizeof(value));
 			
