@@ -18,7 +18,6 @@ add_library(serboot STATIC
 )
 	
 set_property(TARGET serboot PROPERTY CXX_STANDARD 23)
-
 add_executable(serbootd server_main.cpp)
 target_link_libraries(serbootd PRIVATE common serboot)
 set_property(TARGET serbootd PROPERTY CXX_STANDARD 23)

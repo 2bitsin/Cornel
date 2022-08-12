@@ -1,0 +1,109 @@
+#include <chrono>
+#include <functional>
+#include <filesystem>
+
+#include <common/logger.hpp>
+#include <common/v4_address.hpp>
+#include <common/socket_udp.hpp>
+#include <common/socket_error.hpp>
+
+#include "v4_tftp_server.hpp"
+#include "v4_tftp_packet.hpp"
+
+
+v4_tftp_server::v4_tftp_server()
+{
+}
+
+v4_tftp_server::v4_tftp_server(config_ini const& cfg)
+{
+	initialize(cfg);
+}
+
+v4_tftp_server::~v4_tftp_server()
+{
+	cease();
+}
+
+void v4_tftp_server::initialize(config_ini const& cfg)
+{
+	using namespace std::string_view_literals;
+	m_address = cfg.value_or("v4_bind_address"sv, v4_address::any()).port(cfg.value_or("tftp_listen_port"sv, 69));
+	m_base_dir = cfg.value_or("tftp_base_dir"sv, std::filesystem::path("./"));	
+}
+
+void v4_tftp_server::start()
+{
+	using namespace std::chrono_literals;
+	Glog.info("Starting TFTP server on '{}' ... ", m_address.to_string());
+	m_sock = m_address.make_udp();
+	m_sock.timeout(500ms);	
+	m_thread_incoming = std::jthread([this](auto&& st){ thread_incoming (st); });
+	m_thread_outgoing = std::jthread([this](auto&& st){ thread_outgoing (st); });
+	std::this_thread::sleep_for(10ms);
+}
+
+void v4_tftp_server::cease()
+{
+	Glog.info("Stopping TFTP server on '{}' ... ", m_address.to_string());
+	if (m_thread_incoming.joinable()) {
+		m_thread_incoming.request_stop();
+		m_thread_incoming.join();
+	}
+	if (m_thread_outgoing.joinable()) {
+		m_thread_outgoing.request_stop();
+		m_thread_outgoing.join();
+	}
+}
+
+void v4_tftp_server::thread_incoming(std::stop_token st)
+{
+	using namespace std::string_view_literals;
+	Glog.info("* Receiver thread started.");
+	while (!st.stop_requested()) 
+	{
+		try
+		{
+			auto[source, packet_bits] = m_sock.recv(0);
+			if (packet_bits.empty()) 
+				continue;
+			Glog.info("Received {} byte TFTP packet from '{}' ... ", packet_bits.size(), source.to_string());
+			m_packets.emplace(
+				std::move(source), 
+				std::move(packet_bits)
+			);
+		}
+		catch (socket_error_timedout const&)
+		{ continue; }
+		catch (std::exception const& e)
+		{ Glog.error("{}"sv, e.what()); }
+	}
+	Glog.info("* Receiver thread stopped.");
+}
+
+void v4_tftp_server::thread_outgoing(std::stop_token st)
+{
+	Glog.info("* Responder thread started.");
+	using namespace std::string_view_literals;
+	while (!st.stop_requested()) 
+	{
+		try
+		{
+			auto[source, packet_bits] = m_packets.pop(st);
+			serdes<serdes_reader> _serdes(std::span{ packet_bits });
+			v4_tftp_packet tftp_packet_v;
+			_serdes(tftp_packet_v);
+			
+			Glog.info("From '{}' received : {} ", source.to_string(), tftp_packet_v.to_string());			
+		}
+		catch (socket_error_timedout const&)
+		{ continue; }
+		catch (stop_requested_error const&)
+		{ break; }
+		catch (std::exception const& e)
+		{ Glog.error("{}"sv, e.what()); }		
+	}
+	Glog.info("* Responder thread stopped.");
+}
+
+

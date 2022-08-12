@@ -15,10 +15,11 @@ add_library(common STATIC
 	socket_option.hpp
 	socket_api.hpp
 	socket_api.cpp
-	socket_error.hpp
-	udp_socket.hpp
-	"socket_udp.cpp"	
+	socket_error.hpp	
+	socket_udp.cpp
+	socket_udp.hpp
 	v4_address.hpp
 	v4_address.cpp
 )
 set_property(TARGET common PROPERTY CXX_STANDARD 23)
+

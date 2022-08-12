@@ -94,6 +94,15 @@ struct concurrent_queue
     mlock.unlock();
     m_covar.notify_one();
   }
+	template<typename...Q>
+	void emplace(Q&&... args)
+	{
+		std::unique_lock<std::mutex> mlock(m_mutex);
+		m_queue.emplace(std::forward<Q>(args)...);
+		mlock.unlock();
+		m_covar.notify_one();
+	}
+	
 
 	concurrent_queue()
 	:	m_cease{ false }

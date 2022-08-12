@@ -10,19 +10,33 @@
 #include <common/control_c.hpp>
 #include <common/config_ini.hpp>
 #include <common/logger.hpp>
+#include <common/arguments.hpp>
 
-#include "v4_dhcp_packet.hpp"
 #include "v4_dhcp_server.hpp"
-
+#include "v4_tftp_server.hpp"
 
 int main(int argc, char** argv)
 try
 {
-	{
+	using namespace std::string_literals;
+	using namespace std::string_view_literals;
+	{	
+		
+#ifndef NDEBUG
 		std::filesystem::current_path(R"(C:\Users\alex\Desktop\projects\leisure\Cornel\tools\workspace)");
-		config_ini config_ini_v(std::ifstream("config.ini"));		
+		std::string config_path = "config.ini";		
+#else
+		arguments args(argc, argv);
+		std::string config_path(args.value_or("-C"sv, "config.ini"sv));
+#endif
+		config_ini config_ini_v(std::ifstream{ config_path });
+		
 		v4_dhcp_server dhcp_server_v (config_ini_v);		
-		dhcp_server_v.start();			
+		v4_tftp_server tftp_server_v (config_ini_v);
+		
+		dhcp_server_v.start();
+		tftp_server_v.start();
+		
 		while(!control_c::stop_requested())
 		{
 			using namespace std::chrono_literals;

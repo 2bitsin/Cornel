@@ -44,11 +44,10 @@ void v4_dhcp_server::start()
 	
 	m_socket = m_bind_address.make_udp();
 	m_socket.option<so_broadcast>(so_true);
-	m_socket.timeout_recv(100ms);
-	m_socket.timeout_send(100ms);
-
+	m_socket.timeout(500ms);		
 	m_thread_incoming = std::jthread([this](auto&& t){ thread_incoming (t); });	
 	m_thread_outgoing = std::jthread([this](auto&& t){ thread_outgoing (t); });
+	std::this_thread::sleep_for(10ms);
 }
 
 void v4_dhcp_server::cease()
@@ -65,7 +64,7 @@ void v4_dhcp_server::cease()
 void v4_dhcp_server::thread_incoming(std::stop_token st)
 {
 	using namespace std::chrono_literals;
-	Glog.info("* Receiver thread started.");
+	Glog.info("* Receiver thread started.");	
 	while (!st.stop_requested())
 	{
 		try

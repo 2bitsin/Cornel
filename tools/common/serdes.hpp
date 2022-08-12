@@ -20,6 +20,10 @@ enum serdes_type : bool
 	serdes_writter
 };
 
+struct serdes_asciiz_flag_t {};
+
+static inline constexpr const serdes_asciiz_flag_t serdes_asciiz {};
+
 template <serdes_type Serdes_type, byte_order_type Byte_order = network_byte_order>
 struct serdes;
 
@@ -42,6 +46,21 @@ struct serdes<serdes_reader, Byte_order>
 	: serdes(std::span<const T>(bits))
 	{}
 
+	template <typename T>
+	requires (std::is_trivial_v<T>)
+	auto operator () (std::basic_string<T>& output_value, serdes_asciiz_flag_t)
+	{
+		std::basic_string<T> value;
+		while(true)
+		{
+			T char_v;
+			(*this)(char_v);
+			if (!char_v)
+				break;
+			value.push_back(char_v);			
+		}
+		output_value = std::move(value);
+	};
 
 	template <typename T>
 	requires requires (T& value) 
@@ -120,6 +139,11 @@ struct serdes<serdes_reader, Byte_order>
 		return m_data.size() - m_curr.size();
 	}
 
+	bool empty() const noexcept
+	{
+		return m_curr.empty();
+	}
+
 private:
 	std::span<const std::byte> m_curr;
 	std::span<const std::byte> m_data;
@@ -146,6 +170,15 @@ struct serdes<serdes_writter, Byte_order>
 		value.serdes(*this);
 		return *this;
 	}
+
+	template <typename T>
+	requires (std::is_trivial_v<T>)
+	auto operator () (std::basic_string<T> const& value, serdes_asciiz_flag_t)
+	{
+		for(auto&& char_v : value)
+			(*this)(char_v);
+		(*this)(T(0));
+	};
 
 	template <typename T>	
 	requires (std::is_trivial_v<T>)
@@ -238,6 +271,11 @@ struct serdes<serdes_writter, Byte_order>
 	auto consumed_bytes() const noexcept -> std::size_t
 	{
 		return m_data.size() - m_curr.size();
+	}
+
+	bool empty() const noexcept
+	{
+		return m_curr.empty();
 	}
 	
 private:

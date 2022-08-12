@@ -39,19 +39,19 @@ protected:
 	};	
 	
 	using client_map_type = std::unordered_map<std::string, offer_params>;
-
+	
 	void initialize_client(offer_params& client_v, config_ini const& cfg, std::string_view client_mac);
-
 	auto make_offer(v4_dhcp_packet const& packet, offer_params const& client_v) -> v4_dhcp_packet;
 	
 private:
 	void thread_incoming(std::stop_token st);
 	void thread_outgoing(std::stop_token st);
+	
 
 	socket_udp					m_socket;	
-	std::jthread				m_thread_incoming;
-	std::jthread				m_thread_outgoing;		
 	packet_queue_type		m_packets;
 	v4_address					m_bind_address;
 	client_map_type     m_clients;
+	std::jthread				m_thread_incoming;
+	std::jthread				m_thread_outgoing;
 };

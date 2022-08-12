@@ -5,6 +5,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <iostream>
+#include "lexical_cast.hpp"
 
 struct arguments
 {
@@ -64,9 +65,10 @@ struct arguments
   auto value_or(std::string_view _key, _Type _default) -> _Type
   {
     try
-    {
-      if (m_values.count(_key) > 0)
+    {			
+      if (m_values.count(_key) > 0) {				
         return lexical_cast<_Type>(m_values.at(_key).front());
+			}
     }
     catch(const std::exception& e)
     {
@@ -77,15 +79,7 @@ struct arguments
   }
      
 protected:
-  template<typename _Output_type>
-  static auto lexical_cast (std::string_view _value) -> _Output_type
-  {
-    std::istringstream conv { std::string(_value) };
-    _Output_type value;
-    if (!(conv >> value))
-      throw std::logic_error("Bad type conversion");
-    return value;
-  }
+
 
 
 private:

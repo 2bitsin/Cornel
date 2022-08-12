@@ -58,18 +58,18 @@ auto lexical_cast(std::string_view what) -> T
 			if constexpr (std::is_signed_v<T>)
 			{
 				if (sizeof(T) <= sizeof(long))		
-					value = static_cast<T>(std::stol(std::string(what), nullptr, base));			
+					value = static_cast<T>(std::stol(std::string(what), &offs, base));			
 				else
-					value = static_cast<T>(std::stoll(std::string(what), nullptr, base));
+					value = static_cast<T>(std::stoll(std::string(what), &offs, base));
 
 			}
 		} else		
 		if constexpr (std::is_floating_point_v<T>)
 		{	
 			if (sizeof(T) <= sizeof(float))		
-				value = static_cast<T>(std::stof(std::string(what), nullptr));			
+				value = static_cast<T>(std::stof(std::string(what), &offs));			
 			else
-				value = static_cast<T>(std::stod(std::string(what), nullptr));			
+				value = static_cast<T>(std::stod(std::string(what), &offs));
 		} 
 		if (offs != what.size()) {
 			throw bad_lexical_cast("Invalid value: "s + std::string(what));
