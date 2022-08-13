@@ -6,7 +6,7 @@
 #include "cobs_encoder.hpp"
 #include "cobs_decoder.hpp"
 #include "error.hpp"
-#include "common/crc32.hpp"
+#include "common/utility_crc32.hpp"
 #include "common/utility_span.hpp"
 
 

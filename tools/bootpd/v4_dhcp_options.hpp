@@ -55,9 +55,8 @@ struct v4_dhcp_options
 		std::swap(m_values, other.m_values);
 	}
 
-	template <byte_order_type Byte_order>
-	auto serdes(::serdes<serdes_reader, Byte_order>& _serdes) 
-		-> ::serdes<serdes_reader, Byte_order>&
+	auto serdes(::serdes<serdes_reader>& _serdes) 
+		-> ::serdes<serdes_reader>&
 	{
 		using std::make_unique;
 		using std::unique_ptr;
@@ -88,9 +87,8 @@ struct v4_dhcp_options
 		return _serdes;
 	}
 
-	template <byte_order_type Byte_order>
-	auto serdes(::serdes<serdes_writter, Byte_order>& _serdes) const
-		-> ::serdes<serdes_writter, Byte_order>&
+	auto serdes(::serdes<serdes_writer>& _serdes) const
+		-> ::serdes<serdes_writer>&
 	{
 		using std::make_unique;
 		using std::unique_ptr;
@@ -147,7 +145,7 @@ struct v4_dhcp_options
 		
 		m_values[code - 1u] = make_unique<uint8_t[]>(total_size + 1u);
 		m_values[code - 1u][0] = (uint8_t)total_size;		
-		::serdes<serdes_writter, network_byte_order> _serdes (
+		::serdes<serdes_writer> _serdes (
 			std::span(m_values[code - 1u].get() + 1u, total_size)
 		);
 		((_serdes(std::forward<Q>(args))), ...);
@@ -221,7 +219,7 @@ protected:
 		if (code < 1u || code > 254u || !m_values[code - 1u])
 			return false;
 		
-		::serdes<serdes_reader, network_byte_order> _serdes(
+		::serdes<serdes_reader> _serdes(
 			std::span(m_values[code - 1u].get() + 1u, m_values[code - 1u][0])
 		);
 

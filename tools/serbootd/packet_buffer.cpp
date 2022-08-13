@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include "packet_buffer.hpp"
-#include "common/crc32.hpp"
+#include "common/utility_crc32.hpp"
 
 template<typename T>
 packet_buffer<T>::packet_buffer()

@@ -3,8 +3,8 @@ project(common_library)
 add_library(common STATIC 
   arguments.hpp
 	arguments.cpp 
-	crc32.hpp
-	crc32.cpp
+	utility_crc32.hpp
+	utility_crc32.cpp	
 	config_ini.hpp
 	config_ini.cpp
 	control_c.hpp

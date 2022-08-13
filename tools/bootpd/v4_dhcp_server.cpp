@@ -5,7 +5,7 @@
 
 #include <common/socket_error.hpp>
 #include <common/logger.hpp>
-#include <common/case.hpp>
+#include <common/utility_case.hpp>
 
 #include "v4_dhcp_consts.hpp"
 #include "v4_dhcp_server.hpp"
@@ -95,11 +95,11 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 		try
 		{
 			auto [source, packet_bits] = m_packets.pop(st);			
-			serdes<serdes_reader, network_byte_order> _serdes(std::span{ packet_bits });
+			serdes<serdes_reader> _serdes(std::span{ packet_bits });
 			v4_dhcp_packet packet_s;
 			_serdes(packet_s);
 
-			if (!packet_s.is_request())
+			if (packet_s.opcode() != DHCP_OPCODE_REQUEST)
 				continue;
 			
 			if (packet_s.is_message_type(DHCP_MESSAGE_TYPE_DISCOVER) 
@@ -118,9 +118,7 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 					offer_packet_v.message_type(DHCP_MESSAGE_TYPE_ACK);
 				}
 
-				auto offer_buffer_v = serialize_to_vector<network_byte_order>(offer_packet_v);
-				std::span<const std::byte> offer_buffer_s{ offer_buffer_v };
-				m_socket.send(offer_buffer_s, v4_address::everyone().port(source.port()), 0u);
+				m_socket.send(offer_packet_v, v4_address::everyone().port(source.port()), 0u);
 				continue;	
 			}								
 		}
@@ -165,27 +163,22 @@ void v4_dhcp_server::initialize_client(offer_params& params_v, config_ini const&
 
 auto v4_dhcp_server::make_offer(v4_dhcp_packet const& source_v, offer_params const& params_v) -> v4_dhcp_packet
 {
-	v4_dhcp_packet offered_packet_v;	
-	offered_packet_v.opcode(DHCP_OPCODE_RESPONSE);
-	offered_packet_v.hardware_type(DHCP_HARDWARE_TYPE_ETHERNET);
-	offered_packet_v.hardware_address(source_v.hardware_address());
-
-	offered_packet_v.number_of_hops(0);
-	offered_packet_v.flags(DHCP_FLAGS_BROADCAST);
-	offered_packet_v.seconds_elapsed(source_v.seconds_elapsed());	
-	
-	offered_packet_v.transaction_id(source_v.transaction_id());
-	
-	offered_packet_v.client_address(params_v.client_address);	
-	offered_packet_v.your_address(params_v.your_address);
-	offered_packet_v.server_address(params_v.server_address);
-	offered_packet_v.gateway_address(params_v.gateway_address);
-	
-	offered_packet_v.boot_file_name(params_v.boot_file_name);
-	offered_packet_v.server_host_name(params_v.server_host_name);		
-
-	offered_packet_v.assign_options(params_v.dhcp_options, source_v.requested_parameters());
-	offered_packet_v.assign_options(params_v.dhcp_options, { 54, 51, 58, 59, 7, 15 });
-	return offered_packet_v;
+	return (v4_dhcp_packet()
+		.opcode(DHCP_OPCODE_RESPONSE)
+		.hardware_type(DHCP_HARDWARE_TYPE_ETHERNET)
+		.hardware_address(source_v.hardware_address())
+		.number_of_hops(0)
+		.flags(DHCP_FLAGS_BROADCAST)
+		.seconds_elapsed(source_v.seconds_elapsed())
+		.transaction_id(source_v.transaction_id())
+		.client_address(params_v.client_address)
+		.your_address(params_v.your_address)
+		.server_address(params_v.server_address)
+		.gateway_address(params_v.gateway_address)
+		.boot_file_name(params_v.boot_file_name)
+		.server_host_name(params_v.server_host_name)
+		.assign_options(params_v.dhcp_options, source_v.requested_parameters())
+		.assign_options(params_v.dhcp_options, { 54, 51, 58, 59, 7, 15 })
+	);
 }
 

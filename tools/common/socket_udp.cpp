@@ -1,6 +1,7 @@
 #include "v4_address.hpp"
 #include "socket_api.hpp"
 #include "socket_udp.hpp"
+#include "serdes.hpp"
 
 #include <vector>
 #include <array>
@@ -46,17 +47,17 @@ void socket_udp::bind(const v4_address& addr)
 	v4_socket_bind(m_sock, addr);
 }
 
-auto socket_udp::recv(std::span<std::byte>& buffer, v4_address& source, uint32_t flags) -> std::size_t
+auto socket_udp::recv(std::span<std::byte>& buffer, v4_address& source, uint32_t flags) const -> std::size_t
 {
 	return v4_socket_recv(m_sock, buffer, source, flags);
 }
 
-auto socket_udp::send(std::span<const std::byte>& buffer, const v4_address& target, uint32_t flags) -> std::size_t
+auto socket_udp::send(std::span<const std::byte>& buffer, const v4_address& target, uint32_t flags) const -> std::size_t
 {
 	return v4_socket_send(m_sock, buffer, target, flags);
 }
 
-auto socket_udp::recv(uint32_t flags) -> std::tuple<v4_address, std::vector<std::byte>>
+auto socket_udp::recv(uint32_t flags) const -> std::tuple<v4_address, std::vector<std::byte>>
 {
   thread_local std::array<std::byte, 0x10000u> array_buffer;
 	std::span<std::byte> buffer_s{ array_buffer };

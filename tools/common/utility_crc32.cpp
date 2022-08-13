@@ -1,4 +1,4 @@
-#include "crc32.hpp"
+#include "utility_crc32.hpp"
 
 auto crc32 (std::span<const uint8_t> buffer, uint32_t crc) -> uint32_t
 {
@@ -72,9 +72,7 @@ auto crc32 (std::span<const uint8_t> buffer, uint32_t crc) -> uint32_t
 
 	for(auto&& value: buffer) 
 	{ 
-		crc = (crc << 8u)^tab[
-			((crc >> 24u)^value) & 0xffu
-		];
+		crc = (crc << 8u)^tab[((crc >> 24u)^value) & 0xffu];
   }
 	
   return crc;	

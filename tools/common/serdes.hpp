@@ -17,7 +17,7 @@ enum byte_order_type : bool
 enum serdes_type : bool
 {
 	serdes_reader,
-	serdes_writter
+	serdes_writer
 };
 
 struct serdes_asciiz_flag_t {};
@@ -150,10 +150,10 @@ private:
 };
 
 template <byte_order_type Byte_order>
-struct serdes<serdes_writter, Byte_order>
+struct serdes<serdes_writer, Byte_order>
 {
 	static inline const constexpr auto byte_order = Byte_order;
-	static inline const constexpr auto serdes_type = serdes_writter;
+	static inline const constexpr auto serdes_type = serdes_writer;
 	
 	template <typename T>
 	requires (std::is_trivial_v<T> && !std::is_const_v<T> && sizeof(T) == 1u)
@@ -293,7 +293,7 @@ inline auto serialize_to_vector(T const& t) -> std::vector<std::byte>
 {
 	std::vector<std::byte> temp_v( t.serdes_size_hint() + 128u );
 	std::span<std::byte> temp_s{ temp_v };
-	serdes<serdes_writter, Byte_order> _serdes(temp_s);
+	serdes<serdes_writer, Byte_order> _serdes(temp_s);
 	_serdes(t);
 	temp_v.resize(_serdes.consumed_bytes());
 	return temp_v;
