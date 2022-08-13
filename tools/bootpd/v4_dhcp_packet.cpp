@@ -50,7 +50,7 @@ static auto v4_dhcp_bootp_flags_to_string(std::uint16_t flags)
 v4_dhcp_packet::v4_dhcp_packet()
 {}
 
-v4_dhcp_packet::v4_dhcp_packet(std::span<const std::uint8_t> bits)
+v4_dhcp_packet::v4_dhcp_packet(std::span<const std::byte> bits)
 { (::serdes<serdes_reader>(bits))(*this); }
 
 v4_dhcp_packet::v4_dhcp_packet(::serdes<serdes_reader>& _serdes)

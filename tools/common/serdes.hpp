@@ -47,6 +47,12 @@ struct serdes<serdes_reader, Byte_order>
 	{}
 
 	template <typename T>
+	requires (std::is_trivial_v<T> && sizeof(T) == 1u)
+	serdes(std::vector<T> const& bits)
+	: serdes(std::span{ bits })
+	{}
+
+	template <typename T>
 	requires (std::is_trivial_v<T>)
 	auto operator () (std::basic_string<T>& output_value, serdes_asciiz_flag_t, std::string_view = "")
 	{
@@ -161,6 +167,14 @@ struct serdes<serdes_writer, Byte_order>
 	:	m_data{ (std::byte*)bits.data(), bits.size() },
 		m_curr{ (std::byte*)bits.data(), bits.size() }
 	{}
+
+
+	template <typename T>
+	requires (std::is_trivial_v<T> && sizeof(T) == 1u)
+	serdes(std::vector<T>& bits)
+	: serdes(std::span{ bits })
+	{}
+
 
 	template <typename T>
 	requires requires (T const& value) 

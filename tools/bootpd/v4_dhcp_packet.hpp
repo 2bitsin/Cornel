@@ -15,7 +15,7 @@ struct v4_dhcp_packet
 {
 	using mac_address_type = std::uint8_t[6];	
 	v4_dhcp_packet();
-	v4_dhcp_packet(std::span<const std::uint8_t> bits);	
+	v4_dhcp_packet(std::span<const std::byte> bits);	
 	v4_dhcp_packet(::serdes<serdes_reader>& _serdes);
 	
 	auto serdes(::serdes<serdes_writer>& _serdes) const -> ::serdes<serdes_writer>&;		

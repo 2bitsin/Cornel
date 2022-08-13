@@ -95,9 +95,7 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 		try
 		{
 			auto [source, packet_bits] = m_packets.pop(st);			
-			serdes<serdes_reader> _serdes(std::span{ packet_bits });
-			v4_dhcp_packet packet_s;
-			_serdes(packet_s);
+			v4_dhcp_packet packet_s(packet_bits);
 
 			if (packet_s.opcode() != DHCP_OPCODE_REQUEST)
 				continue;
