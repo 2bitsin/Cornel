@@ -24,7 +24,7 @@ void v4_tftp_session::io_thread(v4_tftp_server& parent, v4_address remote_client
 
 	auto socket_v { m_address.make_udp() };
 	auto file_path_v { std::filesystem::absolute (m_base_dir / request.filename) };
-	auto block_id_v	{ 0ull };	
+	auto block_id_v	{ 1ull };	
 	auto block_size_v { 512u };
 	auto remaining_size_v { 0ull };
 	auto timeout_v { 1s };
@@ -62,7 +62,7 @@ void v4_tftp_session::io_thread(v4_tftp_server& parent, v4_address remote_client
 		{		
 			try
 			{
-				Glog.info("Sending {} bytes of {} ...", data_v.size(), request.filename);
+				Glog.info("Sending {} bytes of {} to '{}' ...", data_v.size(), request.filename, remote_client.to_string());
 				socket_v.send(v4_tftp_packet::make_data(block_id_v & 0xffffu, data_v), remote_client, 0);
 				auto [from_client, packet_bits] = socket_v.recv(0);
 
