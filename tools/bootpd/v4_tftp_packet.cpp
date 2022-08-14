@@ -22,6 +22,28 @@ auto v4_tftp_packet::error_code_to_string(error_code_type value) noexcept
 	}		
 }
 
+v4_tftp_packet::v4_tftp_packet()
+{
+}
+
+v4_tftp_packet::v4_tftp_packet(::serdes<serdes_reader>& _serdes)
+:	v4_tftp_packet()
+{
+	_serdes(*this);
+}
+
+v4_tftp_packet::v4_tftp_packet(std::span<const std::byte> bits)
+:	v4_tftp_packet()
+{
+	::serdes<serdes_reader> _serdes(bits);
+	_serdes(*this);
+}
+
+v4_tftp_packet::v4_tftp_packet(std::vector<std::byte> const& bits)
+:	v4_tftp_packet(std::span<const std::byte>{ bits })
+{
+}
+
 auto v4_tftp_packet::serdes(::serdes<serdes_reader>& _serdes)
 	-> ::serdes<serdes_reader>&
 {
@@ -33,8 +55,8 @@ auto v4_tftp_packet::serdes(::serdes<serdes_reader>& _serdes)
 	case TFTP_OPCODE_RRQ:
 		{
 			packet_rrq_type payload_v;
-			_serdes(payload_v.path, serdes_asciiz);
-			_serdes(payload_v.mode, serdes_asciiz);
+			_serdes(payload_v.filename, serdes_asciiz);
+			_serdes(payload_v.xfermode, serdes_asciiz);
 			while (!_serdes.empty())
 			{
 				std::string option, value;
@@ -48,8 +70,8 @@ auto v4_tftp_packet::serdes(::serdes<serdes_reader>& _serdes)
 	case TFTP_OPCODE_WRQ:
 		{
 			packet_wrq_type payload_v;
-			_serdes(payload_v.path, serdes_asciiz);
-			_serdes(payload_v.mode, serdes_asciiz);
+			_serdes(payload_v.filename, serdes_asciiz);
+			_serdes(payload_v.xfermode, serdes_asciiz);
 			while (!_serdes.empty())
 			{
 				std::string option, value;
@@ -111,8 +133,8 @@ auto v4_tftp_packet::serdes(::serdes<serdes_writer>& _serdes) const ->::serdes<s
 		if constexpr (std::is_same_v<T, packet_rrq_type>)
 		{
 			_serdes(TFTP_OPCODE_RRQ);
-			_serdes(value.path, serdes_asciiz);
-			_serdes(value.mode, serdes_asciiz);
+			_serdes(value.filename, serdes_asciiz);
+			_serdes(value.xfermode, serdes_asciiz);
 			for (auto const& [option, value] : value.options)
 			{
 				_serdes(option, serdes_asciiz);
@@ -122,8 +144,8 @@ auto v4_tftp_packet::serdes(::serdes<serdes_writer>& _serdes) const ->::serdes<s
 		else if constexpr (std::is_same_v<T, packet_wrq_type>)
 		{
 			_serdes(TFTP_OPCODE_WRQ);
-			_serdes(value.path, serdes_asciiz);
-			_serdes(value.mode, serdes_asciiz);
+			_serdes(value.filename, serdes_asciiz);
+			_serdes(value.xfermode, serdes_asciiz);
 			for (auto const& [option, value] : value.options)
 			{
 				_serdes(option, serdes_asciiz);
@@ -183,11 +205,11 @@ auto v4_tftp_packet::to_string() const -> std::string
 	{
 		if constexpr (std::is_same_v<T, packet_rrq_type>) {
 			for (auto&& [key, val] : value.options) option_string += std::format(", {}=\"{}\"", key, val);
-			return std::format("RRQ(file=\"{}\", mode=\"{}\"{})"sv, value.path, value.mode, option_string);
+			return std::format("RRQ(file=\"{}\", mode=\"{}\"{})"sv, value.filename, value.xfermode, option_string);
 		}
 		else if constexpr (std::is_same_v<T, packet_wrq_type>) {
 			for (auto&& [key, val] : value.options) option_string += std::format(", {}=\"{}\"", key, val);
-			return std::format("WRQ(file=\"{}\", mode=\"{}\"{})"sv, value.path, value.mode, option_string);
+			return std::format("WRQ(file=\"{}\", mode=\"{}\"{})"sv, value.filename, value.xfermode, option_string);
 		}
 		else if constexpr (std::is_same_v<T, packet_data_type>) {
 			return std::format("DATA(block_id={}, data=[{} bytes])"sv, value.block_id, value.data.size());
@@ -244,15 +266,15 @@ auto v4_tftp_packet::clear() -> v4_tftp_packet&
 	return *this;
 }
 
-auto v4_tftp_packet::set_rrq(std::string_view path, std::string_view mode, dictionary_type options) -> v4_tftp_packet&
+auto v4_tftp_packet::set_rrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> v4_tftp_packet&
 {
-	m_value = packet_rrq_type(std::string(path), std::string(mode), std::move(options));
+	m_value = packet_rrq_type(std::string(filename), std::string(xfermode), std::move(options));
 	return *this;
 }
 
-auto v4_tftp_packet::set_wrq(std::string_view path, std::string_view mode, dictionary_type options) -> v4_tftp_packet&
+auto v4_tftp_packet::set_wrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> v4_tftp_packet&
 {
-	m_value = packet_wrq_type(std::string(path), std::string(mode), std::move(options));
+	m_value = packet_wrq_type(std::string(filename), std::string(xfermode), std::move(options));
 	return *this;
 }
 
@@ -274,6 +296,11 @@ auto v4_tftp_packet::set_error(error_code_type error_code, std::string_view erro
 	return *this;
 }
 
+auto v4_tftp_packet::set_error(error_code_type error_code) -> v4_tftp_packet&
+{
+	return set_error(error_code, error_code_to_string(error_code));	
+}
+
 auto v4_tftp_packet::set_oack(dictionary_type options) -> v4_tftp_packet&
 {
 	m_value = packet_oack_type(std::move(options));
@@ -290,7 +317,7 @@ auto v4_tftp_packet::serdes_size_hint() const noexcept -> std::size_t
 			for (auto&& [key, val] : value.options) 
 				options_size += key.size() + val.size() + 2;
 			
-			return sizeof(std::uint16_t) + value.path.size() + 1 + value.mode.size() + 1 + options_size;
+			return sizeof(std::uint16_t) + value.filename.size() + 1 + value.xfermode.size() + 1 + options_size;
 		}
 		else if constexpr (std::is_same_v<T, packet_data_type>)
 		{

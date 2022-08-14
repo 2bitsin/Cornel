@@ -1,4 +1,4 @@
-#pragma once
+#pragma once 
 
 #include <span>
 #include <chrono>
@@ -6,13 +6,13 @@
 #include <concepts>
 #include <utility>
 
+#include "socket_api.hpp"
+#include "serdes.hpp"
+
 inline static const constexpr std::uint32_t message_out_of_bounds_flag	= 0x01u;
 inline static const constexpr std::uint32_t message_peek_flag						= 0x02u;
 inline static const constexpr std::uint32_t message_dont_route_flag			= 0x04u;
 inline static const constexpr std::uint32_t message_wait_all_flag				= 0x08u;
-
-#include "socket_api.hpp"
-#include "serdes.hpp"
 
 struct socket_udp
 {

@@ -28,15 +28,15 @@ struct v4_tftp_packet
 
 	struct packet_rrq_type
 	{
-		std::string path;
-		std::string mode;	
+		std::string filename;
+		std::string xfermode;	
 		dictionary_type options;		
 	};	
 
 	struct packet_wrq_type
 	{
-		std::string path;
-		std::string mode;	
+		std::string filename;
+		std::string xfermode;	
 		dictionary_type options;		
 	};
 
@@ -62,7 +62,12 @@ struct v4_tftp_packet
 
 	using payload_type = std::variant<std::monostate, packet_rrq_type, packet_wrq_type, packet_data_type, packet_ack_type, packet_error_type, packet_oack_type>;
 
-	auto serdes(::serdes<serdes_reader>& _serdes)  -> ::serdes<serdes_reader>&;	
+	v4_tftp_packet();
+	v4_tftp_packet(::serdes<serdes_reader>& _serdes);
+	v4_tftp_packet(std::span<const std::byte> bits);
+	v4_tftp_packet(std::vector<std::byte> const& bits);
+
+	auto serdes(::serdes<serdes_reader>& _serdes) -> ::serdes<serdes_reader>&;	
 	auto serdes(::serdes<serdes_writer>& _serdes) const -> ::serdes<serdes_writer>&;	
 
 	auto to_string() const -> std::string;
@@ -70,15 +75,20 @@ struct v4_tftp_packet
 	template <typename Func>
 	auto visit(Func&& func) const
 	{ return std::visit(std::forward<Func>(func), m_value); }
-	
+
+	template <typename Func>
+	auto visit(Func&& func)
+	{ return std::visit(std::forward<Func>(func), m_value); }
+
 	auto opcode() const noexcept -> std::uint16_t;
 
 	auto clear() -> v4_tftp_packet&;
-	auto set_rrq(std::string_view path, std::string_view mode, dictionary_type options) -> v4_tftp_packet&;
-	auto set_wrq(std::string_view path, std::string_view mode, dictionary_type options) -> v4_tftp_packet&;
+	auto set_rrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> v4_tftp_packet&;
+	auto set_wrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> v4_tftp_packet&;
 	auto set_data(std::uint16_t block_id, std::span<const std::byte> data) -> v4_tftp_packet&;
 	auto set_ack(std::uint16_t block_id) -> v4_tftp_packet&;
 	auto set_error(error_code_type error_code, std::string_view error_string) -> v4_tftp_packet&;
+  auto set_error(error_code_type error_code) -> v4_tftp_packet&;
 	auto set_oack(dictionary_type options) -> v4_tftp_packet&;
 
 	auto serdes_size_hint() const noexcept -> std::size_t;

@@ -36,6 +36,7 @@ struct concurrent_queue
     m_queue.pop();
     return value;
   } 
+	
   void pop(T& value, std::stop_token const& st)
   {
 		std::stop_callback please_stop(st, [this] () {
@@ -52,6 +53,7 @@ struct concurrent_queue
     value = std::move(m_queue.front());
     m_queue.pop();
   }
+	
   T pop()
   {
     std::unique_lock<std::mutex> mlock(m_mutex);
@@ -66,6 +68,7 @@ struct concurrent_queue
     m_queue.pop();
     return value;
   }
+
   void pop(T& value)
   {
     std::unique_lock<std::mutex> mlock(m_mutex);
@@ -79,6 +82,26 @@ struct concurrent_queue
     value = std::move(m_queue.front());
     m_queue.pop();
   } 
+
+	bool try_pop(T& value)
+	{
+		std::unique_lock<std::mutex> mlock(m_mutex);
+		if (m_queue.empty())
+			return false;
+		value = std::move(m_queue.front());
+		m_queue.pop();
+		return true;
+	}
+
+	T try_pop()
+	{
+		std::unique_lock<std::mutex> mlock(m_mutex);
+		if (m_queue.empty())
+			throw std::runtime_error("empty");
+		const auto value = std::move(m_queue.front());
+		m_queue.pop();
+		return value;
+	}
   
 	void push(const T& value)
   {
@@ -87,6 +110,7 @@ struct concurrent_queue
     mlock.unlock();
     m_covar.notify_one();
   } 
+
   void push(T&& value)
   {
     std::unique_lock<std::mutex> mlock(m_mutex);
@@ -94,6 +118,7 @@ struct concurrent_queue
     mlock.unlock();
     m_covar.notify_one();
   }
+
 	template<typename...Q>
 	void emplace(Q&&... args)
 	{
@@ -103,10 +128,16 @@ struct concurrent_queue
 		m_covar.notify_one();
 	}
 	
+	bool empty() const
+	{
+		std::unique_lock<std::mutex> mlock(m_mutex);
+		return m_queue.empty();
+	}
 
 	concurrent_queue()
 	:	m_cease{ false }
 	{}
+	
   ~concurrent_queue()
 	{		
 		m_cease.store(true);

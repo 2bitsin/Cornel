@@ -17,6 +17,7 @@ struct v4_dhcp_packet
 	v4_dhcp_packet();
 	v4_dhcp_packet(std::span<const std::byte> bits);	
 	v4_dhcp_packet(::serdes<serdes_reader>& _serdes);
+	v4_dhcp_packet(std::vector<std::byte> const& bits);
 	
 	auto serdes(::serdes<serdes_writer>& _serdes) const -> ::serdes<serdes_writer>&;		
 	auto serdes(::serdes<serdes_reader>& _serdes) -> ::serdes<serdes_reader>&;

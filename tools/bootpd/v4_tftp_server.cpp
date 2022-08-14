@@ -57,6 +57,12 @@ void v4_tftp_server::cease()
 	}
 }
 
+auto v4_tftp_server::address() const noexcept -> v4_address const&
+{ return m_address; }
+
+auto v4_tftp_server::base_dir() const noexcept -> path const&
+{ return m_base_dir; }
+
 void v4_tftp_server::thread_incoming(std::stop_token st)
 {
 	using namespace std::string_view_literals;
@@ -82,13 +88,30 @@ void v4_tftp_server::thread_incoming(std::stop_token st)
 	Glog.info("* Receiver thread stopped.");
 }
 
-auto v4_tftp_server::respond_with_error(v4_address const& to_whom, v4_tftp_packet::error_code_type errcode, std::string_view errstr)
+auto v4_tftp_server::send_error(v4_address const& to_whom, v4_tftp_packet::error_code_type errcode)
+	-> v4_tftp_server&
+{
+	using namespace std::string_view_literals;
+	v4_tftp_packet packet;
+	packet.set_error(errcode);
+	m_sock.send(packet, to_whom, 0);	
+	return *this;
+}
+
+
+auto v4_tftp_server::send_error(v4_address const& to_whom, v4_tftp_packet::error_code_type errcode, std::string_view errstr)
 	-> v4_tftp_server&
 {
 	using namespace std::string_view_literals;
 	v4_tftp_packet packet;
 	packet.set_error(errcode, errstr);
 	m_sock.send(packet, to_whom, 0);
+	return *this;
+}
+
+auto v4_tftp_server::session_notify(v4_tftp_session const* who) -> v4_tftp_server&
+{
+	m_notify_queue.push(who);
 	return *this;
 }
 
@@ -102,15 +125,32 @@ void v4_tftp_server::thread_outgoing(std::stop_token st)
 		try
 		{							
 			auto[source, packet_bits] = m_packets.pop(st);
-			v4_tftp_packet tftp_packet_v;
-			(serdes<serdes_reader>(std::span{ packet_bits }))(tftp_packet_v);
-			Glog.info("From '{}' received : {} ", source.to_string(), tftp_packet_v.to_string());			
+			v4_tftp_packet packet_v (packet_bits);			
+			Glog.info("From '{}' received : {} ", source.to_string(), packet_v.to_string());			
 
-			if (tftp_packet_v.opcode() != TFTP_OPCODE_RRQ &&
-				  tftp_packet_v.opcode() != TFTP_OPCODE_WRQ)
+			packet_v.visit([this, source]<typename T>(T const& value)
 			{
-				Glog.info("* Unexpected packet with opcode {} from '{}' ...", tftp_packet_v.opcode(), source.to_string());				
-				continue;
+				if constexpr (std::is_same_v<T, v4_tftp_packet::packet_rrq_type>
+					          ||std::is_same_v<T, v4_tftp_packet::packet_wrq_type>)
+				{
+					
+					auto session_ptr = std::make_unique<v4_tftp_session>(*this, source, value);
+					m_session_list.emplace(session_ptr.get(), std::move(session_ptr));
+				}
+				else if constexpr (std::is_same_v<T, std::monostate>)
+					throw std::logic_error("Empty packet, packet parsing failed.");
+				else {
+					send_error(source, v4_tftp_packet::error_code_type::illegal_operation);
+					Glog.info("Ignoring non-request packet from '{}'.", source.to_string());
+				}
+			});
+			
+			v4_tftp_session const* notify{ nullptr };
+			while (m_notify_queue.try_pop(notify))
+			{
+				if (!(*notify).is_done())
+					continue;				
+				m_session_list.erase(notify);
 			}
 		}
 		catch (socket_error_timedout const&)

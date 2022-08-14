@@ -95,24 +95,24 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 		try
 		{
 			auto [source, packet_bits] = m_packets.pop(st);			
-			v4_dhcp_packet packet_s(packet_bits);
+			v4_dhcp_packet packet_v(packet_bits);
 
-			if (packet_s.opcode() != DHCP_OPCODE_REQUEST)
+			if (packet_v.opcode() != DHCP_OPCODE_REQUEST)
 				continue;
 			
-			if (packet_s.is_message_type(DHCP_MESSAGE_TYPE_DISCOVER) 
-			  ||packet_s.is_message_type(DHCP_MESSAGE_TYPE_REQUEST))
+			if (packet_v.is_message_type(DHCP_MESSAGE_TYPE_DISCOVER) 
+			  ||packet_v.is_message_type(DHCP_MESSAGE_TYPE_REQUEST))
 			{
-				const auto mac_address_v = lowercase(mac_address_to_string (packet_s.hardware_address()));				
+				const auto mac_address_v = lowercase(mac_address_to_string (packet_v.hardware_address()));				
 				const auto& offer_params_v = m_clients.at(mac_address_v);
-				auto offer_packet_v = make_offer (packet_s, offer_params_v);
+				auto offer_packet_v = make_offer (packet_v, offer_params_v);
 				
-				if (packet_s.is_message_type(DHCP_MESSAGE_TYPE_DISCOVER)) {
-					Glog.info("Responding to '{}' (transaction {:#08x}) DHCP.DISCOVER packet with DHCP.OFFER packet.", source.to_string(), packet_s.transaction_id());
+				if (packet_v.is_message_type(DHCP_MESSAGE_TYPE_DISCOVER)) {
+					Glog.info("Responding to '{}' (transaction {:#08x}) DHCP.DISCOVER packet with DHCP.OFFER packet.", source.to_string(), packet_v.transaction_id());
 					offer_packet_v.message_type(DHCP_MESSAGE_TYPE_OFFER);
 				}
-				else if (packet_s.is_message_type(DHCP_MESSAGE_TYPE_REQUEST)) {
-					Glog.info("Responding to '{}' (transaction {:#08x}) DHCP.REQUEST packet with DHCP.ACK packet.", source.to_string(), packet_s.transaction_id());
+				else if (packet_v.is_message_type(DHCP_MESSAGE_TYPE_REQUEST)) {
+					Glog.info("Responding to '{}' (transaction {:#08x}) DHCP.REQUEST packet with DHCP.ACK packet.", source.to_string(), packet_v.transaction_id());
 					offer_packet_v.message_type(DHCP_MESSAGE_TYPE_ACK);
 				}
 

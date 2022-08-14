@@ -56,6 +56,10 @@ v4_dhcp_packet::v4_dhcp_packet(std::span<const std::byte> bits)
 v4_dhcp_packet::v4_dhcp_packet(::serdes<serdes_reader>& _serdes)
 { _serdes(*this); }
 
+v4_dhcp_packet::v4_dhcp_packet(std::vector<std::byte> const& bits)
+:	v4_dhcp_packet(std::span<const std::byte>{ bits })
+{}
+
 auto v4_dhcp_packet::serdes(::serdes<serdes_writer>& _serdes) const ->::serdes<serdes_writer>&
 {
     _serdes(m_opcode);
@@ -104,15 +108,15 @@ auto v4_dhcp_packet::pretty_print(std::ostream& oss) const ->std::ostream&
 	oss << std::format("Hardware address length .. : {} \n"sv, m_hardware_address_length);
 	oss << std::format("Number of hops ........... : {} \n"sv, m_number_of_hops);
 	oss << std::format("Transaction ID ........... : {:#08x} \n"sv, m_transaction_id);
-	oss << std::format("Seconds elapsed .......... : {} \n"sv, m_seconds_elapsed);
+	oss << std::format("Seconds elapsed .......... : {}s \n"sv, m_seconds_elapsed);
 	oss << std::format("Bootp flags .............. : {} \n"sv, v4_dhcp_bootp_flags_to_string(m_flags));
 	oss << std::format("Client IP address ........ : {} \n"sv, v4_address_to_string(m_client_ip_address_v4));
 	oss << std::format("Your IP address .......... : {} \n"sv, v4_address_to_string(m_your_ip_address_v4));
 	oss << std::format("Server IP address ........ : {} \n"sv, v4_address_to_string(m_server_ip_address_v4));
 	oss << std::format("Gateway IP address ....... : {} \n"sv, v4_address_to_string(m_gateway_ip_address_v4));
 	oss << std::format("Client hardware address .. : {} \n"sv, mac_address_to_string({m_client_hardware_address, m_hardware_address_length}));
-	oss << std::format("Server host name ......... : {} \n"sv, std::string(m_server_host_name).c_str());
-	oss << std::format("Boot file name ........... : {} \n"sv, std::string(m_boot_file_name).c_str());
+	oss << std::format("Server host name ......... : '{}' \n"sv, std::string(m_server_host_name).c_str());
+	oss << std::format("Boot file name ........... : '{}' \n"sv, std::string(m_boot_file_name).c_str());
 	
 	return oss;
 }

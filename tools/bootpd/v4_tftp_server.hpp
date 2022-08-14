@@ -11,11 +11,20 @@
 #include <string_view>
 #include <stop_token>
 #include <tuple>
+#include <unordered_set>
 
 #include "v4_tftp_packet.hpp"
+#include "v4_tftp_session.hpp"
 
 struct v4_tftp_server
 {
+protected:
+	using path = std::filesystem::path;
+	using packet_queue = concurrent_queue<std::tuple<v4_address, std::vector<std::byte>>>;
+	using notify_queue = concurrent_queue<v4_tftp_session const *>;
+	using session_list = std::unordered_map<v4_tftp_session const *, std::unique_ptr<v4_tftp_session>>;
+public:
+
 	v4_tftp_server();
 	v4_tftp_server(config_ini const&);
  ~v4_tftp_server();
@@ -23,20 +32,26 @@ struct v4_tftp_server
 	void initialize(config_ini const&);
   void start();
 	void cease();
+
+	auto address() const noexcept -> v4_address const&;
+	auto base_dir() const noexcept -> path const&;
 	
 private:
 	
 	void thread_incoming(std::stop_token st);
-	auto respond_with_error(v4_address const& to_whom, v4_tftp_packet::error_code_type errcode, std::string_view errstr) -> v4_tftp_server&;
-	void thread_outgoing(std::stop_token st);
+	void thread_outgoing(std::stop_token st);	
+	auto send_error(v4_address const& to_whom, v4_tftp_packet::error_code_type errcode) -> v4_tftp_server&;
+	auto send_error(v4_address const& to_whom, v4_tftp_packet::error_code_type errcode, std::string_view errstr) -> v4_tftp_server&;
+	auto session_notify(v4_tftp_session const* who) -> v4_tftp_server&;
 
-	using path = std::filesystem::path;
-	using packet_queue = concurrent_queue<std::tuple<v4_address, std::vector<std::byte>>>;
 	 
-	packet_queue	m_packets;
 	v4_address		m_address;
-	socket_udp		m_sock;
 	path					m_base_dir;
+	socket_udp		m_sock;
+	packet_queue	m_packets;
+	
+	notify_queue	m_notify_queue;
+	session_list	m_session_list;
 
 	std::jthread	m_thread_incoming;
 	std::jthread	m_thread_outgoing;
