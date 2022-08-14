@@ -8,17 +8,17 @@
 #include <utility>
 
 #include <common/serdes.hpp>
-#include "v4_dhcp_consts.hpp"
+#include "dhcp_consts_v4.hpp"
 
-struct v4_dhcp_options
+struct dhcp_options_v4
 {
-	v4_dhcp_options()
+	dhcp_options_v4()
 	: m_cookie{ DHCP_MAGIC_COOKIE }, 
 		m_values{} 
 	{}
 	
-	v4_dhcp_options(v4_dhcp_options const& p)
-	:	v4_dhcp_options()
+	dhcp_options_v4(dhcp_options_v4 const& p)
+	:	dhcp_options_v4()
 	{
 		for (auto i = 0u; i < m_values.size(); ++i)
 		{
@@ -31,26 +31,26 @@ struct v4_dhcp_options
 		}
 	}
 
-	auto operator = (v4_dhcp_options const& p) 
-		-> v4_dhcp_options&
+	auto operator = (dhcp_options_v4 const& p) 
+		-> dhcp_options_v4&
 	{
-		this->~v4_dhcp_options();
-		new (this) v4_dhcp_options(p);		
+		this->~dhcp_options_v4();
+		new (this) dhcp_options_v4(p);		
 		return *this;
 	}
 	
-	v4_dhcp_options(v4_dhcp_options&& prev) noexcept
+	dhcp_options_v4(dhcp_options_v4&& prev) noexcept
 	:	m_values{ std::move(prev.m_values) }
 	{}
 	
-	auto operator = (v4_dhcp_options&& prev) noexcept -> v4_dhcp_options& 
+	auto operator = (dhcp_options_v4&& prev) noexcept -> dhcp_options_v4& 
 	{
 		auto tmp = std::move(prev);
 		std::swap(tmp, *this);
 		return *this;
 	}
 
-	void swap(v4_dhcp_options& other) noexcept
+	void swap(dhcp_options_v4& other) noexcept
 	{
 		std::swap(m_values, other.m_values);
 	}
@@ -166,7 +166,7 @@ struct v4_dhcp_options
 		return value(code, values, std::make_index_sequence<sizeof...(Q)>());	
 	}
 
-	auto assign(std::uint8_t code, v4_dhcp_options const& from)
+	auto assign(std::uint8_t code, dhcp_options_v4 const& from)
 	{
 		using std::make_unique;
 		if (from.m_values[code - 1u] == nullptr)

@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.18)
 project(bootpd)
 add_executable(bootpd	
 	main.cpp 
-  v4_dhcp_packet.hpp
-  v4_dhcp_packet.cpp
-	v4_dhcp_server.hpp	
-	v4_dhcp_server.cpp	
-	v4_dhcp_options.hpp	
+  dhcp_packet_v4.hpp
+  dhcp_packet_v4.cpp
+	dhcp_server_v4.hpp	
+	dhcp_server_v4.cpp
+	dhcp_options_v4.hpp	
 	tftp_session_v4.hpp 
 	tftp_session_v4.cpp
   tftp_server_v4.cpp

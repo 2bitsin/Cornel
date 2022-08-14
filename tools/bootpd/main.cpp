@@ -12,7 +12,7 @@
 #include <common/logger.hpp>
 #include <common/arguments.hpp>
 
-#include "v4_dhcp_server.hpp"
+#include "dhcp_server_v4.hpp"
 #include "tftp_server_v4.hpp"
 
 int main(int argc, char** argv)
@@ -31,7 +31,7 @@ try
 #endif
 		config_ini config_ini_v(std::ifstream{ config_path });
 		
-		v4_dhcp_server dhcp_server_v (config_ini_v);		
+		dhcp_server_v4 dhcp_server_v (config_ini_v);		
 		tftp_server_v4 tftp_server_v (config_ini_v);
 		
 		dhcp_server_v.start();

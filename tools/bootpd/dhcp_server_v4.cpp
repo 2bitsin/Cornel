@@ -7,24 +7,24 @@
 #include <common/logger.hpp>
 #include <common/utility_case.hpp>
 
-#include "v4_dhcp_consts.hpp"
-#include "v4_dhcp_server.hpp"
+#include "dhcp_consts_v4.hpp"
+#include "dhcp_server_v4.hpp"
 
-v4_dhcp_server::v4_dhcp_server()
+dhcp_server_v4::dhcp_server_v4()
 {}
 
-v4_dhcp_server::v4_dhcp_server(config_ini const& cfg)
-: v4_dhcp_server()
+dhcp_server_v4::dhcp_server_v4(config_ini const& cfg)
+: dhcp_server_v4()
 {
 	initialize(cfg);
 }
 
-v4_dhcp_server::~v4_dhcp_server()
+dhcp_server_v4::~dhcp_server_v4()
 {
 	cease();
 }
 
-void v4_dhcp_server::initialize(config_ini const& cfg)
+void dhcp_server_v4::initialize(config_ini const& cfg)
 {
 	using namespace std::string_view_literals;
 	m_bind_address = address_v4(cfg.value_or("v4_bind_address"sv, "0.0.0.0"sv),
@@ -36,7 +36,7 @@ void v4_dhcp_server::initialize(config_ini const& cfg)
 	}
 }
 
-void v4_dhcp_server::start()
+void dhcp_server_v4::start()
 {
 	using namespace std::chrono;
 	
@@ -50,7 +50,7 @@ void v4_dhcp_server::start()
 	std::this_thread::sleep_for(10ms);
 }
 
-void v4_dhcp_server::cease()
+void dhcp_server_v4::cease()
 {
 	Glog.info("Stopping DHCP server ... ");
 	m_thread_incoming.request_stop();
@@ -61,7 +61,7 @@ void v4_dhcp_server::cease()
 		m_thread_outgoing.join();
 }
 
-void v4_dhcp_server::thread_incoming(std::stop_token st)
+void dhcp_server_v4::thread_incoming(std::stop_token st)
 {
 	using namespace std::chrono_literals;
 	Glog.info("* Receiver thread started.");	
@@ -87,7 +87,7 @@ void v4_dhcp_server::thread_incoming(std::stop_token st)
 	Glog.info("* Receiver thread stopped.");
 }
 
-void v4_dhcp_server::thread_outgoing(std::stop_token st)
+void dhcp_server_v4::thread_outgoing(std::stop_token st)
 {
 	Glog.info("* Responder thread started.");
 	while (!st.stop_requested())
@@ -95,7 +95,7 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 		try
 		{
 			auto [source, packet_bits] = m_packets.pop(st);			
-			v4_dhcp_packet packet_v(packet_bits);
+			dhcp_packet_v4 packet_v(packet_bits);
 
 			if (packet_v.opcode() != DHCP_OPCODE_REQUEST)
 				continue;
@@ -132,7 +132,7 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 	Glog.info("* Responder thread stopped.");
 }
 
-void v4_dhcp_server::initialize_client(offer_params& params_v, config_ini const& cfg, std::string_view client_mac)
+void dhcp_server_v4::initialize_client(offer_params& params_v, config_ini const& cfg, std::string_view client_mac)
 {
 	using namespace std::string_view_literals;
 
@@ -159,9 +159,9 @@ void v4_dhcp_server::initialize_client(offer_params& params_v, config_ini const&
 	params_v.dhcp_options.set(0x43u, params_v.boot_file_name);	
 }
 
-auto v4_dhcp_server::make_offer(v4_dhcp_packet const& source_v, offer_params const& params_v) -> v4_dhcp_packet
+auto dhcp_server_v4::make_offer(dhcp_packet_v4 const& source_v, offer_params const& params_v) -> dhcp_packet_v4
 {
-	return (v4_dhcp_packet()
+	return (dhcp_packet_v4()
 		.opcode(DHCP_OPCODE_RESPONSE)
 		.hardware_type(DHCP_HARDWARE_TYPE_ETHERNET)
 		.hardware_address(source_v.hardware_address())
