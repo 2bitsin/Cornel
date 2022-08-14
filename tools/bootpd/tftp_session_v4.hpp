@@ -8,17 +8,17 @@
 #include <common/v4_address.hpp>
 #include <common/config_ini.hpp>
 
-#include  "v4_tftp_packet.hpp"
+#include  "tftp_packet.hpp"
 
 
-struct v4_tftp_server;
+struct tftp_server_v4;
 
-struct v4_tftp_session
+struct tftp_session_v4
 {
-	using notify_func_type = std::function<void(v4_tftp_session const*)>;
+	using notify_func_type = std::function<void(tftp_session_v4 const*)>;
 
 	template <typename P, typename T>
-	v4_tftp_session(P& parent, v4_address source, T const& request)
+	tftp_session_v4(P& parent, v4_address source, T const& request)
 	:	m_address		{ parent.address().port(0) },
 		m_base_dir	{ parent.base_dir() },
 		m_thread		{ [&parent, source, request, this] (auto st) { io_thread(parent, source, request, st); } }
@@ -26,8 +26,8 @@ struct v4_tftp_session
 
 	bool is_done() const;
 	
-	void io_thread(v4_tftp_server& parent, v4_address source, v4_tftp_packet::type_rrq request, std::stop_token st);
-	void io_thread(v4_tftp_server& parent, v4_address source, v4_tftp_packet::type_wrq request, std::stop_token st);
+	void io_thread(tftp_server_v4& parent, v4_address source, tftp_packet::type_rrq request, std::stop_token st);
+	void io_thread(tftp_server_v4& parent, v4_address source, tftp_packet::type_wrq request, std::stop_token st);
 
 	
 private:

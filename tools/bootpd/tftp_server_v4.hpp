@@ -13,21 +13,21 @@
 #include <tuple>
 #include <unordered_set>
 
-#include "v4_tftp_packet.hpp"
-#include "v4_tftp_session.hpp"
+#include "tftp_packet.hpp"
+#include "tftp_session_v4.hpp"
 
-struct v4_tftp_server
+struct tftp_server_v4
 {
 protected:
 	using path = std::filesystem::path;
 	using packet_queue = concurrent_queue<std::tuple<v4_address, std::vector<std::byte>>>;
-	using notify_queue = concurrent_queue<v4_tftp_session const *>;
-	using session_list = std::unordered_map<v4_tftp_session const *, std::unique_ptr<v4_tftp_session>>;
+	using notify_queue = concurrent_queue<tftp_session_v4 const *>;
+	using session_list = std::unordered_map<tftp_session_v4 const *, std::unique_ptr<tftp_session_v4>>;
 public:
 
-	v4_tftp_server();
-	v4_tftp_server(config_ini const&);
- ~v4_tftp_server();
+	tftp_server_v4();
+	tftp_server_v4(config_ini const&);
+ ~tftp_server_v4();
 
 	void initialize(config_ini const&);
   void start();
@@ -35,7 +35,7 @@ public:
 
 	auto address() const noexcept -> v4_address const&;
 	auto base_dir() const noexcept -> path const&;
-	auto session_notify(v4_tftp_session const* who) -> v4_tftp_server&;
+	auto session_notify(tftp_session_v4 const* who) -> tftp_server_v4&;
 	
 private:
 	

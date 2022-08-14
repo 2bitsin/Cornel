@@ -1,10 +1,10 @@
-#include "v4_tftp_packet.hpp"
-#include "v4_tftp_consts.hpp"
+#include "tftp_packet.hpp"
+#include "tftp_consts.hpp"
 
 #include <stdexcept>
 #include <type_traits>
 
-auto v4_tftp_packet::error_code_to_string(error_code_type value) noexcept
+auto tftp_packet::error_code_to_string(error_code_type value) noexcept
 	-> std::string
 {
 	using namespace std::string_literals;
@@ -22,29 +22,29 @@ auto v4_tftp_packet::error_code_to_string(error_code_type value) noexcept
 	}		
 }
 
-v4_tftp_packet::v4_tftp_packet()
+tftp_packet::tftp_packet()
 {
 }
 
-v4_tftp_packet::v4_tftp_packet(::serdes<serdes_reader>& _serdes)
-:	v4_tftp_packet()
+tftp_packet::tftp_packet(::serdes<serdes_reader>& _serdes)
+:	tftp_packet()
 {
 	_serdes(*this);
 }
 
-v4_tftp_packet::v4_tftp_packet(std::span<const std::byte> bits)
-:	v4_tftp_packet()
+tftp_packet::tftp_packet(std::span<const std::byte> bits)
+:	tftp_packet()
 {
 	::serdes<serdes_reader> _serdes(bits);
 	_serdes(*this);
 }
 
-v4_tftp_packet::v4_tftp_packet(std::vector<std::byte> const& bits)
-:	v4_tftp_packet(std::span<const std::byte>{ bits })
+tftp_packet::tftp_packet(std::vector<std::byte> const& bits)
+:	tftp_packet(std::span<const std::byte>{ bits })
 {
 }
 
-auto v4_tftp_packet::serdes(::serdes<serdes_reader>& _serdes)
+auto tftp_packet::serdes(::serdes<serdes_reader>& _serdes)
 	-> ::serdes<serdes_reader>&
 {
 	using namespace std::string_literals;
@@ -126,7 +126,7 @@ auto v4_tftp_packet::serdes(::serdes<serdes_reader>& _serdes)
 	return _serdes;
 }
 
-auto v4_tftp_packet::serdes(::serdes<serdes_writer>& _serdes) const ->::serdes<serdes_writer>&
+auto tftp_packet::serdes(::serdes<serdes_writer>& _serdes) const ->::serdes<serdes_writer>&
 {
 	visit([&_serdes]<typename T>(T const& value) 
 	{
@@ -193,7 +193,7 @@ auto v4_tftp_packet::serdes(::serdes<serdes_writer>& _serdes) const ->::serdes<s
 	return _serdes;
 }
 
-auto v4_tftp_packet::to_string() const -> std::string
+auto tftp_packet::to_string() const -> std::string
 {
 	using namespace std::string_literals;
 	using namespace std::string_view_literals;
@@ -233,7 +233,7 @@ auto v4_tftp_packet::to_string() const -> std::string
 	}, m_value);
 }
 
-auto v4_tftp_packet::opcode() const noexcept -> std::uint16_t
+auto tftp_packet::opcode() const noexcept -> std::uint16_t
 {
 	return visit([]<typename T>(T const& value) -> std::uint16_t
 	{
@@ -260,54 +260,54 @@ auto v4_tftp_packet::opcode() const noexcept -> std::uint16_t
 	});
 }
 
-auto v4_tftp_packet::clear() -> v4_tftp_packet&
+auto tftp_packet::clear() -> tftp_packet&
 {
 	m_value = {};
 	return *this;
 }
 
-auto v4_tftp_packet::set_rrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> v4_tftp_packet&
+auto tftp_packet::set_rrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> tftp_packet&
 {
 	m_value = type_rrq(std::string(filename), std::string(xfermode), std::move(options));
 	return *this;
 }
 
-auto v4_tftp_packet::set_wrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> v4_tftp_packet&
+auto tftp_packet::set_wrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> tftp_packet&
 {
 	m_value = type_wrq(std::string(filename), std::string(xfermode), std::move(options));
 	return *this;
 }
 
-auto v4_tftp_packet::set_data(std::uint16_t block_id, std::span<const std::byte> data) -> v4_tftp_packet&
+auto tftp_packet::set_data(std::uint16_t block_id, std::span<const std::byte> data) -> tftp_packet&
 {
 	m_value = type_data(block_id, std::vector<std::byte>(data.begin(), data.end()));
 	return *this;
 }
 
-auto v4_tftp_packet::set_ack(std::uint16_t block_id) -> v4_tftp_packet&
+auto tftp_packet::set_ack(std::uint16_t block_id) -> tftp_packet&
 {
 	m_value = type_ack(block_id);
 	return *this;
 }
 
-auto v4_tftp_packet::set_error(error_code_type error_code, std::string_view error_string) -> v4_tftp_packet&
+auto tftp_packet::set_error(error_code_type error_code, std::string_view error_string) -> tftp_packet&
 {
 	m_value = type_error(error_code, std::string(error_string));
 	return *this;
 }
 
-auto v4_tftp_packet::set_error(error_code_type error_code) -> v4_tftp_packet&
+auto tftp_packet::set_error(error_code_type error_code) -> tftp_packet&
 {
 	return set_error(error_code, error_code_to_string(error_code));	
 }
 
-auto v4_tftp_packet::set_oack(dictionary_type options) -> v4_tftp_packet&
+auto tftp_packet::set_oack(dictionary_type options) -> tftp_packet&
 {
 	m_value = type_oack(std::move(options));
 	return *this;
 }
 
-auto v4_tftp_packet::serdes_size_hint() const noexcept -> std::size_t
+auto tftp_packet::serdes_size_hint() const noexcept -> std::size_t
 {
 	return visit([]<typename T>(T const& value) -> std::size_t 
 	{
@@ -348,37 +348,37 @@ auto v4_tftp_packet::serdes_size_hint() const noexcept -> std::size_t
 	});
 }
 
-auto v4_tftp_packet::make_rrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> v4_tftp_packet 
+auto tftp_packet::make_rrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> tftp_packet 
 {
-  return v4_tftp_packet{}.set_rrq(filename, xfermode, options);
+  return tftp_packet{}.set_rrq(filename, xfermode, options);
 }
 
-auto v4_tftp_packet::make_wrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> v4_tftp_packet 
+auto tftp_packet::make_wrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> tftp_packet 
 {
-  return v4_tftp_packet{}.set_wrq(filename, xfermode, options);
+  return tftp_packet{}.set_wrq(filename, xfermode, options);
 }
 
-auto v4_tftp_packet::make_data(std::uint16_t block_id, std::span<const std::byte> data) -> v4_tftp_packet 
+auto tftp_packet::make_data(std::uint16_t block_id, std::span<const std::byte> data) -> tftp_packet 
 {
-  return v4_tftp_packet{}.set_data(block_id, data);
+  return tftp_packet{}.set_data(block_id, data);
 }
 
-auto v4_tftp_packet::make_ack(std::uint16_t block_id) -> v4_tftp_packet 
+auto tftp_packet::make_ack(std::uint16_t block_id) -> tftp_packet 
 {
-  return v4_tftp_packet{}.set_ack(block_id);
+  return tftp_packet{}.set_ack(block_id);
 }
 
-auto v4_tftp_packet::make_error(error_code_type error_code, std::string_view error_string) -> v4_tftp_packet 
+auto tftp_packet::make_error(error_code_type error_code, std::string_view error_string) -> tftp_packet 
 {
-  return v4_tftp_packet{}.set_error(error_code, error_string);
+  return tftp_packet{}.set_error(error_code, error_string);
 }
 
-auto v4_tftp_packet::make_error(error_code_type error_code) -> v4_tftp_packet 
+auto tftp_packet::make_error(error_code_type error_code) -> tftp_packet 
 {
-  return v4_tftp_packet{}.set_error(error_code);
+  return tftp_packet{}.set_error(error_code);
 }
 
-auto v4_tftp_packet::make_oack(dictionary_type options) -> v4_tftp_packet 
+auto tftp_packet::make_oack(dictionary_type options) -> tftp_packet 
 {
-	return v4_tftp_packet{}.set_oack(options);
+	return tftp_packet{}.set_oack(options);
 }

@@ -6,10 +6,16 @@ add_executable(bootpd
   v4_dhcp_packet.cpp
 	v4_dhcp_server.hpp	
 	v4_dhcp_server.cpp	
-	v4_dhcp_options.hpp
-  v4_tftp_server.cpp
-	v4_tftp_server.hpp
- "v4_tftp_packet.cpp" "v4_tftp_session.cpp")
+	v4_dhcp_options.hpp	
+	tftp_session_v4.hpp 
+	tftp_session_v4.cpp
+  tftp_server_v4.cpp
+	tftp_server_v4.hpp
+	tftp_packet.hpp 
+	tftp_packet.cpp 
+	tftp_block_reader.hpp
+	tftp_block_reader.cpp
+)
 
 target_link_libraries(bootpd PRIVATE common)
 set_property(TARGET bootpd PROPERTY CXX_STANDARD 23)

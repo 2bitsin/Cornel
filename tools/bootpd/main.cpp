@@ -13,7 +13,7 @@
 #include <common/arguments.hpp>
 
 #include "v4_dhcp_server.hpp"
-#include "v4_tftp_server.hpp"
+#include "tftp_server_v4.hpp"
 
 int main(int argc, char** argv)
 try
@@ -32,7 +32,7 @@ try
 		config_ini config_ini_v(std::ifstream{ config_path });
 		
 		v4_dhcp_server dhcp_server_v (config_ini_v);		
-		v4_tftp_server tftp_server_v (config_ini_v);
+		tftp_server_v4 tftp_server_v (config_ini_v);
 		
 		dhcp_server_v.start();
 		tftp_server_v.start();
