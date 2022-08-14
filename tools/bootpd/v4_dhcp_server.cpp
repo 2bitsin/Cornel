@@ -27,7 +27,7 @@ v4_dhcp_server::~v4_dhcp_server()
 void v4_dhcp_server::initialize(config_ini const& cfg)
 {
 	using namespace std::string_view_literals;
-	m_bind_address = v4_address(cfg.value_or("v4_bind_address"sv, "0.0.0.0"sv),
+	m_bind_address = address_v4(cfg.value_or("v4_bind_address"sv, "0.0.0.0"sv),
 		lexical_cast<uint16_t>(cfg.value_or("dhcp_listen_port"sv, "67"sv)));
 
 	for (auto&& client_mac : cfg.sections())
@@ -116,7 +116,7 @@ void v4_dhcp_server::thread_outgoing(std::stop_token st)
 					offer_packet_v.message_type(DHCP_MESSAGE_TYPE_ACK);
 				}
 
-				m_socket.send(offer_packet_v, v4_address::everyone().port(source.port()), 0u);
+				m_socket.send(offer_packet_v, address_v4::everyone().port(source.port()), 0u);
 				continue;	
 			}								
 		}

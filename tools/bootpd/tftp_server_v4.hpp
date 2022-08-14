@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/v4_address.hpp>
+#include <common/address_v4.hpp>
 #include <common/socket_udp.hpp>
 #include <common/config_ini.hpp>
 #include <common/concurrent_queue.hpp>
@@ -20,7 +20,7 @@ struct tftp_server_v4
 {
 protected:
 	using path = std::filesystem::path;
-	using packet_queue = concurrent_queue<std::tuple<v4_address, std::vector<std::byte>>>;
+	using packet_queue = concurrent_queue<std::tuple<address_v4, std::vector<std::byte>>>;
 	using notify_queue = concurrent_queue<tftp_session_v4 const *>;
 	using session_list = std::unordered_map<tftp_session_v4 const *, std::unique_ptr<tftp_session_v4>>;
 public:
@@ -33,7 +33,7 @@ public:
   void start();
 	void cease();
 
-	auto address() const noexcept -> v4_address const&;
+	auto address() const noexcept -> address_v4 const&;
 	auto base_dir() const noexcept -> path const&;
 	auto session_notify(tftp_session_v4 const* who) -> tftp_server_v4&;
 	
@@ -42,7 +42,7 @@ private:
 	void thread_incoming(std::stop_token st);
 	void thread_outgoing(std::stop_token st);	
 	 
-	v4_address		m_address;
+	address_v4		m_address;
 	path					m_base_dir;
 	socket_udp		m_sock;
 	packet_queue	m_packets;

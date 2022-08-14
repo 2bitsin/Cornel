@@ -10,7 +10,7 @@
 #include <common/byte_order.hpp>
 
 #include "socket_api.hpp"
-#include "v4_address.hpp"
+#include "address_v4.hpp"
 #include "socket_error.hpp"
 
 #define WIN32_LEAN_AND_MEAN
@@ -185,7 +185,7 @@ auto v4_socket_make_udp() -> int_socket_type
 													 last_error_as_string());		
 }
 
-auto v4_socket_make_udp(const v4_address& address) -> int_socket_type
+auto v4_socket_make_udp(const address_v4& address) -> int_socket_type
 {
 	const auto int_sock = v4_socket_make_udp();
 	v4_socket_bind(int_sock, address);
@@ -197,7 +197,7 @@ auto v4_socket_make_invalid() -> int_socket_type
 	return INVALID_SOCKET;
 }
 
-void v4_socket_bind(int_socket_type socket, const v4_address& address)
+void v4_socket_bind(int_socket_type socket, const address_v4& address)
 {	
 	using namespace std::string_literals;
 
@@ -208,7 +208,7 @@ void v4_socket_bind(int_socket_type socket, const v4_address& address)
 		throw std::runtime_error("failed to bind socket, error code : "s + last_error_as_string());
 }
 
-void v4_init_sockaddr(sockaddr_in& target, std::size_t len, const struct v4_address& source)
+void v4_init_sockaddr(sockaddr_in& target, std::size_t len, const struct address_v4& source)
 {
 	RtlSecureZeroMemory(&target, len);
 	target.sin_family = AF_INET;
@@ -216,7 +216,7 @@ void v4_init_sockaddr(sockaddr_in& target, std::size_t len, const struct v4_addr
 	target.sin_addr.S_un.S_addr = source.net_addr();
 }
 
-void v4_init_sockaddr(sockaddr& target, std::size_t len, const struct v4_address& source)
+void v4_init_sockaddr(sockaddr& target, std::size_t len, const struct address_v4& source)
 {
 	if(len < sizeof(sockaddr_in))
 		throw std::logic_error("`target` is too small.");
@@ -299,7 +299,7 @@ auto v4_socket_close(int_socket_type socket) -> void
 
 
 
-auto v4_socket_recv(int_socket_type socket, std::span<std::byte>& buffer, v4_address& address, std::uint32_t flags) -> std::size_t
+auto v4_socket_recv(int_socket_type socket, std::span<std::byte>& buffer, address_v4& address, std::uint32_t flags) -> std::size_t
 {
 	using namespace std::string_literals;
 
@@ -327,7 +327,7 @@ auto v4_socket_recv(int_socket_type socket, std::span<std::byte>& buffer, v4_add
 													 last_error_as_string());
 }
 
-auto v4_socket_send(int_socket_type socket, std::span<const std::byte>& buffer, const v4_address& address, std::uint32_t flags) -> std::size_t
+auto v4_socket_send(int_socket_type socket, std::span<const std::byte>& buffer, const address_v4& address, std::uint32_t flags) -> std::size_t
 {
 	using namespace std::string_literals;
 	const auto size = std::min((int)buffer.size(), 0x7fffffff);

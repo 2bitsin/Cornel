@@ -9,14 +9,14 @@
 #include "socket_api.hpp"
 #include "socket_udp.hpp"
 
-struct v4_address
+struct address_v4
 {
-	v4_address();
-	v4_address(uint16_t port);
-	v4_address(uint32_t address, uint16_t port);
-	v4_address(std::pair<uint32_t, uint16_t> const& address_port_pair);
-	v4_address(std::string_view address, uint16_t port);	
-	v4_address(std::string_view address_and_port);
+	address_v4();
+	address_v4(uint16_t port);
+	address_v4(uint32_t address, uint16_t port);
+	address_v4(std::pair<uint32_t, uint16_t> const& address_port_pair);
+	address_v4(std::string_view address, uint16_t port);	
+	address_v4(std::string_view address_and_port);
 	
 	auto port() const noexcept -> uint16_t;
 	auto addr() const noexcept -> uint32_t;	
@@ -24,29 +24,29 @@ struct v4_address
 	auto net_addr() const noexcept -> uint32_t;
 
 	auto port(std::uint16_t value) noexcept 
-		-> v4_address& 
+		-> address_v4& 
 	{ 
 		m_port = value;
 		return *this; 
 	}
 
 	auto addr(std::uint32_t value) noexcept 
-		-> v4_address& 
+		-> address_v4& 
 	{ 
 		m_addr = value;
 		return *this; 
 	}
 
 	auto port(std::uint16_t value) const noexcept 
-		-> v4_address
+		-> address_v4
 	{ 
-		return v4_address(m_addr, value);
+		return address_v4(m_addr, value);
 	}
 
 	auto addr(std::uint32_t value) const noexcept 
-		-> v4_address 
+		-> address_v4 
 	{ 
-		return v4_address(value, m_port);	
+		return address_v4(value, m_port);	
 	}
 	
 	template <typename T>
@@ -71,8 +71,8 @@ struct v4_address
 
 	auto to_string() const noexcept -> std::string;
 	auto make_udp() const -> socket_udp;
-	static auto any(std::uint16_t port = 0) -> v4_address;
-	static auto everyone(std::uint16_t port = 0) -> v4_address;
+	static auto any(std::uint16_t port = 0) -> address_v4;
+	static auto everyone(std::uint16_t port = 0) -> address_v4;
 
 private:
 	uint32_t m_addr{ 0 } ;

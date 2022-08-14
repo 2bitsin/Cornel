@@ -1,4 +1,4 @@
-#include "v4_address.hpp"
+#include "address_v4.hpp"
 #include "socket_api.hpp"
 #include "socket_udp.hpp"
 #include "serdes.hpp"
@@ -16,7 +16,7 @@ socket_udp::socket_udp(int_socket_type int_sock)
 :	m_sock{ int_sock }
 {}
 
-socket_udp::socket_udp(const struct v4_address& addr)
+socket_udp::socket_udp(const struct address_v4& addr)
 :	socket_udp(v4_socket_make_udp(addr))
 {}
 
@@ -42,26 +42,26 @@ void socket_udp::swap(socket_udp& other)
 	std::swap(other.m_sock, m_sock);
 }
 
-void socket_udp::bind(const v4_address& addr)
+void socket_udp::bind(const address_v4& addr)
 {
 	v4_socket_bind(m_sock, addr);
 }
 
-auto socket_udp::recv(std::span<std::byte>& buffer, v4_address& source, uint32_t flags) const -> std::size_t
+auto socket_udp::recv(std::span<std::byte>& buffer, address_v4& source, uint32_t flags) const -> std::size_t
 {
 	return v4_socket_recv(m_sock, buffer, source, flags);
 }
 
-auto socket_udp::send(std::span<const std::byte>& buffer, const v4_address& target, uint32_t flags) const -> std::size_t
+auto socket_udp::send(std::span<const std::byte>& buffer, const address_v4& target, uint32_t flags) const -> std::size_t
 {
 	return v4_socket_send(m_sock, buffer, target, flags);
 }
 
-auto socket_udp::recv(uint32_t flags) const -> std::tuple<v4_address, std::vector<std::byte>>
+auto socket_udp::recv(uint32_t flags) const -> std::tuple<address_v4, std::vector<std::byte>>
 {
   thread_local std::array<std::byte, 0x10000u> array_buffer;
 	std::span<std::byte> buffer_s{ array_buffer };
-	v4_address source;
+	address_v4 source;
 	if ((*this).recv(buffer_s, source, flags) > 0u)
 	{
 		std::vector<std::byte> received_bytes(buffer_s.begin(), buffer_s.end());

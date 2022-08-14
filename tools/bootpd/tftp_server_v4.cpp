@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include <common/logger.hpp>
-#include <common/v4_address.hpp>
+#include <common/address_v4.hpp>
 #include <common/socket_udp.hpp>
 #include <common/socket_error.hpp>
 
@@ -29,7 +29,7 @@ tftp_server_v4::~tftp_server_v4()
 void tftp_server_v4::initialize(config_ini const& cfg)
 {
 	using namespace std::string_view_literals;
-	m_address = cfg.value_or("v4_bind_address"sv, v4_address::any()).port(cfg.value_or("tftp_listen_port"sv, 69));
+	m_address = cfg.value_or("v4_bind_address"sv, address_v4::any()).port(cfg.value_or("tftp_listen_port"sv, 69));
 	m_base_dir = cfg.value_or("tftp_base_dir"sv, std::filesystem::path("./"));	
 }
 
@@ -57,7 +57,7 @@ void tftp_server_v4::cease()
 	}
 }
 
-auto tftp_server_v4::address() const noexcept -> v4_address const&
+auto tftp_server_v4::address() const noexcept -> address_v4 const&
 { return m_address; }
 
 auto tftp_server_v4::base_dir() const noexcept -> path const&

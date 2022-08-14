@@ -17,22 +17,22 @@ inline static const constexpr std::uint32_t message_wait_all_flag				= 0x08u;
 struct socket_udp
 {
 	socket_udp();
-	socket_udp(const struct v4_address& addr);
+	socket_udp(const struct address_v4& addr);
 	socket_udp(socket_udp&& from);
 	socket_udp& operator = (socket_udp && from);
 	socket_udp(const socket_udp&) = delete;
 	socket_udp& operator = (const socket_udp&) = delete;
  ~socket_udp();
   void swap(socket_udp& other);
-	void bind(const struct v4_address& addr);
+	void bind(const struct address_v4& addr);
 	
 	/* buffer will be adjusted to span only the bytes received */
-	auto recv(std::span<std::byte>& buffer, struct v4_address& source, uint32_t flags) const -> std::size_t;
+	auto recv(std::span<std::byte>& buffer, struct address_v4& source, uint32_t flags) const -> std::size_t;
 
 	/* buffer will be adjusted to span only the bytes not sent */
-	auto send(std::span<const std::byte>& buffer, const struct v4_address& target, uint32_t flags) const -> std::size_t;
+	auto send(std::span<const std::byte>& buffer, const struct address_v4& target, uint32_t flags) const -> std::size_t;
 
-	auto recv(uint32_t flags) const -> std::tuple<v4_address, std::vector<std::byte>>;
+	auto recv(uint32_t flags) const -> std::tuple<address_v4, std::vector<std::byte>>;
 	
 	template <typename T>
 	requires requires (T const& packet, ::serdes<serdes_writer>& s) 
@@ -40,7 +40,7 @@ struct socket_udp
 		{ packet.serdes_size_hint() } -> std::convertible_to<std::size_t>;
 		{ packet.serdes(s) } -> std::convertible_to<::serdes<serdes_writer>&>;
 	}
-	auto send(T const& packet, const v4_address& target, uint32_t flags) const -> std::size_t
+	auto send(T const& packet, const address_v4& target, uint32_t flags) const -> std::size_t
 	{
 		auto buffer_v = serialize_to_vector(packet);
 		std::span<const std::byte> buffer_s { buffer_v };

@@ -6,7 +6,7 @@
 #include <common/config_ini.hpp>
 #include <common/lexical_cast.hpp>
 #include <common/concurrent_queue.hpp>
-#include <common/v4_address.hpp>
+#include <common/address_v4.hpp>
 #include <common/socket_udp.hpp>
 
 #include "v4_dhcp_options.hpp"
@@ -14,7 +14,7 @@
 
 struct v4_dhcp_server
 {
-	using packet_queue_type = concurrent_queue<std::tuple<v4_address, std::vector<std::byte>>>;
+	using packet_queue_type = concurrent_queue<std::tuple<address_v4, std::vector<std::byte>>>;
 	
 	v4_dhcp_server();
 	v4_dhcp_server(config_ini const&);
@@ -50,7 +50,7 @@ private:
 
 	socket_udp					m_socket;	
 	packet_queue_type		m_packets;
-	v4_address					m_bind_address;
+	address_v4					m_bind_address;
 	client_map_type     m_clients;
 	std::jthread				m_thread_incoming;
 	std::jthread				m_thread_outgoing;

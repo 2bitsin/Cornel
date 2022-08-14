@@ -10,7 +10,7 @@
 bool tftp_session_v4::is_done() const 
 { return m_done; }
 
-void tftp_session_v4::io_thread(tftp_server_v4& parent, v4_address remote_client, tftp_packet::type_rrq request, std::stop_token st)
+void tftp_session_v4::io_thread(tftp_server_v4& parent, address_v4 remote_client, tftp_packet::type_rrq request, std::stop_token st)
 {
 	using namespace std::chrono_literals;
 	using namespace std::string_literals;
@@ -113,7 +113,7 @@ void tftp_session_v4::io_thread(tftp_server_v4& parent, v4_address remote_client
 	parent.session_notify(this);
 }
 
-void tftp_session_v4::io_thread(tftp_server_v4& parent, v4_address source, tftp_packet::type_wrq request, std::stop_token st)
+void tftp_session_v4::io_thread(tftp_server_v4& parent, address_v4 source, tftp_packet::type_wrq request, std::stop_token st)
 {
 	using namespace std::chrono_literals;
 	auto socket_v = m_address.make_udp();

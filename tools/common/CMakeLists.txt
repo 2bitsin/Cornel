@@ -18,8 +18,8 @@ add_library(common STATIC
 	socket_error.hpp	
 	socket_udp.cpp
 	socket_udp.hpp
-	v4_address.hpp
-	v4_address.cpp
+	address_v4.hpp
+	address_v4.cpp
 )
 set_property(TARGET common PROPERTY CXX_STANDARD 23)
 
