@@ -35,15 +35,12 @@ public:
 
 	auto address() const noexcept -> v4_address const&;
 	auto base_dir() const noexcept -> path const&;
+	auto session_notify(v4_tftp_session const* who) -> v4_tftp_server&;
 	
 private:
 	
 	void thread_incoming(std::stop_token st);
 	void thread_outgoing(std::stop_token st);	
-	auto send_error(v4_address const& to_whom, v4_tftp_packet::error_code_type errcode) -> v4_tftp_server&;
-	auto send_error(v4_address const& to_whom, v4_tftp_packet::error_code_type errcode, std::string_view errstr) -> v4_tftp_server&;
-	auto session_notify(v4_tftp_session const* who) -> v4_tftp_server&;
-
 	 
 	v4_address		m_address;
 	path					m_base_dir;

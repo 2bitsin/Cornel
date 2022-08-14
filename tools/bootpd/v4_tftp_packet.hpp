@@ -26,41 +26,41 @@ struct v4_tftp_packet
 
 	using dictionary_type = std::unordered_map<std::string, std::string>;
 
-	struct packet_rrq_type
+	struct type_rrq
 	{
 		std::string filename;
 		std::string xfermode;	
 		dictionary_type options;		
 	};	
 
-	struct packet_wrq_type
+	struct type_wrq
 	{
 		std::string filename;
 		std::string xfermode;	
 		dictionary_type options;		
 	};
 
-	struct packet_data_type
+	struct type_data
 	{
 		std::uint16_t block_id;
 		std::vector<std::byte> data;
 	};
 
-	struct packet_ack_type
+	struct type_ack
 	{ std::uint16_t block_id; };
 
-	struct packet_error_type
+	struct type_error
 	{
 		error_code_type error_code;
 		std::string error_string;
 	};
 
-	struct packet_oack_type
+	struct type_oack
 	{
 		 dictionary_type options;
 	};
 
-	using payload_type = std::variant<std::monostate, packet_rrq_type, packet_wrq_type, packet_data_type, packet_ack_type, packet_error_type, packet_oack_type>;
+	using payload_type = std::variant<std::monostate, type_rrq, type_wrq, type_data, type_ack, type_error, type_oack>;
 
 	v4_tftp_packet();
 	v4_tftp_packet(::serdes<serdes_reader>& _serdes);
@@ -91,7 +91,27 @@ struct v4_tftp_packet
   auto set_error(error_code_type error_code) -> v4_tftp_packet&;
 	auto set_oack(dictionary_type options) -> v4_tftp_packet&;
 
-	auto serdes_size_hint() const noexcept -> std::size_t;
+	static auto make_rrq(std::string_view filename, std::string_view xfermode, dictionary_type options)->v4_tftp_packet;
+	static auto make_wrq(std::string_view filename, std::string_view xfermode, dictionary_type options)->v4_tftp_packet;
+	static auto make_data(std::uint16_t block_id, std::span<const std::byte> data)->v4_tftp_packet;
+	static auto make_ack(std::uint16_t block_id)->v4_tftp_packet;
+	static auto make_error(error_code_type error_code, std::string_view error_string)->v4_tftp_packet;
+	static auto make_error(error_code_type error_code)->v4_tftp_packet;
+	static auto make_oack(dictionary_type options)->v4_tftp_packet;
+
+	auto serdes_size_hint() const noexcept -> std::size_t;	
+
+	template <typename T>
+	auto is() const -> bool
+	{
+		return std::holds_alternative<T>(m_value);
+	}
+
+	template <typename T>
+	auto as() const -> T const&
+	{
+		return std::get<T>(m_value);
+	}
 
 private:
 	payload_type m_value;

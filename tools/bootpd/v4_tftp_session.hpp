@@ -21,13 +21,13 @@ struct v4_tftp_session
 	v4_tftp_session(P& parent, v4_address source, T const& request)
 	:	m_address		{ parent.address().port(0) },
 		m_base_dir	{ parent.base_dir() },
-		m_thread		{ [&, this] (auto st) { io_thread(parent, source, request, st); } }
+		m_thread		{ [&parent, source, request, this] (auto st) { io_thread(parent, source, request, st); } }
 	{}
 
 	bool is_done() const;
 	
-	void io_thread(v4_tftp_server& parent, v4_address source, v4_tftp_packet::packet_rrq_type request, std::stop_token st);
-	void io_thread(v4_tftp_server& parent, v4_address source, v4_tftp_packet::packet_wrq_type request, std::stop_token st);
+	void io_thread(v4_tftp_server& parent, v4_address source, v4_tftp_packet::type_rrq request, std::stop_token st);
+	void io_thread(v4_tftp_server& parent, v4_address source, v4_tftp_packet::type_wrq request, std::stop_token st);
 
 	
 private:

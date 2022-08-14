@@ -23,7 +23,7 @@ try
 	{	
 		
 #ifndef NDEBUG
-		std::filesystem::current_path(R"(C:\Users\alex\Desktop\projects\leisure\Cornel\tools\workspace)");
+		std::filesystem::current_path(R"(C:\Users\alex\Desktop\projects\leisure\Cornel\workspace)");
 		std::string config_path = "config.ini";		
 #else
 		arguments args(argc, argv);
