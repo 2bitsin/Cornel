@@ -36,7 +36,7 @@ void tftp_server_v4::initialize(config_ini const& cfg)
 void tftp_server_v4::start()
 {
 	using namespace std::chrono_literals;
-	Glog.info("Starting TFTP server on '{}' ... ", m_address.to_string());
+	Glog.info("Starting TFTP server on '{}', with root at '{}' ... ", m_address.to_string(), std::filesystem::absolute(m_base_dir).string());
 	m_sock = m_address.make_udp();
 	m_sock.timeout(500ms);	
 	m_thread_incoming = std::jthread([this](auto&& st){ thread_incoming (st); });
@@ -103,6 +103,7 @@ void tftp_server_v4::thread_outgoing(std::stop_token st)
 	{
 		try
 		{							
+			cleanup_sessions();
 			auto[source, packet_bits] = m_packets.pop(st);
 			tftp_packet packet_v (packet_bits);			
 			Glog.info("From '{}' received : {} ", source.to_string(), packet_v.to_string());			
@@ -112,7 +113,7 @@ void tftp_server_v4::thread_outgoing(std::stop_token st)
 				if constexpr (std::is_same_v<T, tftp_packet::type_rrq>
 					          ||std::is_same_v<T, tftp_packet::type_wrq>)
 				{
-					
+										
 					auto session_ptr = std::make_unique<tftp_session_v4>(*this, source, value);
 					m_session_list.emplace(session_ptr.get(), std::move(session_ptr));
 				}
@@ -124,13 +125,6 @@ void tftp_server_v4::thread_outgoing(std::stop_token st)
 				}
 			});
 			
-			tftp_session_v4 const* notify{ nullptr };
-			while (m_notify_queue.try_pop(notify))
-			{
-				if (!(*notify).is_done())
-					continue;				
-				m_session_list.erase(notify);
-			}
 		}
 		catch (socket_error_timedout const&)
 		{ continue; }
@@ -140,6 +134,19 @@ void tftp_server_v4::thread_outgoing(std::stop_token st)
 		{ Glog.error("{}"sv, e.what()); }		
 	}
 	Glog.info("* Responder thread stopped.");
+}
+
+void tftp_server_v4::cleanup_sessions()
+{
+	tftp_session_v4 const* notify{ nullptr };
+	while (m_notify_queue.try_pop(notify))
+	{
+		if (!(*notify).is_done())
+			continue;
+		if (auto it = m_session_list.find(notify); it != m_session_list.end()) {
+			m_session_list.erase(it);
+		}
+	}
 }
 
 

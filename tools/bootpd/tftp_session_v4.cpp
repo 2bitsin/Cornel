@@ -19,27 +19,20 @@ void tftp_session_v4::io_thread(tftp_server_v4& parent, address_v4 remote_client
 	using namespace std::filesystem;	
 	using std::chrono::system_clock;
 
-	auto file_path_v { std::filesystem::absolute (m_base_dir / request.filename) };
-	auto socket_v { m_address.make_udp() };
 
 	try
 	{
-		if (request.xfermode != "octet"s && request.xfermode != "netascii"s) {
-			socket_v.send(tftp_packet::make_error(tftp_packet::illegal_operation), remote_client, 0);
-			throw std::runtime_error("Unsupported transfer mode: "s + request.xfermode);
-		}
-		
-		if (!exists(file_path_v)) {
-			socket_v.send(tftp_packet::make_error(tftp_packet::file_not_found), remote_client, 0);
-			throw std::runtime_error("File not found: "s + file_path_v.string());
-		}
 
-		if (!is_regular_file(file_path_v)) {
-			socket_v.send(tftp_packet::make_error(tftp_packet::file_not_found), remote_client, 0);
-			throw std::runtime_error("Not a file: "s + file_path_v.string());
-		}
+		auto socket_v { m_address.make_udp() };	
+		
+		validate_request(request, socket_v, remote_client);		
+
+		auto file_path_v { m_base_dir / request.filename };
+
+		validate_filepath(file_path_v, socket_v, remote_client);
 		
 		tftp_reader reader_v (file_path_v, 512u);		
+		
 		Glog.info("Sending {} ({} bytes) to '{}' ... ",  request.filename, reader_v.total_size(), remote_client.to_string());
 		while (!st.stop_requested())
 		{		
@@ -74,8 +67,34 @@ void tftp_session_v4::io_thread(tftp_server_v4& parent, address_v4 remote_client
 	{ Glog.error("{}"s, e.what()); }
 	catch (...)
 	{ Glog.error("Unhandled exception"s); }
+	
 	m_done.store(true);
 	parent.session_notify(this);
+}
+
+void tftp_session_v4::validate_request(tftp_packet::type_rrq const& request, socket_udp& socket_v, address_v4 const& remote_client)
+{
+	using namespace std::string_literals;
+
+	if (request.xfermode != "octet"s && request.xfermode != "netascii"s) {
+		socket_v.send(tftp_packet::make_error(tftp_packet::illegal_operation), remote_client, 0);
+		throw std::runtime_error("Unsupported transfer mode: "s + request.xfermode);
+	}
+}
+
+void tftp_session_v4::validate_filepath(std::filesystem::path const& file_path_v, socket_udp& socket_v, address_v4 const& remote_client)
+{
+	using namespace std::string_literals;
+	
+	if (!exists(file_path_v)) {
+		socket_v.send(tftp_packet::make_error(tftp_packet::file_not_found), remote_client, 0);
+		throw std::runtime_error("File not found: "s + file_path_v.string());
+	}
+
+	if (!is_regular_file(file_path_v)) {
+		socket_v.send(tftp_packet::make_error(tftp_packet::file_not_found), remote_client, 0);
+		throw std::runtime_error("Not a file: "s + file_path_v.string());
+	}
 }
 
 void tftp_session_v4::io_thread(tftp_server_v4& parent, address_v4 source, tftp_packet::type_wrq request, std::stop_token st)

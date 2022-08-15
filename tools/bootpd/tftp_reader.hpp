@@ -7,11 +7,11 @@
 
 #include "tftp_packet.hpp"
 
-struct tftp_block_reader
+struct tftp_reader
 {	
-	tftp_block_reader(std::filesystem::path path, std::uintmax_t block_size = 512u, bool is_binary = true);		
+	tftp_reader(std::filesystem::path path, std::uintmax_t block_size = 512u, bool is_binary = true);		
 	auto data() -> tftp_packet;
-	auto next() -> tftp_block_reader&;
+	auto next() -> tftp_reader&;
 	auto size() const noexcept -> std::uintmax_t;	
 	auto number() const noexcept -> std::uintmax_t;
 	auto last() const noexcept -> bool;

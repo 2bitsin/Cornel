@@ -25,6 +25,9 @@ struct tftp_session_v4
 	{}
 
 	bool is_done() const;
+
+  void validate_filepath(std::filesystem::path const& file_path_v, socket_udp& socket_v, address_v4 const& remote_client);
+	void validate_request(tftp_packet::type_rrq const& request, socket_udp& socket_v, address_v4 const& remote_client);
 	
 	void io_thread(tftp_server_v4& parent, address_v4 source, tftp_packet::type_rrq request, std::stop_token st);
 	void io_thread(tftp_server_v4& parent, address_v4 source, tftp_packet::type_wrq request, std::stop_token st);

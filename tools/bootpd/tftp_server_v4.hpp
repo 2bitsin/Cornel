@@ -40,7 +40,9 @@ public:
 private:
 	
 	void thread_incoming(std::stop_token st);
-	void thread_outgoing(std::stop_token st);	
+	void thread_outgoing(std::stop_token st);
+    void cleanup_sessions();
+
 	 
 	address_v4		m_address;
 	path					m_base_dir;
