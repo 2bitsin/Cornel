@@ -15,11 +15,23 @@ private:
 	std::string m_message;
 };
 
+ 
+struct error_queue_timed_out: std::exception
+{
+	error_queue_timed_out(std::string_view message): m_message(message) {}
+	const char* what() const noexcept override { return m_message.c_str(); }
+private:
+	std::string m_message;
+};
+
+
 template <typename T>
 struct concurrent_queue
 {
-  T pop(std::stop_token const& st)
-  {
+	template <typename... Dur>
+	requires (sizeof... (Dur) < 2u)
+  auto pop(std::stop_token const& st, Dur&&... dur) -> T 
+	{
 		std::stop_callback please_stop(st, [this] () {
 			m_covar.notify_all();
 		});
@@ -27,7 +39,14 @@ struct concurrent_queue
     std::unique_lock<std::mutex> mlock(m_mutex);
     while (m_queue.empty())			
     {
-      m_covar.wait(mlock);
+			if constexpr (sizeof...(dur) == 1u) {
+				using enum std::cv_status;
+				if (m_covar.wait_for(mlock, dur) != no_timeout)					
+					throw error_queue_timed_out("queue timed out");				
+			}
+			else {
+				m_covar.wait(mlock);
+			}
 			if (st.stop_requested() || m_cease.load()) {
 				throw error_stop_requested("stop requested");
 			}
@@ -37,7 +56,9 @@ struct concurrent_queue
     return value;
   } 
 	
-  void pop(T& value, std::stop_token const& st)
+	template <typename... Dur>
+	requires (sizeof... (Dur) < 2u)
+  void pop(T& value, std::stop_token const& st, Dur&&... dur)	
   {
 		std::stop_callback please_stop(st, [this] () {
 			m_covar.notify_all();
@@ -45,7 +66,15 @@ struct concurrent_queue
     std::unique_lock<std::mutex> mlock(m_mutex);
     while (m_queue.empty())
     {
-      m_covar.wait(mlock);
+			if constexpr (sizeof...(Dur) == 1u) {
+				using enum std::cv_status;
+				if (m_covar.wait_for(mlock, dur...) != no_timeout)
+					throw error_queue_timed_out("queue timed out");
+			}
+			else {
+				m_covar.wait(mlock);
+			}
+			
 			if (st.stop_requested() || m_cease.load()) {
 				throw error_stop_requested("stop requested");
 			}
@@ -81,7 +110,7 @@ struct concurrent_queue
     }
     value = std::move(m_queue.front());
     m_queue.pop();
-  } 
+  }
 
 	bool try_pop(T& value)
 	{
