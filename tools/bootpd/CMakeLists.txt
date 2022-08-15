@@ -14,7 +14,7 @@ add_executable(bootpd
 	tftp_packet.hpp 
 	tftp_packet.cpp 
 	tftp_block_reader.hpp
-	tftp_block_reader.cpp
+	"tftp_reader.cpp"
 )
 
 target_link_libraries(bootpd PRIVATE common)
