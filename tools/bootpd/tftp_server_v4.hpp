@@ -19,10 +19,15 @@
 struct tftp_server_v4
 {
 protected:
+	
+	using event_notify_type = std::tuple<tftp_session_v4 const *>;
+	using event_packet_type = std::tuple<address_v4, std::vector<std::byte>>;
+		
 	using path = std::filesystem::path;
-	using packet_queue = concurrent_queue<std::tuple<address_v4, std::vector<std::byte>>>;
-	using notify_queue = concurrent_queue<tftp_session_v4 const *>;
+	using event_type = std::variant<event_packet_type, event_notify_type>;
+	using event_queue = concurrent_queue<event_type>;
 	using session_list = std::unordered_map<tftp_session_v4 const *, std::unique_ptr<tftp_session_v4>>;
+
 public:
 
 	tftp_server_v4();
@@ -36,20 +41,19 @@ public:
 	auto address() const noexcept -> address_v4 const&;
 	auto base_dir() const noexcept -> path const&;
 	auto session_notify(tftp_session_v4 const* who) -> tftp_server_v4&;
+
+	auto visit_event(event_packet_type const& event_v)->tftp_server_v4&;
+	auto visit_event(event_notify_type const& event_v)->tftp_server_v4&;
 	
 private:
 	
 	void thread_incoming(std::stop_token st);
 	void thread_outgoing(std::stop_token st);
-    void cleanup_sessions();
-
 	 
 	address_v4		m_address;
 	path					m_base_dir;
 	socket_udp		m_sock;
-	packet_queue	m_packets;
-	
-	notify_queue	m_notify_queue;
+	event_queue		m_events;
 	session_list	m_session_list;
 
 	std::jthread	m_thread_incoming;

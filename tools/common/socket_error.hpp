@@ -18,4 +18,4 @@ private:
 	const std::string m_message;
 };
 
-using socket_error_timedout = socket_error_base<1>;
+using error_socket_timed_out = socket_error_base<1>;

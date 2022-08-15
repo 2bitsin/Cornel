@@ -75,12 +75,9 @@ void tftp_server_v4::thread_incoming(std::stop_token st)
 			if (packet_bits.empty()) 
 				continue;
 			Glog.info("Received {} byte TFTP packet from '{}' ... ", packet_bits.size(), source.to_string());
-			m_packets.emplace(
-				std::move(source), 
-				std::move(packet_bits)
-			);
+			m_events.emplace(event_packet_type(std::move(source), std::move(packet_bits)));
 		}
-		catch (socket_error_timedout const&)
+		catch (error_socket_timed_out const&)
 		{ continue; }
 		catch (std::exception const& e)
 		{ Glog.error("{}"sv, e.what()); }
@@ -90,7 +87,42 @@ void tftp_server_v4::thread_incoming(std::stop_token st)
 
 auto tftp_server_v4::session_notify(tftp_session_v4 const* who) -> tftp_server_v4&
 {
-	m_notify_queue.push(who);
+	m_events.push(event_notify_type(who));
+	return *this;
+}
+
+auto tftp_server_v4::visit_event(event_packet_type const& event_v) -> tftp_server_v4&
+{
+	auto [source, packet_bits] = event_v;
+	tftp_packet packet_v (packet_bits);			
+	Glog.info("From '{}' received : {} ", source.to_string(), packet_v.to_string());			
+
+	packet_v.visit([this, source]<typename T>(T const& value)
+	{
+		if constexpr (std::is_same_v<T, tftp_packet::type_rrq>
+			          ||std::is_same_v<T, tftp_packet::type_wrq>)
+		{
+								
+			auto session_ptr = std::make_unique<tftp_session_v4>(*this, source, value);
+			m_session_list.emplace(session_ptr.get(), std::move(session_ptr));
+		}
+		else if constexpr (std::is_same_v<T, std::monostate>)
+			throw std::logic_error("Empty packet, packet parsing failed.");
+		else {
+			m_sock.send(tftp_packet::make_error(tftp_packet::illegal_operation), source, 0);
+			Glog.info("Ignoring non-request packet from '{}'.", source.to_string());
+		}
+	});
+	return *this;
+}
+
+auto tftp_server_v4::visit_event(event_notify_type const& event_v) -> tftp_server_v4&
+{
+	auto [session_ptr] = event_v;
+	if (session_ptr && (*session_ptr).is_done()) {
+		Glog.debug("Killing session {:#08x} ...", (std::uintptr_t)session_ptr);
+		m_session_list.erase (session_ptr);			
+	}
 	return *this;
 }
 
@@ -102,51 +134,19 @@ void tftp_server_v4::thread_outgoing(std::stop_token st)
 	while (!st.stop_requested()) 
 	{
 		try
-		{							
-			cleanup_sessions();
-			auto[source, packet_bits] = m_packets.pop(st);
-			tftp_packet packet_v (packet_bits);			
-			Glog.info("From '{}' received : {} ", source.to_string(), packet_v.to_string());			
-
-			packet_v.visit([this, source]<typename T>(T const& value)
-			{
-				if constexpr (std::is_same_v<T, tftp_packet::type_rrq>
-					          ||std::is_same_v<T, tftp_packet::type_wrq>)
-				{
-										
-					auto session_ptr = std::make_unique<tftp_session_v4>(*this, source, value);
-					m_session_list.emplace(session_ptr.get(), std::move(session_ptr));
-				}
-				else if constexpr (std::is_same_v<T, std::monostate>)
-					throw std::logic_error("Empty packet, packet parsing failed.");
-				else {
-					m_sock.send(tftp_packet::make_error(tftp_packet::illegal_operation), source, 0);
-					Glog.info("Ignoring non-request packet from '{}'.", source.to_string());
-				}
-			});
-			
+		{											
+			std::visit([this](auto&& event_v) { 
+				visit_event(event_v); 
+			}, m_events.pop(st));							
 		}
-		catch (socket_error_timedout const&)
+		catch (error_socket_timed_out const&)
 		{ continue; }
-		catch (stop_requested_error const&)
+		catch (error_stop_requested const&)
 		{ break; }
 		catch (std::exception const& e)
 		{ Glog.error("{}"sv, e.what()); }		
 	}
 	Glog.info("* Responder thread stopped.");
-}
-
-void tftp_server_v4::cleanup_sessions()
-{
-	tftp_session_v4 const* notify{ nullptr };
-	while (m_notify_queue.try_pop(notify))
-	{
-		if (!(*notify).is_done())
-			continue;
-		if (auto it = m_session_list.find(notify); it != m_session_list.end()) {
-			m_session_list.erase(it);
-		}
-	}
 }
 
 

@@ -7,9 +7,9 @@
 #include <stop_token>
 #include <exception>
  
-struct stop_requested_error: std::exception
+struct error_stop_requested: std::exception
 {
-	stop_requested_error(std::string_view message): m_message(message) {}
+	error_stop_requested(std::string_view message): m_message(message) {}
 	const char* what() const noexcept override { return m_message.c_str(); }
 private:
 	std::string m_message;
@@ -29,7 +29,7 @@ struct concurrent_queue
     {
       m_covar.wait(mlock);
 			if (st.stop_requested() || m_cease.load()) {
-				throw stop_requested_error("stop requested");
+				throw error_stop_requested("stop requested");
 			}
 		}
     const auto value = std::move(m_queue.front());
@@ -47,7 +47,7 @@ struct concurrent_queue
     {
       m_covar.wait(mlock);
 			if (st.stop_requested() || m_cease.load()) {
-				throw stop_requested_error("stop requested");
+				throw error_stop_requested("stop requested");
 			}
     }
     value = std::move(m_queue.front());

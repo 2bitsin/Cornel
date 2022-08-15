@@ -321,7 +321,7 @@ auto v4_socket_recv(int_socket_type socket, std::span<std::byte>& buffer, addres
 	}
 
 	if (const auto error_code = socket_last_error(); is_time_out_error(error_code))
-		throw  socket_error_timedout{ "receive operation timed out." };
+		throw  error_socket_timed_out{ "receive operation timed out." };
 
 	throw std::runtime_error("failed to receive bytes from socket, error code : "s + 
 													 last_error_as_string());
@@ -344,7 +344,7 @@ auto v4_socket_send(int_socket_type socket, std::span<const std::byte>& buffer, 
 	}
 
 	if (const auto error_code = socket_last_error(); is_time_out_error(error_code))
-		throw socket_error_timedout("send operation timed out.");
+		throw error_socket_timed_out("send operation timed out.");
 
 	throw std::runtime_error("failed to send bytes trough socket, error code : "s + 
 													 last_error_as_string());

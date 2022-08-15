@@ -75,9 +75,9 @@ void dhcp_server_v4::thread_incoming(std::stop_token st)
 			Glog.info("Received {} bytes from '{}'.", packet.size(), source.to_string());
 			m_packets.push(std::tuple{ std::move(source), std::move(packet) });
 		}
-		catch (socket_error_timedout const& e)
+		catch (error_socket_timed_out const& e)
 		{ continue; }
-		catch (stop_requested_error const& e)
+		catch (error_stop_requested const& e)
 		{ break; }
 		catch (std::exception& ex)
 		{
@@ -120,9 +120,9 @@ void dhcp_server_v4::thread_outgoing(std::stop_token st)
 				continue;	
 			}								
 		}
-		catch (socket_error_timedout const& e)
+		catch (error_socket_timed_out const& e)
 		{ continue; }
-		catch (stop_requested_error const& e)
+		catch (error_stop_requested const& e)
 		{ break; }
 		catch (std::exception const& ex)
 		{

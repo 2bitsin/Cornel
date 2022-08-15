@@ -58,7 +58,7 @@ void tftp_session_v4::io_thread(tftp_server_v4& parent, address_v4 remote_client
 					break;				
 				reader_v.next();				
 			}
-			catch(socket_error_timedout)
+			catch(error_socket_timed_out)
 			{ continue; }
 		}
 		Glog.info("Finished sending {} to '{}' ... ", request.filename, remote_client.to_string());
