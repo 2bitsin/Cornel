@@ -91,27 +91,21 @@ auto tftp_server_v4::session_notify(tftp_session_v4 const* who) -> tftp_server_v
 	return *this;
 }
 
+template<typename T>
+auto tftp_server_v4::visit_packet(T const& packet_v, address_v4 const& source_v) -> tftp_server_v4&
+{
+	m_sock.send(tftp_packet::make_error(tftp_packet::illegal_operation), source_v, 0);
+	Glog.info("Ignoring non-request packet from '{}'.", source_v.to_string());
+	return *this;
+}
+
 auto tftp_server_v4::visit_event(event_packet_type const& event_v) -> tftp_server_v4&
 {
-	auto [source, packet_bits] = event_v;
+	auto [source_v, packet_bits] = event_v;
 	tftp_packet packet_v (packet_bits);			
-	Glog.info("From '{}' received : {} ", source.to_string(), packet_v.to_string());			
-
-	packet_v.visit([this, source]<typename T>(T const& value)
-	{
-		if constexpr (std::is_same_v<T, tftp_packet::type_rrq>
-			          ||std::is_same_v<T, tftp_packet::type_wrq>)
-		{
-								
-			auto session_ptr = std::make_unique<tftp_session_v4>(*this, source, value);
-			m_session_list.emplace(session_ptr.get(), std::move(session_ptr));
-		}
-		else if constexpr (std::is_same_v<T, std::monostate>)
-			throw std::logic_error("Empty packet, packet parsing failed.");
-		else {
-			m_sock.send(tftp_packet::make_error(tftp_packet::illegal_operation), source, 0);
-			Glog.info("Ignoring non-request packet from '{}'.", source.to_string());
-		}
+	Glog.info("From '{}' received : {} ", source_v.to_string(), packet_v.to_string());
+	packet_v.visit([this, source_v](auto&& packet_v){ 
+		visit_packet(packet_v, source_v); 
 	});
 	return *this;
 }
@@ -123,6 +117,26 @@ auto tftp_server_v4::visit_event(event_notify_type const& event_v) -> tftp_serve
 		Glog.debug("Killing session {:#08x} ...", (std::uintptr_t)session_ptr);
 		m_session_list.erase (session_ptr);			
 	}
+	return *this;
+}
+
+auto tftp_server_v4::visit_packet(tftp_packet::type_rrq const& packet_v, address_v4 const& source_v) -> tftp_server_v4&
+{
+	auto session_ptr = std::make_unique<tftp_session_v4>(*this, source_v, packet_v);
+	m_session_list.emplace(session_ptr.get(), std::move(session_ptr));
+	return *this;
+}
+
+auto tftp_server_v4::visit_packet(tftp_packet::type_wrq const& packet_v, address_v4 const& source_v) -> tftp_server_v4&
+{
+	auto session_ptr = std::make_unique<tftp_session_v4>(*this, source_v, packet_v);
+	m_session_list.emplace(session_ptr.get(), std::move(session_ptr));
+	return *this;
+}
+
+auto tftp_server_v4::visit_packet(std::monostate const& packet_v, address_v4 const& source_v) -> tftp_server_v4&
+{
+	throw std::logic_error("Empty packet, packet parsing failed.");
 	return *this;
 }
 

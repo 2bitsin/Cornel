@@ -53,3 +53,25 @@ auto address_v4::everyone(std::uint16_t port) -> address_v4
 {
 	return address_v4(0xffffffff, port);
 }
+
+auto address_v4::port(std::uint16_t value) noexcept -> address_v4& 
+{ 
+	m_port = value;
+	return *this; 
+}
+
+auto address_v4::addr(std::uint32_t value) noexcept -> address_v4& 
+{ 
+	m_addr = value;
+	return *this; 
+}
+
+auto address_v4::port(std::uint16_t value) const noexcept -> address_v4
+{ 
+	return address_v4(m_addr, value);
+}
+
+auto address_v4::addr(std::uint32_t value) const noexcept -> address_v4 
+{ 
+	return address_v4(value, m_port);	
+}

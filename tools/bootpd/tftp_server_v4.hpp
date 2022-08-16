@@ -42,10 +42,15 @@ public:
 	auto base_dir() const noexcept -> path const&;
 	auto session_notify(tftp_session_v4 const* who) -> tftp_server_v4&;
 
-	auto visit_event(event_packet_type const& event_v)->tftp_server_v4&;
-	auto visit_event(event_notify_type const& event_v)->tftp_server_v4&;
-	
 private:
+	auto visit_event(event_packet_type const& event_v) -> tftp_server_v4&;
+	auto visit_event(event_notify_type const& event_v) -> tftp_server_v4&;
+	
+	auto visit_packet(tftp_packet::type_rrq const& packet_v, address_v4 const& source_v) -> tftp_server_v4&;
+	auto visit_packet(tftp_packet::type_wrq const& packet_v, address_v4 const& source_v) -> tftp_server_v4&;
+	auto visit_packet(std::monostate const& packet_v, address_v4 const& source_v) -> tftp_server_v4&;
+	
+	template <typename T> auto visit_packet(T const& packet_v, address_v4 const& source_v) -> tftp_server_v4&;	
 	
 	void thread_incoming(std::stop_token st);
 	void thread_outgoing(std::stop_token st);

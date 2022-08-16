@@ -1,8 +1,8 @@
 #include "tftp_reader.hpp"
 
-tftp_reader::tftp_reader(std::filesystem::path path, std::uintmax_t blksiz,  bool is_binary):
+tftp_reader::tftp_reader(std::filesystem::path path, std::uintmax_t length, std::uintmax_t blksiz,  bool is_binary):
 	m_stream (path, is_binary ? std::ios::binary : 0u),
-	m_length (std::filesystem::file_size(path)),
+	m_length (length ? length : std::filesystem::file_size(path)),
 	m_blksiz (blksiz),
 	m_buffer (blksiz),
 	m_number (0u)

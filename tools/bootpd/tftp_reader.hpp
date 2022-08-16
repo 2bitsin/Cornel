@@ -9,7 +9,7 @@
 
 struct tftp_reader
 {	
-	tftp_reader(std::filesystem::path path, std::uintmax_t block_size = 512u, bool is_binary = true);		
+	tftp_reader(std::filesystem::path path, std::uintmax_t length = 0u, std::uintmax_t block_size = 512u, bool is_binary = true);
 	auto data() -> tftp_packet;
 	auto next() -> tftp_reader&;
 	auto size() const noexcept -> std::uintmax_t;	
