@@ -89,6 +89,8 @@ void dhcp_server_v4::thread_incoming(std::stop_token st)
 
 void dhcp_server_v4::thread_outgoing(std::stop_token st)
 {
+	using namespace std::string_literals;
+	
 	Glog.info("* Responder thread started.");
 	while (!st.stop_requested())
 	{
@@ -104,6 +106,10 @@ void dhcp_server_v4::thread_outgoing(std::stop_token st)
 			  ||packet_v.is_message_type(DHCP_MESSAGE_TYPE_REQUEST))
 			{
 				const auto mac_address_v = lowercase(mac_address_to_string (packet_v.hardware_address()));				
+				
+				if (!m_clients.count(mac_address_v))
+					throw std::runtime_error("No configuration found for client : "s + mac_address_v);
+
 				const auto& offer_params_v = m_clients.at(mac_address_v);
 				auto offer_packet_v = make_offer (packet_v, offer_params_v);
 				

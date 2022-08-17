@@ -111,3 +111,11 @@ auto config_ini::parse_line(std::string_view line_sv, std::string& section) -> c
 	}
 	throw std::runtime_error("Bad line : "s + std::string(line_sv));		
 }
+
+
+auto config_ini::insert_line(std::string_view line_sv, std::string_view section_in) -> config_ini&
+{
+	std::string section_v (section_in);
+	parse_line(line_sv, section_v);	
+	return *this;
+}

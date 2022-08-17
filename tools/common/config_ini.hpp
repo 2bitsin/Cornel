@@ -70,6 +70,8 @@ struct config_ini
 		return value_as<T>(index).value_or(alternative);
 	}
 
+	auto insert_line(std::string_view line_sv, std::string_view section = "") -> config_ini&;
+
 protected:
 	auto parse_line(std::string_view line_sv, std::string& section_s) -> config_ini&;
 	
