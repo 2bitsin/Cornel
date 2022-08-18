@@ -1,4 +1,7 @@
 #!/bin/bash
-cmd.exe /c bochsdbg -f bochs/bochs.dbg.ini -q &
-sleep 2
-cmd.exe /c "putty -serial \\\\.\\pipe\\bochs-com1"
+
+rm -rf workspace/*
+cp source/config.ini workspace/
+cp build/coreload.sys workspace/
+cd workspace
+cmd.exe /c 'bochsdbg -f ../bochs/bochs.dbg.ini -q'
