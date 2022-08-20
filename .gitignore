@@ -1,11 +1,9 @@
-/build/
-/tools/build/
-/tools/bin/
-/tools/.vs/
-/workspace/
+workspace
+build
+.vs
+/tools/bin
 /bochs/*.txt
-/bochs/*.log
+/qemu/*.txt
 bx_enh_dbg.ini
-bochsout.txt
 *.err
 *.log

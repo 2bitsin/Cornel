@@ -1,7 +1,2 @@
 #!/bin/bash
-
-rm -rf workspace/*
-cp source/config.ini workspace/
-cp build/coreload.sys workspace/
-cd workspace
-cmd.exe /c 'bochsdbg -f ../bochs/bochs.dbg.ini -q'
+cmd.exe /c 'cd bochs && pwd && bochsdbg -f bochs.dbg.ini -q'

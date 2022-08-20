@@ -10,13 +10,6 @@
 #include "serial.h"
 #include "timer.h"
 
-#define PIC1    0x20    /* IO base address for master PIC */
-#define PIC2    0xA0    /* IO base address for slave PIC */
-#define PIC1_COMMAND  PIC1
-#define PIC1_DATA (PIC1+1)
-#define PIC2_COMMAND  PIC2
-#define PIC2_DATA (PIC2+1)
-
 static serial_port_init_type G_com1 = {
   .baud       = 9600,
   .data_bits  = 8,
@@ -27,7 +20,7 @@ static serial_port_init_type G_com1 = {
 int16_t STUB_init ()
 {     
   int16_t error;
-
+  init_text();
   DBG_print_string("Cornel loader v0.1 : \n"); 
   DBG_print_string("Initializing...\n");
   DBG_print_char('\n');

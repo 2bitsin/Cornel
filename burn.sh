@@ -1,1 +1,0 @@
-cmd.exe /c isoburn /Q G: build/cornel.iso
