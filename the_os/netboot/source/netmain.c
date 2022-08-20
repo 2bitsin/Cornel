@@ -9,6 +9,7 @@
 #include "irqctrl.h"
 #include "serial.h"
 #include "timer.h"
+#include "types.h"
 
 static serial_port_init_type G_com1 = {
   .baud       = 9600,
@@ -52,8 +53,8 @@ void STUB_exit ()
 }
 
 __declspec(noreturn)
-void STUB_main ()
-{ 
+void STUB_main (uint32_t a, uint32_t b)
+{  
   // Initialize STACK    
   x86_load_ss_sp(G_BASE_ADDRESS/16, G_STACK_SIZE);
   x86_load_all_seg(x86_cs());

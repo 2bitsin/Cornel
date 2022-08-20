@@ -85,4 +85,10 @@ word read_bda_word(uint8_t offset);
 dword read_bda_dword(uint8_t offset);
 #pragma aux read_bda_dword = "xor bh, bh" "mov ax, gs:[0x400 + bx]" "mov dx, gs:[0x400 + bx + 2]" parm [bl] value [dx ax]
 
+void _far* x86_es_bx();
+#pragma aux x86_es_bx = "mov ax, es" value [ax bx]
+
+void _far* x86_ss_sp();
+#pragma aux x86_ss_sp = "mov ax, ss" "mov bx, sp" value [ax bx]
+
 #endif
