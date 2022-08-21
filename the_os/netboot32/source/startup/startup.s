@@ -25,9 +25,16 @@ preamble:
     cli
     hlt
 
+start_pmode:
+    cli 
 
 
+
+include "nmi.s"
 include "print.s"
+load_gdtr:
+    dw desctbl_end - desctbl
+    dd desctbl
 
 desctbl:
     dq 0x0000000000000000 ; 0x0000 = null
@@ -35,6 +42,7 @@ desctbl:
     dq 0x00cf92000000ffff ; 0x0010 = 32bit data/stack
     dq 0x00009e000000ffff ; 0x0018 = 16bit code
     dq 0x000092000000ffff ; 0x0020 = 16bit data/stack
+desctbl_end:
 
 hello:
     db      "Hello, world!",13,10,0
