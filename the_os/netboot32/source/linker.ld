@@ -1,29 +1,31 @@
 OUTPUT_FORMAT(binary)
-ENTRY(NET_main)
+ENTRY(Netboot_main)
 SECTIONS
 {
   . = 0x7c00;
 
   .preamble : 
   {
+    _PREAMBLE_BEGIN_ = .;
     *preamble.s.o(.text)
+    _PREAMBLE_END_ = .;
   }
 
-  .netmain :
+  .Netboot_main :
   {
-    *netmain.c.o(.text)
+    _TEXT_BEGIN_ = .;
+    *netmain.cpp.o(.text)
   }
 
   .text :
   {
-    _TEXT_START_ = .;
     *(.text)
     _TEXT_END_ = .;
   }
 
   .data :
   {
-    _DATA_START_ = .;
+    _DATA_BEGIN_ = .;
     *(.data)
     *(.rodata)
     _DATA_END_ = .;
@@ -31,7 +33,7 @@ SECTIONS
 
   .bss :
   {
-    _BSS_START_ = .;
+    _BSS_BEGIN_ = .;
     *(.bss)
     _BSS_END_ = .;
   }
