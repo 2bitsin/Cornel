@@ -41,7 +41,7 @@ ISR_prologue_and_epilogue:
 
   .macro ISR_make_entry isr_number, skip_errc=0
   ISR_entry\isr_number :    
-    .global ISR_entry\isr_number
+    //.global ISR_entry\isr_number
     .if !\skip_errc
       pushl $0
     .endif  

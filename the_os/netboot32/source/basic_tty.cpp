@@ -15,6 +15,11 @@ struct basic_tty
   {
     
   }
+
+  ~basic_tty()
+  {
+    
+  }
 };
 
 static basic_tty basic_tty_instance;

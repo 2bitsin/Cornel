@@ -11,28 +11,27 @@ SECTIONS
     _PREAMBLE_END_ = .;
   }
 
-  .Main :
+  . = ALIGN(16);
+  .text :
   {
     _TEXT_BEGIN_ = .;
     *(.Main)
-  }
-
-  .text :
-  {
+    *(.text.*)
     *(.text)
     _TEXT_END_ = .;
   }
 
   . = ALIGN(16);
-  .isrtab :
+  .data :
   {
     _ISRTAB_BEGIN_ = .;    
     *(.isrtab)    
     _ISRTAB_END_ = .;
-  }
 
-  .data :
-  {
+    _INIT_ARRAY_BEGIN_ = .;
+    *(.init_array)
+    _INIT_ARRAY_END_ = .;
+
     _DATA_BEGIN_ = .;
     *(.data)
     *(.rodata)
@@ -51,5 +50,6 @@ SECTIONS
     *(.eh_frame)
     *(.comment)
     *(.note.GNU-stack)
+    *(.group)
   }
 }
