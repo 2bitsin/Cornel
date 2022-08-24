@@ -27,7 +27,7 @@ gdtr_bits:
     align   16
 
     include "nmictl.asi"
-    include "print.asi"
+    include "console.asi"
 
 preamble:
     pop     eax             ; Discard return address
@@ -52,6 +52,7 @@ preamble:
     mov     fs,     ax
     mov     gs,     ax
 
+    call    coninit
     mov     si,     strings.hello
     call    putstr    
 
@@ -84,7 +85,6 @@ use32
 
     call    start_32bit_code
     call    reboot_via_8042
-
     include "reboot.asi"
 
     times ((($ + 0xf) and not 0xf) - $) nop

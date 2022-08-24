@@ -10,17 +10,23 @@ set(CMAKE_EXE_LINKER_FLAGS      "${NETBOOT_COMMON_FLAGS} -T ${LINKER_SCRIPT} -Xl
 set(CMAKE_ASM_FLAGS             "${NETBOOT_COMMON_FLAGS} -x assembler-with-cpp")
 set(LIB_GCC_PATH                "/usr/lib/gcc/x86_64-linux-gnu/11/32/libgcc.a")
 
-add_subdirectory(startup)
-add_subdirectory(libcimpl)
+add_subdirectory(bootstrap)
 
-set_property(SOURCE preamble.s PROPERTY OBJECT_DEPENDS ${STARTUP_BINARY})
-set_property(SOURCE preamble.s PROPERTY COMPILE_DEFINITIONS "STARTUP_BINARY=\"${STARTUP_BINARY}\"")
+add_subdirectory(${CMAKE_SOURCE_DIR}/../libcimpl ${CMAKE_BINARY_DIR}/libcimpl)
 
-add_executable(netboot32 preamble.s isrhandler.s main.cpp)
+set_property(SOURCE preamble.s PROPERTY OBJECT_DEPENDS ${BOOTSTRAP_BINARY})
+set_property(SOURCE preamble.s PROPERTY COMPILE_DEFINITIONS "PREAMBLE_BINARY=\"${BOOTSTRAP_BINARY}\"")
+
+add_executable(netboot32 
+  preamble.s 
+  isr_handler.s 
+  main.cpp
+)
+
 target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(netboot32 libcimpl ${LIB_GCC_PATH})
 
-add_dependencies(netboot32 startup_bin)
+add_dependencies(netboot32 bootstrap_bin)
 
 set_target_properties(netboot32 PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 

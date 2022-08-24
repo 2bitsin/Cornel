@@ -7,14 +7,14 @@ SECTIONS
   .preamble : 
   {
     _PREAMBLE_BEGIN_ = .;
-    *preamble.s.o(.text)
+    *(.preamble)
     _PREAMBLE_END_ = .;
   }
 
   .Main :
   {
     _TEXT_BEGIN_ = .;
-    *netmain.cpp.o(.text)
+    *(.Main)
   }
 
   .text :

@@ -1,8 +1,8 @@
   .text
   .global ISR_handler
 
-/*
-ISR_prologue :
+
+ISR_prologue_and_epilogue:
   pushl   %esp
   addl    $8,     (%esp)
   pushl   %ebp
@@ -34,9 +34,7 @@ ISR_prologue :
   popl    %ebp
   popl    %esp  
   iret
-*/
-
-  ISR_prologue_and_epilogue :
+  
 
 
 

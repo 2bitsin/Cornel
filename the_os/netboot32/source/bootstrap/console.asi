@@ -1,5 +1,11 @@
 
     ;       DS:SI -> string        
+coninit:
+    push    ax
+    mov     ax,     0x3
+    int     0x10
+    pop     ax
+    ret
     
 putstr:
     push    si

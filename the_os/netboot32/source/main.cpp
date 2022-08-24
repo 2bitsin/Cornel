@@ -1,26 +1,17 @@
 #include <cstdint>
-
-/*
-TODO: 
-  - Implement interrupts 
-    - IDT and stubs
-    - Exception handlers
-    - Remap PIC
-  - PXE boot implementation
-    - Rebuild GDT
-    - Implement API calls
-*/
-
+#include <isr_handler.hpp>
 
 
 extern "C"
 __attribute__((__cdecl__))
-void ISR_handler()
-{}
-
-
-extern "C"
-void Main (void)
+void ISR_handler(ISR_stack_frame& stack_frame)
 {
 
+}
+
+extern "C"
+__attribute__((section(".Main")))
+void Main (void)
+{
+  asm("hlt");
 }
