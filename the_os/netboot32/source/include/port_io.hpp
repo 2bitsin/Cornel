@@ -10,7 +10,7 @@ namespace io
 
   inline void outw (std::uint16_t port, std::uint16_t value)
   { __asm__ __volatile__ ("outw %0, %1" : : "a" (value), "Nd" (port)); }
-f
+ 
   inline void outl (std::uint16_t port, std::uint32_t  value)
   { __asm__ __volatile__ ("outl %0, %1" : : "a" (value), "Nd" (port)); }
 

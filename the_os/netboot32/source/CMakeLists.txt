@@ -21,6 +21,7 @@ add_executable(netboot32
   preamble.s 
   isr_handler.s 
   main.cpp
+  basic_tty.cpp
 )
 
 target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
