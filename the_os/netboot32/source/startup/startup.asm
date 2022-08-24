@@ -26,8 +26,8 @@ gdtr_bits:
 
     align   16
 
-    include "nmictl.s"
-    include "print.s"
+    include "nmictl.asi"
+    include "print.asi"
 
 preamble:
     pop     eax             ; Discard return address
@@ -85,7 +85,7 @@ use32
     call    start_32bit_code
     call    reboot_via_8042
 
-    include "reboot.s"
+    include "reboot.asi"
 
     times ((($ + 0xf) and not 0xf) - $) nop
 

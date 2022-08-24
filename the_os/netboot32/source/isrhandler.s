@@ -1,6 +1,7 @@
   .text
   .global ISR_handler
 
+/*
 ISR_prologue :
   pushl   %esp
   addl    $8,     (%esp)
@@ -31,9 +32,15 @@ ISR_prologue :
   popl    %ebx
   popl    %eax
   popl    %ebp
-  popl    %esp
+  popl    %esp  
   iret
-        
+*/
+
+  ISR_prologue_and_epilogue :
+
+
+
+
   .macro ISR_make_entry isr_number, skip_errc=0
   ISR_entry\isr_number :    
     .global ISR_entry\isr_number
@@ -41,7 +48,7 @@ ISR_prologue :
       pushl $0
     .endif  
     pushl $\isr_number
-    jmp   ISR_prologue
+    jmp   ISR_prologue_and_epilogue
   .endm
 
   .macro ISR_emit_table_entry isr_number
