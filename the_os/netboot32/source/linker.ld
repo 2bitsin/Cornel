@@ -1,5 +1,5 @@
 OUTPUT_FORMAT(binary)
-ENTRY(Netboot_main)
+ENTRY(Main)
 SECTIONS
 {
   . = 0x7c00;
@@ -11,7 +11,7 @@ SECTIONS
     _PREAMBLE_END_ = .;
   }
 
-  .Netboot_main :
+  .Main :
   {
     _TEXT_BEGIN_ = .;
     *netmain.cpp.o(.text)
@@ -21,6 +21,14 @@ SECTIONS
   {
     *(.text)
     _TEXT_END_ = .;
+  }
+
+  . = ALIGN(16);
+  .isrtab :
+  {
+    _ISRTAB_BEGIN_ = .;    
+    *(.isrtab)    
+    _ISRTAB_END_ = .;
   }
 
   .data :

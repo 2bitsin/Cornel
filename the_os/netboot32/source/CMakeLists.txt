@@ -16,7 +16,8 @@ add_subdirectory(libcimpl)
 set_property(SOURCE preamble.s PROPERTY OBJECT_DEPENDS ${STARTUP_BINARY})
 set_property(SOURCE preamble.s PROPERTY COMPILE_DEFINITIONS "STARTUP_BINARY=\"${STARTUP_BINARY}\"")
 
-add_executable(netboot32 preamble.s netmain.cpp)
+add_executable(netboot32 preamble.s isrhandler.s main.cpp)
+target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(netboot32 libcimpl ${LIB_GCC_PATH})
 
 add_dependencies(netboot32 startup_bin)

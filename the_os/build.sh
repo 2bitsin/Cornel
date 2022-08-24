@@ -3,19 +3,7 @@ set -e
 
 declare BUILD_ROOT=`pwd`
 
-pushd netboot32
-  rm -rf build
-  mkdir -p build
-  cd build
-
-  cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$WORKSPACE_ROOT
-  cmake --build . --config Release -- VERBOSE=1
-  cmake --install . --config Release
-
-  popd
-
-
-#pushd netboot
+#pushd netboot16
 #  rm -rf build
 #  mkdir -p build
 #  cd build
@@ -25,4 +13,16 @@ pushd netboot32
 #  cmake --install . --config Release
 #
 #  popd
+
+pushd netboot32
+  rm -rf build
+  mkdir -p build
+  cd build
+
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$WORKSPACE_ROOT -DCMAKE_TOOLCHAIN_FILE=$BUILD_ROOT/cmake/g++12.cmake 
+  cmake --build . --config Release -- VERBOSE=1
+  cmake --install . --config Release
+
+  popd
+
 
