@@ -3,7 +3,7 @@
         {
             "name": "Coreload STUB",
             "includePath": [
-                "${workspaceFolder}/source/coreload/stub/include"
+                "${workspaceFolder}/the_os/netboot16/source/include"
             ],
             "defines": [
                 "__int64=long long",
@@ -25,19 +25,6 @@
             "configurationProvider": "ms-vscode.makefile-tools"
         },
         {
-            "name": "Coreload Loader",
-            "includePath": [
-                "${workspaceFolder}/source/coreload/loader/include"
-            ],
-            "defines": [
-                "DEBUG=1"
-            ],
-            "compilerPath": "/usr/bin/g++",
-            "cStandard": "c99",
-            "cppStandard": "c++20",
-            "intelliSenseMode": "${default}"
-        },
-        {
             "name": "Tools",
             "includePath": [
                 "${workspaceFolder}/tools"
@@ -45,7 +32,20 @@
             "defines": [],
             "compilerPath": "/usr/bin/g++",
             "cStandard": "c99",
-            "cppStandard": "c++20",
+            "cppStandard": "c++23",
+            "intelliSenseMode": "${default}"
+        },
+        {
+            "name": "netboot32",
+            "includePath": [
+                "${workspaceFolder}/the_os/netboot32/source/include"
+            ],
+            "defines": [
+                
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c99",
+            "cppStandard": "c++23",
             "intelliSenseMode": "${default}"
         }
     ],
