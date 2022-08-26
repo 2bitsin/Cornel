@@ -1,6 +1,5 @@
 set(BOOTSTRAP_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/bootstrap.asm)
-set(BOOTSTRAP_BINARY ${CMAKE_BINARY_DIR}/bootstrap.bin)
-set(BOOTSTRAP_BINARY ${BOOTSTRAP_BINARY} PARENT_SCOPE)
+set(BOOTSTRAP_BINARY ${CMAKE_CURRENT_BINARY_DIR}/bootstrap.bin)
 string(TIMESTAMP G_BUILD_TIMESTAMP "'%Y-%m-%d',32,'%H:%M'")
 set(BOOTSTRAP_DEFINE -d G_BUILD_TIMESTAMP="${G_BUILD_TIMESTAMP}")
 
@@ -18,3 +17,9 @@ add_custom_command(OUTPUT ${BOOTSTRAP_BINARY}
 
 add_custom_target(bootstrap_bin ALL DEPENDS ${BOOTSTRAP_BINARY} SOURCES ${BOOTSTRAP_SOURCE})
 
+set_property(SOURCE bootstrap.s PROPERTY OBJECT_DEPENDS ${BOOTSTRAP_BINARY})
+set_property(SOURCE bootstrap.s PROPERTY COMPILE_DEFINITIONS "BOOTSTRAP_BINARY=\"${BOOTSTRAP_BINARY}\"")
+
+add_library(bootstrap bootstrap.s)
+
+add_dependencies(bootstrap bootstrap_bin)

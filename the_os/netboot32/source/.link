@@ -1,0 +1,56 @@
+OUTPUT_FORMAT(binary)
+ENTRY(bootstrap_entry)
+SECTIONS
+{
+  . = 0x7c00;
+
+  .text :
+  {  
+    *(.text.bootstrap) 
+    *(.text.main) 
+    *(.text.*)    
+    *(.text)      
+  }
+
+  . = ALIGN(16);
+  .interrupts : 
+  {
+  G_isrtab_begin = .;
+    KEEP(*(.isrtab))
+  G_isrtab_end = .;
+
+  G_idtr_begin = .;
+    SHORT(G_isrtab_end - G_isrtab_begin);
+    LONG(G_isrtab_begin);
+  G_idtr_end = .;
+  }
+
+  . = ALIGN(16);
+  .data :
+  {  
+  G_init_array = .;
+    KEEP(*(.init_array))  
+  G_init_array_size = .;
+    LONG((G_init_array_size - G_init_array) / 4);   
+  G_init_array_begin = .;
+    LONG(G_init_array);
+
+    *(.data)
+    *(.data.*)
+    *(.rodata)
+    *(.rodata.*)
+  }
+
+  .bss :
+  {
+    *(.bss)
+  }
+
+  /DISCARD/ : 
+  {    
+    *(.eh_frame)
+    *(.comment)
+    *(.note.GNU-stack)
+    *(.group)
+  }
+}

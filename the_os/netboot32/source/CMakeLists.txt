@@ -1,4 +1,4 @@
-set(LINKER_SCRIPT               ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
+set(LINKER_SCRIPT               ${CMAKE_CURRENT_SOURCE_DIR}/.link)
 set(NETBOOT32_MAP               ${CMAKE_BINARY_DIR}/netboot32.map)
 set(CMAKE_EXECUTABLE_SUFFIX_C   ".sys")
 set(CMAKE_EXECUTABLE_SUFFIX_CXX ".sys")
@@ -14,20 +14,16 @@ add_subdirectory(bootstrap)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/../libcimpl ${CMAKE_BINARY_DIR}/libcimpl)
 
-set_property(SOURCE preamble.s PROPERTY OBJECT_DEPENDS ${BOOTSTRAP_BINARY})
-set_property(SOURCE preamble.s PROPERTY COMPILE_DEFINITIONS "PREAMBLE_BINARY=\"${BOOTSTRAP_BINARY}\"")
-
 add_executable(netboot32 
-  preamble.s 
-  isr_handler.s 
+  interrupts.s 
+  interrupts.cpp
   main.cpp
-  basic_tty.cpp
+  display.cpp
+  globals.cpp
 )
 
 target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(netboot32 libcimpl ${LIB_GCC_PATH})
-
-add_dependencies(netboot32 bootstrap_bin)
+target_link_libraries(netboot32 libcimpl bootstrap ${LIB_GCC_PATH})
 
 set_target_properties(netboot32 PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 

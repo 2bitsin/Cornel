@@ -35,10 +35,6 @@ ISR_prologue_and_epilogue:
   popl    %esp  
   iret
   
-
-
-
-
   .macro ISR_make_entry isr_number, skip_errc=0
   ISR_entry\isr_number :    
     //.global ISR_entry\isr_number
