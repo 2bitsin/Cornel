@@ -19,10 +19,9 @@ SECTIONS
     KEEP(*(.isrtab))
   G_isrtab_end = .;
 
-  G_idtr_begin = .;
+  G_idtr = .;
     SHORT(G_isrtab_end - G_isrtab_begin);
     LONG(G_isrtab_begin);
-  G_idtr_end = .;
   }
 
   . = ALIGN(16);

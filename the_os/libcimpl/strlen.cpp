@@ -5,11 +5,12 @@
 
 extern "C"
 {
-  auto strlen (const char* str) -> std::size_t
+  auto strlen (const char *string) 
+    -> std::size_t
   {
-    auto s = (const uint8_t*)str;
-    while (*s)
-      s++;
-    return s - (const uint8_t*)str;
+    auto currptr = string;
+    while (*currptr != '\0')
+      ++currptr;
+    return currptr - string;    
   }
 }

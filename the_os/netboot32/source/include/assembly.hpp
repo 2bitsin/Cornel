@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <type_traits>
 
@@ -71,3 +72,28 @@ namespace io
   }
 }
 
+#pragma pack(push, 1)
+
+struct Xdtr_t
+{
+  std::uint16_t limit;
+  std::uint32_t base;
+};
+
+static inline void load_gdt (Xdtr_t const& tr)
+{
+  __asm__ __volatile__ ("lgdt %0" : : "m" (tr));
+}
+
+static inline void load_idt (Xdtr_t const& tr)
+{
+  __asm__ __volatile__ ("lidt %0" : : "m" (tr));
+}
+
+static inline void load_ldt (std::uint16_t tr)
+{
+  __asm__ __volatile__ ("ldtr %0" : : "Nd" (tr));
+}
+
+
+#pragma pack(pop)
