@@ -3,6 +3,7 @@ set -e
 
 declare BUILD_ROOT=`pwd`
 
+
 #pushd netboot16
 #  rm -rf build
 #  mkdir -p build

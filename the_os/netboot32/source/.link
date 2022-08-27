@@ -52,5 +52,12 @@ SECTIONS
     *(.comment)
     *(.note.GNU-stack)
     *(.group)
+    *(.debug*)
+    *(.debug_line_str)
+    *(.debug_line)
+    *(.debug_info)
+    *(.debug_aranges)
+    *(.debug_abbrev)
+    *(.debug_rnglists)
   }
 }

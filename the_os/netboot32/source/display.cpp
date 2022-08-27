@@ -2,31 +2,39 @@
 #include <display.hpp>
 #include <assembly.hpp>
 #include <utilities.hpp>
+#include <debug.hpp>
 
 #include <cstddef>
 #include <span>
 #include <ranges>
 #include <algorithm>
 
+extern "C"
+{
+  volatile uint32_t follow_cursor_x;
+  volatile uint32_t follow_cursor_y;
+  volatile uint32_t follow_page_rows;
+}
+
 struct display
 {
   std::uint16_t tab_size;
   std::uint16_t attribute;
   std::uint16_t video_io;
-  std::uint8_t  cursor_x;
-  std::uint8_t  cursor_y;  
   std::uint16_t page_cols;
   std::uint16_t page_rows;
+  std::uint8_t  cursor_x;
+  std::uint8_t  cursor_y;  
   std::span<std::uint16_t> buffer;
 
   display() : 
     attribute (0x0700u),
     tab_size  (8u),
     video_io  (BDA_video_adapter_io_port),
+    page_cols (BDA_number_of_columns),
+    page_rows (25 /* BDA_last_row_number + 1 */),
     cursor_x  (BDA_page_cursor_position[BDA_active_video_page][0]),
     cursor_y  (BDA_page_cursor_position[BDA_active_video_page][1]),
-    page_cols (BDA_number_of_columns),
-    page_rows (BDA_last_row_number + 1),
     buffer    ((std::uint16_t*)(0xB8000 + BDA_offset_of_video_page), page_rows * page_cols)
   {}
 
@@ -49,13 +57,16 @@ struct display
   void scroll_down()
   {
     using std::ranges::copy;
+    using std::ranges::fill;
     copy(buffer.subspan(page_cols), buffer.begin());
+    fill(buffer.subspan(page_cols * (page_rows - 1), page_cols), attribute);
   }
 
   void advance_line_feed()
   {
     cursor_x = 0;
     ++cursor_y;
+    
     if (cursor_y >= page_rows) 
     {
       cursor_y = page_rows-1;
@@ -118,14 +129,21 @@ struct display
 
 static display _display_instance;
 
-void display_write_char(char value)
+void display_write(char value)
 {
   _display_instance.write_char(value);
 }
 
-void display_write_string(std::string_view value)
+void display_write(std::string_view value)
 {
-  for (auto c : value) {
-    display_write_char(c);
+  for (auto chr : value) {
+    display_write(chr);
+  }
+}
+
+void display_write(std::initializer_list<std::string_view> values)
+{
+  for (auto value : values) {
+    display_write(value);
   }
 }
