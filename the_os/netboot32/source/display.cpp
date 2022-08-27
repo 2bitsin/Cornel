@@ -32,7 +32,7 @@ struct display
     tab_size  (8u),
     video_io  (BDA_video_adapter_io_port),
     page_cols (BDA_number_of_columns),
-    page_rows (25 /* BDA_last_row_number + 1 */),
+    page_rows (BDA_last_row_number + 1),
     cursor_x  (BDA_page_cursor_position[BDA_active_video_page][0]),
     cursor_y  (BDA_page_cursor_position[BDA_active_video_page][1]),
     buffer    ((std::uint16_t*)(0xB8000 + BDA_offset_of_video_page), page_rows * page_cols)

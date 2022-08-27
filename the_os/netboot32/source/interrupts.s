@@ -46,7 +46,12 @@ ISR_prologue_and_epilogue:
   .endm
 
   .macro ISR_emit_table_entry isr_number
-    .long ISR_entry\isr_number
+  // TODO: figure out how to fix this, otherwise we must assume that ISR entry points reside in the first 64k of memory
+    .short ISR_entry\isr_number
+    .short 0x0008
+    .byte 0x00
+    .byte 0x8e
+    .short 0x0000
   .endm
 
   .altmacro
