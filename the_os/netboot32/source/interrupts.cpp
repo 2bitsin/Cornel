@@ -4,3 +4,9 @@
 CO_PUBLIC
 void ISR_handler(ISR_stack_frame& stack_frame)
 {}
+
+
+void ISR_initialize()
+{
+  
+}

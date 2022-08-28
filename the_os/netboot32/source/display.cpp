@@ -16,7 +16,7 @@ extern "C"
   volatile uint32_t follow_page_rows;
 }
 
-struct display
+struct display_device
 {
   std::uint16_t tab_size;
   std::uint16_t attribute;
@@ -27,18 +27,18 @@ struct display
   std::uint8_t  cursor_y;  
   std::span<std::uint16_t> buffer;
 
-  display() : 
+  display_device() : 
     attribute (0x0700u),
     tab_size  (8u),
-    video_io  (BDA_video_adapter_io_port),
-    page_cols (BDA_number_of_columns),
-    page_rows (BDA_last_row_number + 1),
-    cursor_x  (BDA_page_cursor_position[BDA_active_video_page][0]),
-    cursor_y  (BDA_page_cursor_position[BDA_active_video_page][1]),
-    buffer    ((std::uint16_t*)(0xB8000 + BDA_offset_of_video_page), page_rows * page_cols)
+    video_io  (BDA::video_adapter_io_port),
+    page_cols (BDA::number_of_columns),
+    page_rows (BDA::last_row_number + 1),
+    cursor_x  (BDA::page_cursor_position[BDA::active_video_page][0]),
+    cursor_y  (BDA::page_cursor_position[BDA::active_video_page][1]),
+    buffer    ((std::uint16_t*)(0xB8000 + BDA::offset_of_video_page), page_rows * page_cols)
   {}
 
-  ~display()
+  ~display_device()
   {}
 
   void set_attribute(std::uint8_t value)
@@ -115,35 +115,37 @@ struct display
 
   void update_hardware_cursor()
   {
-    BDA_page_cursor_position[BDA_active_video_page][0] = cursor_x;
-    BDA_page_cursor_position[BDA_active_video_page][1] = cursor_y;
+    using namespace assembly;
 
-    const std::uint16_t pos = BDA_offset_of_video_page + cursor_y * page_cols + cursor_x;
- 
-    io::outb(video_io+0, 0x0Fu);
-    io::outb(video_io+1, ((pos >> 0u) & 0xFF));
-    io::outb(video_io+0, 0x0Eu);
-    io::outb(video_io+1, ((pos >> 8u) & 0xFF));
+    BDA::page_cursor_position[BDA::active_video_page][0] = cursor_x;
+    BDA::page_cursor_position[BDA::active_video_page][1] = cursor_y;
+
+    const std::uint16_t pos = BDA::offset_of_video_page + cursor_y * page_cols + cursor_x; 
+
+    outb(video_io+0, 0x0Fu);
+    outb(video_io+1, ((pos >> 0u) & 0xFF));
+    outb(video_io+0, 0x0Eu);
+    outb(video_io+1, ((pos >> 8u) & 0xFF));
   }
 };
 
-static display _display_instance;
+static display_device _display_instance;
 
-void display_write(char value)
+void display(char value)
 {
   _display_instance.write_char(value);
 }
 
-void display_write(std::string_view value)
+void display(std::string_view value)
 {
   for (auto chr : value) {
-    display_write(chr);
+    display(chr);
   }
 }
 
-void display_write(std::initializer_list<std::string_view> values)
+void display(std::initializer_list<std::string_view> values)
 {
   for (auto value : values) {
-    display_write(value);
+    display(value);
   }
 }

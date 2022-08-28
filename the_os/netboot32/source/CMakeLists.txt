@@ -12,18 +12,19 @@ set(LIB_GCC_PATH                "/usr/lib/gcc/x86_64-linux-gnu/11/32/libgcc.a")
 
 add_subdirectory(bootstrap)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/../libcimpl ${CMAKE_BINARY_DIR}/libcimpl)
+add_subdirectory(${CMAKE_SOURCE_DIR}/../cimpl ${CMAKE_BINARY_DIR}/cimpl)
+add_subdirectory(${CMAKE_SOURCE_DIR}/../common ${CMAKE_BINARY_DIR}/common)
 
 add_executable(netboot32 
   interrupts.s 
   interrupts.cpp
   main.cpp
   display.cpp
-  globals.cpp
+  runtime.cpp
 )
 
 target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(netboot32 libcimpl bootstrap ${LIB_GCC_PATH})
+target_link_libraries(netboot32 cimpl common bootstrap ${LIB_GCC_PATH})
 
 set_target_properties(netboot32 PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 

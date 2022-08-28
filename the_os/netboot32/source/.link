@@ -12,27 +12,25 @@ SECTIONS
     *(.text)      
   }
 
-  . = ALIGN(16);
-  .interrupts : 
-  {
-  G_isrtab_begin = .;
-    KEEP(*(.isrtab))
-  G_isrtab_end = .;
-
-  G_idtr = .;
-    SHORT(G_isrtab_end - G_isrtab_begin);
-    LONG(G_isrtab_begin);
-  }
+  . = ALIGN(16); .isrtab     : { KEEP(*(.isrtab)) }
+  . = ALIGN(16); .init_array : { KEEP(*(.init_array)) }
 
   . = ALIGN(16);
   .data :
   {  
-  G_init_array = .;
-    KEEP(*(.init_array))  
-  G_init_array_size = .;
-    LONG((G_init_array_size - G_init_array) / 4);   
+  G_idtr = .;
+    SHORT(SIZEOF(.isrtab));
+    LONG(ADDR(.isrtab));
+
   G_init_array_begin = .;
-    LONG(G_init_array);
+    LONG(ADDR(.init_array));
+  G_init_array_end = .;
+    LONG(ADDR(.init_array) + SIZEOF(.init_array));   
+    
+  G_bss_begin = .;
+    LONG(ADDR(.bss))
+  G_bss_end = .;
+    LONG(ADDR(.bss) + SIZEOF(.bss))
 
     *(.data)
     *(.data.*)
@@ -40,8 +38,9 @@ SECTIONS
     *(.rodata.*)
   }
 
+  . = ALIGN(16);
   .bss :
-  {
+  {    
     *(.bss)
   }
 

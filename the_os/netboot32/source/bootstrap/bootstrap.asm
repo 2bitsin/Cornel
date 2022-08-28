@@ -84,6 +84,10 @@ use32
     mov     gs,     ax    
 
     call    start_32bit_code
+    
+    cli
+    hlt
+
     call    reboot_via_8042
     include "reboot.asi"
 
