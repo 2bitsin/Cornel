@@ -1,6 +1,7 @@
 #pragma once
 
-#include <utilities.hpp>
+#include "utilities.hpp"
+
 namespace BDA
 {
   static inline auto&& com_port_address         = variable_at<0x0400u, volatile std::uint16_t [4]>;

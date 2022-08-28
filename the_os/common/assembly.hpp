@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <type_traits>
 
-#include <macros.hpp>
-#include <debug.hpp>
+#include "macros.hpp"
+#include "debug.hpp"
 
 namespace assembly
 {

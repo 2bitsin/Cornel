@@ -5,7 +5,7 @@
 #include <interrupts.hpp>
 #include <runtime.hpp>
 #include <macros.hpp>
-#include <display.hpp>
+#include <print.hpp>
 #include <bios_data_area.hpp>
 #include <assembly.hpp>
 
@@ -16,11 +16,11 @@ auto main () -> void
   runtime::initialize();
   using namespace std::string_view_literals;
 
-  displayln("Available conventional memory : "sv, BDA::conventional_memory_size, " KiB"sv);
+  println("Available conventional memory : "sv, BDA::conventional_memory_size, " KiB"sv);
 
-  for(auto i = 0; i < 10; ++i)
+  for(auto i = 0; i < 16; ++i)
   {
-    displayln("Hello, world! "sv, fmt::hex(i));
+    println("Hello, world! "sv, fmt::hex<fmt::upper>(i));
   }
 
   runtime::finalize();

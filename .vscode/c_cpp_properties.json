@@ -38,7 +38,9 @@
         {
             "name": "netboot32",
             "includePath": [
-                "${workspaceFolder}/the_os/netboot32/source/include"
+                "${workspaceFolder}/the_os/netboot32/source/include",
+                "${workspaceFolder}/the_os/cimpl",
+                "${workspaceFolder}/the_os/common"
             ],
             "defines": [
                 

@@ -19,7 +19,7 @@ add_executable(netboot32
   interrupts.s 
   interrupts.cpp
   main.cpp
-  display.cpp
+  vga_text.cpp
   runtime.cpp
 )
 
