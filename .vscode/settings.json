@@ -73,7 +73,11 @@
     "semaphore": "cpp",
     "x86asm.h": "c",
     "fstream": "cpp",
-    "span": "cpp"
+    "span": "cpp",
+    "*.ipp": "cpp",
+    "iomanip": "cpp",
+    "regex": "cpp",
+    "any": "cpp"
   },
   "C_Cpp.errorSquiggles": "Disabled"
 }

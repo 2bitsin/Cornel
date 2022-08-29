@@ -11,21 +11,21 @@ namespace assembly
 {
   CO_INLINE
   static inline void outb (std::uint16_t port, std::uint8_t value)
-  { __asm__ __volatile__ ("outb %0, %1" : : "a" (value), "Nd" (port)); }
+  { __asm__ volatile ("outb %0, %1" : : "a" (value), "Nd" (port)); }
 
   CO_INLINE
   static inline void outw (std::uint16_t port, std::uint16_t value)
-  { __asm__ __volatile__ ("outw %0, %1" : : "a" (value), "Nd" (port)); }
+  { __asm__ volatile ("outw %0, %1" : : "a" (value), "Nd" (port)); }
  
   CO_INLINE
   static inline void outl (std::uint16_t port, std::uint32_t  value)
-  { __asm__ __volatile__ ("outl %0, %1" : : "a" (value), "Nd" (port)); }
+  { __asm__ volatile ("outl %0, %1" : : "a" (value), "Nd" (port)); }
 
   CO_INLINE
   static inline auto inb (std::uint16_t port) -> std::uint8_t 
   {
     std::uint8_t value { 0 };
-    __asm__ __volatile__ ("inb %1, %0" : "=a" (value) : "Nd" (port));
+    __asm__ volatile ("inb %1, %0" : "=a" (value) : "Nd" (port));
     return value;
   }
 
@@ -33,7 +33,7 @@ namespace assembly
   static inline auto inw (std::uint16_t port) -> std::uint16_t 
   {
     std::uint16_t value { 0 };
-    __asm__ __volatile__ ("inb %1, %0" : "=a" (value) : "Nd" (port));
+    __asm__ volatile ("inb %1, %0" : "=a" (value) : "Nd" (port));
     return value;
   }
 
@@ -41,7 +41,7 @@ namespace assembly
   static inline auto inl (std::uint16_t port) -> std::uint32_t 
   {
     std::uint32_t value { 0 };
-    __asm__ __volatile__ ("inb %1, %0" : "=a" (value) : "Nd" (port));
+    __asm__ volatile ("inb %1, %0" : "=a" (value) : "Nd" (port));
     return value;
   }
 
@@ -94,19 +94,19 @@ namespace assembly
   CO_INLINE
   static inline void lgdt (Xdtr_t const& tr)
   {    
-    __asm__ __volatile__ ("lgdt %0" : : "m" (tr));
+    __asm__ volatile ("lgdt %0" : : "m" (tr));
   }
 
   CO_INLINE
   static inline void lldt (Xdtr_t const& tr)
   {
-    __asm__ __volatile__ ("lldt %0" : : "m" (tr));
+    __asm__ volatile ("lldt %0" : : "m" (tr));
   }
 
   CO_INLINE
   static inline void lidt (Xdtr_t const& tr)
   {
-    __asm__ __volatile__ ("lidt %0" : : "m" (tr));
+    __asm__ volatile ("lidt %0" : : "m" (tr));
   }
   
   
@@ -138,5 +138,10 @@ namespace assembly
     lidt ({ table.data(), (std::uint16_t)table.size() });
   }
 #endif // __cpp_lib_span
+
+  CO_INLINE static inline void cli() { __asm__ volatile ("cli"); }
+  CO_INLINE static inline void sti() { __asm__ volatile ("sti"); }
+  CO_INLINE static inline void hlt() { __asm__ volatile ("hlt"); }
+  
 }
 

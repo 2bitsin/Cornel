@@ -3,9 +3,8 @@
 
 #include <cstring>
 
-
 extern "C"
-{/*
+{
   auto strlen (const char *string) 
     -> std::size_t
   {   
@@ -13,5 +12,5 @@ extern "C"
     while (*currptr != '\0')
       ++currptr;
     return currptr - string;    
-  }*/
+  }
 }
