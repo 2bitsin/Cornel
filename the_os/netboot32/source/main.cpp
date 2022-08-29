@@ -13,15 +13,18 @@ CO_PUBLIC
 CO_SECTION(".text.main")
 auto main () -> void
 {
-  runtime::initialize();
   using namespace std::string_view_literals;
 
-  println("Available conventional memory : "sv, BDA::conventional_memory_size, " KiB"sv);
+  runtime::initialize();
+  isr::initialize();
 
-  for(auto i = 0; i < 16; ++i)
-  {
-    println("Hello, world! "sv, fmt::hex<fmt::upper>(i));
-  }
+  println("Available conventional memory : ", BDA::conventional_memory_size, " KiB");
 
+  println("Hello, world! >>", fmt::hex(std::uint8_t(0x12)));
+  println("Hello, world! >>", fmt::hex(std::uint16_t(0x1234)));
+  println("Hello, world! >>", fmt::hex(std::uint32_t(0x12345678)));
+  println("Hello, world! >>", fmt::hex(std::uint64_t(0x123456789ABCDEF0)));
+
+  isr::finalize();
   runtime::finalize();
 }

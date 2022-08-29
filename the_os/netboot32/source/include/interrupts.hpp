@@ -24,3 +24,8 @@
   };
 #pragma pack(pop)
 
+struct isr
+{
+  static void initialize();
+  static void finalize();
+};

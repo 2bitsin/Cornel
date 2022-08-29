@@ -86,9 +86,13 @@ use32
     call    start_32bit_code
     
     cli
-    hlt
+    hlt    
 
     call    reboot_via_8042
+    
+    cli
+    hlt    
+
     include "reboot.asi"
 
     times ((($ + 0xf) and not 0xf) - $) nop

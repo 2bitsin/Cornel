@@ -1,4 +1,5 @@
 #include <print.hpp>
+#include <assembly.hpp>
 
 #include <cstddef>
 #include <span>
@@ -19,6 +20,7 @@ void print(char value)
   {
     output_fun(value);
   }
+  assembly::outb(0xe9, value);
 }
 
 void print(std::string_view value)
@@ -34,3 +36,12 @@ void print(std::initializer_list<std::string_view> values)
     print(value);
   }
 }
+
+/*
+void print(std::span<char> values)
+{
+  for (auto value : values) {
+    print(value);
+  }
+}
+*/
