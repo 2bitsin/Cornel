@@ -16,7 +16,6 @@ auto main () -> void
   using namespace std::string_view_literals;
 
   runtime::initialize();
-  isr::initialize();
 
   println("Available conventional memory : ", BDA::conventional_memory_size, " KiB");
 
@@ -25,6 +24,5 @@ auto main () -> void
   println("Hello, world! >>", fmt::hex(std::uint32_t(0x12345678)));
   println("Hello, world! >>", fmt::hex(std::uint64_t(0x123456789ABCDEF0)));
 
-  isr::finalize();
   runtime::finalize();
 }

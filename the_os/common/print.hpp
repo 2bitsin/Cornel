@@ -74,6 +74,8 @@ template <std::size_t Size>
 static inline void print(char const (&value)[Size])
 {
  std::string_view value_sv (std::begin(value), std::end(value)); 
+ while (value_sv.back() == '\0')
+  value_sv.remove_suffix(1);
  print(value_sv);
 }
 
@@ -100,11 +102,11 @@ static inline void print(fmt::base_impl<T, Base, Flags...> fmt_spec)
 
   if constexpr (!fmt_spec.flags_no_prefix)
   {
-    if constexpr (fmt_spec.base_value == 2 ) print("0b"sv); // Binary
-    if constexpr (fmt_spec.base_value == 4 ) print("0q"sv); // Quaternary
-    if constexpr (fmt_spec.base_value == 8 ) print("0o"sv); // Octal
-    if constexpr (fmt_spec.base_value == 10) print("0d"sv); // Decimal
-    if constexpr (fmt_spec.base_value == 16) print("0x"sv); // Hexadecimal
+    if constexpr (fmt_spec.base_value == 2 ) print("0b"); // Binary
+    if constexpr (fmt_spec.base_value == 4 ) print("0q"); // Quaternary
+    if constexpr (fmt_spec.base_value == 8 ) print("0o"); // Octal
+    if constexpr (fmt_spec.base_value == 10) print("0d"); // Decimal
+    if constexpr (fmt_spec.base_value == 16) print("0x"); // Hexadecimal
   }
 
   if constexpr (std::has_single_bit(fmt_spec.base_value) && !fmt_spec.flags_no_padding) 
