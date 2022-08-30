@@ -6,12 +6,12 @@ static inline constexpr std::uint16_t PIC8259B_PORT = 0xA0;
 
 void pic8259::mask_or(std::uint16_t m) 
 {
-  pic8259::write_mask (pic8256::read_mask() | m);
+  pic8259::write_mask (pic8259::read_mask() | m);
 }
  
 void pic8259::mask_and(std::uint16_t m) 
 {
-  pic8259::write_mask (pic8256::read_mask() & m);  
+  pic8259::write_mask (pic8259::read_mask() & m);  
 }
 
 auto pic8259::read_mask() -> std::uint16_t
