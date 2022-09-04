@@ -5,6 +5,8 @@
 #include <iterator>
 #include <string_view>
 #include <functional>
+#include <limits>
+#include <charconv>
 
 #include "detail.hpp"
 #include "consts.hpp"
@@ -21,12 +23,6 @@ namespace textio::simple
 	/*														*/	
 	/******************************/
 
-	template <std::output_iterator<char> I, typename Arg0>
-	static inline auto write(I out_i, Arg0&& arg0) -> I
-	{
-		static_assert(!sizeof(Arg0*), "This shouldn't happen");
-		return out_i;
-	}
 
 	template <std::output_iterator<char> I>
 	static inline auto write(I out_i, char value) -> I
@@ -42,6 +38,20 @@ namespace textio::simple
 			out_i = write(out_i, subv);
 		return out_i;
 	}
+
+	template <std::output_iterator<char> I, std::integral Arg0, typename Q = std::decay_t<Arg0>>
+	requires (!std::is_same_v<Q, char>)
+	static inline auto write(I out_i, Arg0&& arg0) -> I
+	{
+		static const constexpr auto length = std::numeric_limits<Q>::digits10 + 1;
+		char buffer [length];
+		static_assert(length > 1);
+
+		std::ranges::fill(buffer, '\0');
+		auto result = std::to_chars(std::begin(buffer), std::end(buffer), std::forward<Arg0>(arg0));
+
+		return write(out_i, std::string_view(std::begin(buffer), result.ptr));
+	}	
 
 	template <std::output_iterator<char> I, std::size_t N>
 	static inline auto write(I out_i, char const (&value) [N]) -> I

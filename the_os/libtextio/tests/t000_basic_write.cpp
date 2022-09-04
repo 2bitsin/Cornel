@@ -1,13 +1,17 @@
 #include <iterator>
-
 #include <simple.hpp>
+#include "expect.hpp"
 
-int t000_basic_write(int,char** const) 
+#ifdef TESTING
+#define main t000_basic_write
+#endif
+
+int main(int,char** const) 
 {
 	using namespace std::string_literals;
 	using namespace textio::simple;
 	static const auto expected = "Hello World!"s;
 	std::string buffer;	
 	write(std::back_inserter(buffer), "Hello", ' ', "World", '!');
-  return !(buffer == expected);
+  expect_eq(buffer, expected);
 }
