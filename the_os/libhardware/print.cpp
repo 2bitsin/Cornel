@@ -1,5 +1,6 @@
 #include <print.hpp>
 #include <assembly.hpp>
+#include <debug.hpp>
 
 #include <cstddef>
 #include <span>
@@ -16,8 +17,7 @@ void print_detach_output(void (*_output_fun)(char))
 
 void print(char value)
 {
-  if (output_fun != nullptr)
-  {
+  if (output_fun != nullptr) {
     output_fun(value);
   }
   assembly::outb(0xe9, value);

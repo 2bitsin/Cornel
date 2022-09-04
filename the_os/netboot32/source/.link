@@ -32,10 +32,10 @@ SECTIONS
   G_bss_end = .;
     LONG(ADDR(.bss) + SIZEOF(.bss))
 
-    *(.data)
-    *(.data.*)
-    *(.rodata)
     *(.rodata.*)
+    *(.rodata)
+    *(.data.*)
+    *(.data)
   }
 
   . = ALIGN(16);

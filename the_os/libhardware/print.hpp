@@ -97,6 +97,7 @@ static inline void print(fmt::base_impl<T, Base, Flags...> fmt_spec)
 {
   using namespace std::string_view_literals;
   std::array<char, 256> buffer_array;
+  std::ranges::fill(buffer_array, '@');
   
   const auto result = std::to_chars(buffer_array.begin(), buffer_array.end(), fmt_spec.value, Base);
 
