@@ -3,7 +3,7 @@
 #include "expect.hpp"
 
 #ifdef TESTING
-#define main t001_basic_writeln
+#define main t001_simple_writeln
 #endif
 
 int main(int,char** const) 
