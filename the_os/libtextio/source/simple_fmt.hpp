@@ -47,18 +47,17 @@ namespace textio::simple::fmt
 		template <> struct base_traits<16> { static inline constexpr const auto prefix = "0x"sv; };
 
 		template <typename T, auto Base>
-		struct format_traits: base_traits<Base>
+		struct format_traits: public base_traits<Base>
 		{
 			static inline constexpr const auto number_of_digits = get_number_of_digits<T, Base>();
 		};
 
 		template <std::integral T, auto Base, auto... Flags>
-		struct format_base
+		struct format_base: public format_traits<T, Base>
 		{
 			static inline const constexpr auto base	= Base; // chosen base
 
 			static inline const constexpr auto prefix_flag = ::textio::detail::one_of_v<'P', Flags...>;	// add prefix
-			static inline const constexpr auto suffix_flag = ::textio::detail::one_of_v<'S', Flags...>;	// add suffix
 			static inline const constexpr auto fixedw_flag = ::textio::detail::one_of_v<'W', Flags...>;	// fixed width
 		
 			T const& value;
@@ -73,6 +72,13 @@ namespace textio::simple::fmt
 			static inline constexpr const auto times = N; 
 			T const& value;
 		};
+
+		template <typename T>		
+		struct repeat_impl
+		{
+			T const& value;
+			std::uintmax_t times; 
+		};
 	}
 
 	template <auto... Flags, std::integral T> auto bin(T const& value) -> detail::format_base<T, 2,  Flags...> { return { value }; }
@@ -80,5 +86,7 @@ namespace textio::simple::fmt
 	template <auto... Flags, std::integral T> auto oct(T const& value) -> detail::format_base<T, 8,  Flags...> { return { value }; }
 	template <auto... Flags, std::integral T> auto dec(T const& value) -> detail::format_base<T, 10, Flags...> { return { value }; }
 	template <auto... Flags, std::integral T> auto hex(T const& value) -> detail::format_base<T, 16, Flags...> { return { value }; }
+
 	template <auto N, typename T> auto repeat(T const& value) -> detail::const_repeat_impl<T, N> { return { value }; }
+	template <typename T> auto repeat(T const& value, std::uintmax_t times) -> detail::repeat_impl<T> { return { value, times }; }
 }

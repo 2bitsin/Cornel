@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 #include <algorithm>
 #include <ranges>
 #include <iterator>
@@ -60,7 +62,9 @@ namespace textio::simple
 			char buffer [length];
 			static_assert(length > 1);
 			std::ranges::fill(buffer, '\0');
-			auto result = std::to_chars(std::begin(buffer), std::end(buffer), arg0);
+			std::to_chars_result result;
+			result = std::to_chars(std::begin(buffer), std::end(buffer), arg0);
+			assert(result.ec == std::errc());
 			return write(out_i, std::string_view(std::begin(buffer), result.ptr));
 		}		
 	}	
@@ -68,23 +72,44 @@ namespace textio::simple
 	template <std::output_iterator<char> I, typename T, auto N>
 	static inline auto write(I out_i, fmt::detail::const_repeat_impl<T, N> what) -> I
 	{		
-		using std::string_view;
 		for(auto i = 0u; i < what.times; ++i) {
-			out_i = write(out_i, (T const&)what.value);
+			out_i = write(out_i, what.value);
 		}
 		return out_i;
 	}
 
+	template <std::output_iterator<char> I, typename T>
+	static inline auto write(I out_i, fmt::detail::repeat_impl<T> what) -> I
+	{		
+		for(auto i = 0u; i < what.times; ++i) {
+			out_i = write(out_i, what.value);
+		}
+		return out_i;
+	}
+
+
 	template <std::output_iterator<char> I, typename T, auto Base, auto... Flags>
 	static inline auto write(I out_i, fmt::detail::format_base<T, Base, Flags...> what) -> I
-	{
-		using traits = typename fmt::detail::format_traits<T, Base>;
-		//TODO : fix signed
-		if (what.prefix_flag)
-		{
-			out_i = write(out_i, traits::prefx);
+	{		
+		char buffer [what.number_of_digits];
+
+		if (what.prefix_flag) {
+			out_i = write(out_i, what.prefx);
 		}
-		
+
+		std::to_chars_result result;
+		result = std::to_chars(std::begin(buffer), std::end(buffer), what.value, what.base);
+		assert(result.ec == std::errc());
+
+		const std::string_view value_s{ std::begin(buffer), result.ptr };
+
+		//TODO : fix way signed values are handled
+		if (what.fixedw_flag) {
+			out_i = write(out_i, fmt::repeat('0', what.number_of_digits - value_s.size()));
+		}
+
+		out_i = write(out_i, value_s);
+		return out_i;
 	}
 
 	
