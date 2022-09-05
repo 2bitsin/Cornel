@@ -15,12 +15,12 @@ namespace textio::simple::fmt
 	{
 		using namespace std::string_view_literals;
 
-		template <typename T, auto Base>
+		template <typename T, std::uint8_t Base>
 		constexpr auto get_number_of_digits() -> std::size_t
 		{
 			if (std::has_single_bit(Base)) 
 			{
-				constexpr auto nbits = std::bit_width(Base - 1);
+				constexpr auto nbits = std::bit_width(Base - 1u);
 				return (sizeof(T) * 8 + nbits - 1) / nbits;				
 			}
 
@@ -37,7 +37,7 @@ namespace textio::simple::fmt
 		}
 
 
-		template <auto Base> 
+		template <std::uint8_t Base> 
 		struct base_traits { static inline constexpr const auto prefix = ""sv; };
 
 		template <> struct base_traits<2>  { static inline constexpr const auto prefix = "0b"sv; };
@@ -46,19 +46,23 @@ namespace textio::simple::fmt
 		template <> struct base_traits<10> { static inline constexpr const auto prefix = "0d"sv; };
 		template <> struct base_traits<16> { static inline constexpr const auto prefix = "0x"sv; };
 
-		template <typename T, auto Base>
+		template <typename T, std::uint8_t Base>
 		struct format_traits: public base_traits<Base>
 		{
 			static inline constexpr const auto number_of_digits = get_number_of_digits<T, Base>();
 		};
 
-		template <std::integral T, auto Base, auto... Flags>
+		template <std::integral T, std::uint8_t Base, auto... Flags>
 		struct format_base: public format_traits<T, Base>
 		{
 			static inline const constexpr auto base	= Base; // chosen base
 
-			static inline const constexpr auto prefix_flag = ::textio::detail::one_of_v<'P', Flags...>;	// add prefix
-			static inline const constexpr auto fixedw_flag = ::textio::detail::one_of_v<'W', Flags...>;	// fixed width
+			static inline const constexpr auto prefix_flag = ::textio::detail::one_of_v<'x', Flags...>;	// add prefix
+			static inline const constexpr auto fixedw_flag = ::textio::detail::one_of_v<'p', Flags...>;	// fixed width
+			static inline const constexpr auto signed_flag = ::textio::detail::one_of_v<'i', Flags...> || std::is_signed_v<T>;
+			static inline const constexpr auto nosign_flag = ::textio::detail::one_of_v<'u', Flags...>;
+			static inline const constexpr auto upperc_flag = ::textio::detail::one_of_v<'U', Flags...>;
+			static inline const constexpr auto lowerc_flag = ::textio::detail::one_of_v<'l', Flags...>;
 		
 			T const& value;
 		

@@ -9,6 +9,7 @@
 #include <functional>
 #include <limits>
 #include <charconv>
+#include <cctype>
 
 #include "detail.hpp"
 #include "consts.hpp"
@@ -93,21 +94,26 @@ namespace textio::simple
 	{		
 		char buffer [what.number_of_digits];
 
-		if (what.prefix_flag) {
-			out_i = write(out_i, what.prefx);
-		}
-
 		std::to_chars_result result;
-		result = std::to_chars(std::begin(buffer), std::end(buffer), what.value, what.base);
-		assert(result.ec == std::errc());
-
-		const std::string_view value_s{ std::begin(buffer), result.ptr };
-
-		//TODO : fix way signed values are handled
-		if (what.fixedw_flag) {
-			out_i = write(out_i, fmt::repeat('0', what.number_of_digits - value_s.size()));
+		if constexpr (what.signed_flag && !what.nosign_flag) 
+		{
+			auto const& value = (std::make_signed_t<T> const&)what.value;			
+			result = std::to_chars(std::begin(buffer), std::end(buffer), std::abs(value), what.base);
+			assert(result.ec == std::errc());
+			if (value < 0) 
+				out_i = write(out_i, '-');
 		}
-
+		else 
+		{
+			auto const& value = (std::make_unsigned_t<T> const&)what.value;
+			result = std::to_chars(std::begin(buffer), std::end(buffer), value, what.base);
+			assert(result.ec == std::errc());
+		}
+		std::string_view value_s{ std::begin(buffer), result.ptr };
+		if (what.upperc_flag) std::ranges::transform(buffer, std::begin(buffer), &std::toupper);
+		if (what.lowerc_flag) std::ranges::transform(buffer, std::begin(buffer), &std::tolower);
+		if (what.prefix_flag) out_i = write(out_i, what.prefix);		
+		if (what.fixedw_flag) out_i = write(out_i, fmt::repeat('0', what.number_of_digits - value_s.size()));
 		out_i = write(out_i, value_s);
 		return out_i;
 	}
