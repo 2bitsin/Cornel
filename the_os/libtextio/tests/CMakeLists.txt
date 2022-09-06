@@ -17,7 +17,8 @@ set (TEST_SOURCES
 	t001_simple_writeln.cpp
 	t002_simple_integral.cpp
 	t003_simple_fmt_repeat.cpp
-	t004_simple_fmt_base.cpp)
+	t004_simple_fmt_base.cpp
+	t005_simple_fmt_addr.cpp)
 
 foreach (test_item ${TEST_SOURCES})
 	get_filename_component(test_name ${test_item} NAME_WE)

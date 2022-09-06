@@ -57,16 +57,24 @@ namespace textio::simple::fmt
 		{
 			static inline const constexpr auto base	= Base; // chosen base
 
-			static inline const constexpr auto prefix_flag = ::textio::detail::one_of_v<'x', Flags...>;	// add prefix
-			static inline const constexpr auto fixedw_flag = ::textio::detail::one_of_v<'p', Flags...>;	// fixed width
-			static inline const constexpr auto signed_flag = ::textio::detail::one_of_v<'i', Flags...> || std::is_signed_v<T>;
-			static inline const constexpr auto nosign_flag = ::textio::detail::one_of_v<'u', Flags...>;
-			static inline const constexpr auto upperc_flag = ::textio::detail::one_of_v<'U', Flags...>;
+			// add prefix
+			static inline const constexpr auto prefix_flag = ::textio::detail::one_of_v<'x', Flags...>;
+			// fixed width
+			static inline const constexpr auto fixedw_flag = ::textio::detail::one_of_v<'p', Flags...> || ::textio::detail::one_of_v<'&', Flags...>;	
+			// force signed
+			static inline const constexpr auto signed_flag = ::textio::detail::one_of_v<'i', Flags...> || std::is_signed_v<T>;			
+			// force unsigned
+			static inline const constexpr auto nosign_flag = ::textio::detail::one_of_v<'u', Flags...> || ::textio::detail::one_of_v<'&', Flags...>;			
+			// force uppercase
+			static inline const constexpr auto upperc_flag = ::textio::detail::one_of_v<'U', Flags...> || ::textio::detail::one_of_v<'&', Flags...>;
+			// force lowercase
 			static inline const constexpr auto lowerc_flag = ::textio::detail::one_of_v<'l', Flags...>;
-		
-			T const& value;
-		
-			format_base(T const& value): value(value) {}
+				
+			format_base(T const& value)
+			: value(value) 
+			{ }
+
+			T const& value;			
 		};
 
 		template <typename T, auto N>
@@ -91,6 +99,23 @@ namespace textio::simple::fmt
 	template <auto... Flags, std::integral T> auto dec(T const& value) -> detail::format_base<T, 10, Flags...> { return { value }; }
 	template <auto... Flags, std::integral T> auto hex(T const& value) -> detail::format_base<T, 16, Flags...> { return { value }; }
 
+
+	template <auto... Flags, typename Q> auto bin(Q const* const (&value)) -> detail::format_base<std::uintptr_t, 2,  '&', Flags...> { return {(std::uintptr_t const&)value}; }
+	template <auto... Flags, typename Q> auto qua(Q const* const (&value)) -> detail::format_base<std::uintptr_t, 4,  '&', Flags...> { return {(std::uintptr_t const&)value}; }
+	template <auto... Flags, typename Q> auto oct(Q const* const (&value)) -> detail::format_base<std::uintptr_t, 8,  '&', Flags...> { return {(std::uintptr_t const&)value}; }
+	template <auto... Flags, typename Q> auto dec(Q const* const (&value)) -> detail::format_base<std::uintptr_t, 10, '&', Flags...> { return {(std::uintptr_t const&)value}; }
+	template <auto... Flags, typename Q> auto hex(Q const* const (&value)) -> detail::format_base<std::uintptr_t, 16, '&', Flags...> { return {(std::uintptr_t const&)value}; }
+
+
+
 	template <auto N, typename T> auto repeat(T const& value) -> detail::const_repeat_impl<T, N> { return { value }; }
 	template <typename T> auto repeat(T const& value, std::uintmax_t times) -> detail::repeat_impl<T> { return { value, times }; }
+
+
+//	template <auto... Flags, typename T> 
+//	requires (!std::is_pointer_v<T>)
+//	auto addr(T const& value) -> detail::format_base<std::uintptr_t, 16, '&', Flags...> 
+//	{ 
+//		return { (std::uintptr_t&&)&value }; 
+//	}
 }

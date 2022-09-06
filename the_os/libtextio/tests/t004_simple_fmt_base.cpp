@@ -3,7 +3,7 @@
 #include "expect.hpp"
 
 #ifdef TESTING
-#define main t003_simple_fmt_repeat
+#define main t004_simple_fmt_base
 #endif
 
 int main(int,char** const) 

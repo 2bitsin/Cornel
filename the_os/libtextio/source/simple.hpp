@@ -45,6 +45,13 @@ namespace textio::simple
 		return write(out_i, string_view(value));
 	}
 
+	template <std::output_iterator<char> I, std::size_t N>
+	static inline auto write(I out_i, char const* value) -> I
+	{		
+		using std::string_view;
+		return write(out_i, string_view(value));
+	}
+	
 	template <std::output_iterator<char> I, std::integral Arg0>	
 	static inline auto write(I out_i, Arg0 const& arg0) -> I
 	{
@@ -88,7 +95,6 @@ namespace textio::simple
 		return out_i;
 	}
 
-
 	template <std::output_iterator<char> I, typename T, auto Base, auto... Flags>
 	static inline auto write(I out_i, fmt::detail::format_base<T, Base, Flags...> what) -> I
 	{		
@@ -97,7 +103,7 @@ namespace textio::simple
 		std::to_chars_result result;
 		if constexpr (what.signed_flag && !what.nosign_flag) 
 		{
-			auto const& value = (std::make_signed_t<T> const&)what.value;			
+			auto const& value = (std::make_signed_t<T> const&)what.value;
 			result = std::to_chars(std::begin(buffer), std::end(buffer), std::abs(value), what.base);
 			assert(result.ec == std::errc());
 			if (value < 0) 
@@ -118,6 +124,13 @@ namespace textio::simple
 		return out_i;
 	}
 
+
+	template <std::output_iterator<char> I, typename T>
+	requires (!std::is_same_v<T, char>)
+	static inline auto write(I out_i, T const* const what) -> I
+	{
+		return write(out_i, fmt::hex<'&','x'>(what));
+	}	
 	
 	/*****************************/
 	/*													 */	
