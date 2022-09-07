@@ -11,10 +11,10 @@
 #include <hardware/assembly.hpp>
 #include <misc/debug.hpp>
 
-struct vga_text
+struct console
 {
-  vga_text();
-  ~vga_text();
+  console();
+  ~console();
 
   void set_attribute(std::uint8_t value);
   void write_char(char value);
@@ -26,8 +26,8 @@ struct vga_text
     using pointer           = void;
     using reference         = void;
     using difference_type   = ptrdiff_t;
-    iterator& operator = (const char& val) { vga_text::instance().write_char(val); return *this; }
-    iterator& operator = (char&& val) { vga_text::instance().write_char(val); return *this; }
+    iterator& operator = (const char& val) { console::instance().write_char(val); return *this; }
+    iterator& operator = (char&& val) { console::instance().write_char(val); return *this; }
     iterator& operator * () noexcept { return *this; }
     iterator& operator ++ () noexcept { return *this; }
     iterator operator ++ (int) noexcept { return *this; }
@@ -43,7 +43,7 @@ protected:
   void advance_cursor(char value);
   void update_hardware_cursor();
 
-  static auto instance() -> vga_text&;
+  static auto instance() -> console&;
 
   friend struct iterator;  
 
@@ -60,5 +60,5 @@ private:
 
 static inline auto tty() 
 {
-  return vga_text::iterator{};
+  return console::iterator{};
 }

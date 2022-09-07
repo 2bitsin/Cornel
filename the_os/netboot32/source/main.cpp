@@ -6,7 +6,7 @@
 #include <textio/simple.hpp>
 #include <netboot32/interrupts.hpp>
 #include <netboot32/runtime.hpp>
-#include <hardware/vga_text.hpp>
+#include <hardware/console.hpp>
 #include <hardware/bios_data_area.hpp>
 #include <hardware/assembly.hpp>
 

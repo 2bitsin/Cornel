@@ -48,7 +48,7 @@
         "kind":"build",
         "isDefault":true
       },
-      "dependsOn":["Build ISO image"]
+      "dependsOn":["Build"]
     },
 
     {
@@ -60,7 +60,7 @@
         "kind":"build",
         "isDefault":true
       },
-      "dependsOn":["Build ISO image"] 
+      "dependsOn":["Build"]
     },
 
     {
@@ -72,7 +72,7 @@
         "kind":"build",
         "isDefault":true
       },
-      "dependsOn":["Build ISO image"]
+      "dependsOn":["Build"]
     },
 
     {
@@ -84,7 +84,7 @@
         "kind":"build",
         "isDefault":true
       },
-      "dependsOn":["Build ISO image"]
+      "dependsOn":["Build"]
     },
   ]
 }

@@ -4,7 +4,7 @@
 #include <misc/debug.hpp>
 #include <hardware/assembly.hpp>
 #include <hardware/pic8259.hpp>
-#include <hardware/vga_text.hpp>
+#include <hardware/console.hpp>
 
 #include <netboot32/interrupts.hpp>
 #include <textio/simple.hpp>

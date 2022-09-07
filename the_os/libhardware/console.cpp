@@ -1,7 +1,7 @@
-#include <hardware/vga_text.hpp>
+#include <hardware/console.hpp>
 #include <misc/utilities_int.hpp>
 
-vga_text::vga_text() : 
+console::console() : 
   tab_size  (8u),
   attribute (0x0700u),
   video_io  (BDA::video_adapter_io_port),
@@ -11,20 +11,22 @@ vga_text::vga_text() :
   cursor_y  (BDA::page_cursor_position[BDA::active_video_page][1]),
   buffer    ((std::uint16_t*)(0xB8000 + BDA::offset_of_video_page), page_rows * page_cols)
 {
-  __debug_print("vga_text::vga_text()\r\n");
+  __debug_print(__func__);
+  __debug_print("\r\n");
 }
 
-vga_text::~vga_text()
+console::~console()
 {
-  __debug_print("vga_text::~vga_text()\r\n");
+  __debug_print(__func__);
+  __debug_print("\r\n");
 }
 
-void vga_text::set_attribute(std::uint8_t value)
+void console::set_attribute(std::uint8_t value)
 {
   attribute = uint16_t(value*0x100u);
 }
 
-void vga_text::write_char(char value)
+void console::write_char(char value)
 {
   __debug_char(value);
   if (value >= ' ') {    
@@ -33,7 +35,7 @@ void vga_text::write_char(char value)
   advance_cursor(value);
 }
 
-void vga_text::scroll_down()
+void console::scroll_down()
 {
   using std::ranges::copy;
   using std::ranges::fill;
@@ -41,7 +43,7 @@ void vga_text::scroll_down()
   fill(buffer.subspan(page_cols * (page_rows - 1), page_cols), attribute);
 }
 
-void vga_text::advance_line_feed()
+void console::advance_line_feed()
 {
   cursor_x = 0;
   ++cursor_y;
@@ -53,12 +55,12 @@ void vga_text::advance_line_feed()
   }
 }
 
-void vga_text::advance_cariage_return()
+void console::advance_cariage_return()
 {
   cursor_x = 0;
 }
 
-void vga_text::advance_tabulate()
+void console::advance_tabulate()
 {
   ++cursor_x;
   cursor_x = quantize_to(tab_size, cursor_x);
@@ -66,20 +68,20 @@ void vga_text::advance_tabulate()
     advance_line_feed();
 }
 
-void vga_text::advance_backspace()
+void console::advance_backspace()
 {
   if (cursor_x > 0)
     --cursor_x;
 }
 
-void vga_text::advance_normal()
+void console::advance_normal()
 {
   ++cursor_x;
   if (cursor_x >= page_cols)
     advance_line_feed();
 }
 
-void vga_text::advance_cursor(char value)
+void console::advance_cursor(char value)
 {
   switch(value)
   {
@@ -92,7 +94,7 @@ void vga_text::advance_cursor(char value)
   update_hardware_cursor();
 }
 
-void vga_text::update_hardware_cursor()
+void console::update_hardware_cursor()
 {
   using namespace assembly;
   const std::uint16_t pos = BDA::offset_of_video_page + cursor_y * page_cols + cursor_x; 
@@ -104,8 +106,8 @@ void vga_text::update_hardware_cursor()
   outb(video_io+1, ((pos >> 8u) & 0xFF));
 }
 
-auto vga_text::instance() -> vga_text&
+auto console::instance() -> console&
 {
-  static vga_text _;
+  static console _;
   return _;
 }
