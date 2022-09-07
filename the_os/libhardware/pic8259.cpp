@@ -1,5 +1,5 @@
-#include "pic8259.hpp"
-#include "assembly.hpp"
+#include <hardware/pic8259.hpp>
+#include <hardware/assembly.hpp>
 
 static inline constexpr std::uint16_t PIC8259A_PORT = 0x20;
 static inline constexpr std::uint16_t PIC8259B_PORT = 0xA0;

@@ -1,3 +1,3 @@
-#include <consts.hpp>
-#include <detail.hpp>
-#include <simple.hpp>
+#include <textio/consts.hpp>
+#include <textio/detail.hpp>
+#include <textio/simple.hpp>

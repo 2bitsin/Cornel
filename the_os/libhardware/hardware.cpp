@@ -1,8 +1,8 @@
-#include "assembly.hpp"
-#include "bios_data_area.hpp"
-#include "debug.hpp"
-#include "utilities.hpp"
-#include "utilities_mpl.hpp"
-#include "macros.hpp"
-#include "pic8259.hpp"
-#include "rtccmos.hpp"
+#include <hardware/assembly.hpp>
+#include <hardware/bios_data_area.hpp>
+#include <hardware/debug.hpp>
+#include <hardware/utilities.hpp>
+#include <hardware/utilities_mpl.hpp>
+#include <hardware/macros.hpp>
+#include <hardware/pic8259.hpp>
+#include <hardware/rtccmos.hpp>

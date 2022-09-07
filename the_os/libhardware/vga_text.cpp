@@ -1,6 +1,4 @@
-#include <print.hpp>
-
-#include "vga_text.hpp"
+#include <hardware/vga_text.hpp>
 
 vga_text::vga_text() : 
   attribute (0x0700u),
@@ -100,22 +98,8 @@ void vga_text::update_hardware_cursor()
   outb(video_io+1, ((pos >> 8u) & 0xFF));
 }
 
-
-static vga_text print_device;
-static struct vga_text_attach
+auto vga_text::instance() -> vga_text&
 {
-  static void output(char value)
-  {
-    print_device.write_char(value);
-  }
-
-  vga_text_attach()
-  {
-    print_attach_output(&vga_text_attach::output);
-  }
-
-  ~vga_text_attach() 
-  {
-    print_detach_output(&vga_text_attach::output);
-  }
-} _attach;
+  static vga_text _;
+  return _;
+}

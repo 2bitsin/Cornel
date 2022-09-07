@@ -7,12 +7,11 @@ add_executable(netboot32
   interrupts.s 
   interrupts.cpp
   main.cpp
-  vga_text.cpp
   runtime.cpp
 )
 
-target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(netboot32 cimpl hardware bootstrap ${LIB_GCC_PATH})
+target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(netboot32 textio hardware cimpl bootstrap ${LIB_GCC_PATH})
 set_target_properties(netboot32 PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 target_link_options(netboot32 PUBLIC -Xlinker -Map=${NETBOOT32_MAP} -T ${LINKER_SCRIPT})
 

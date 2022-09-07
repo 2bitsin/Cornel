@@ -1,27 +1,30 @@
-#include <macros.hpp>
-#include <assembly.hpp>
-#include <interrupts.hpp>
-#include <print.hpp>
-#include <debug.hpp>
-#include <pic8259.hpp>
+#include <hardware/macros.hpp>
+#include <hardware/assembly.hpp>
+#include <hardware/debug.hpp>
+#include <hardware/pic8259.hpp>
+#include <hardware/vga_text.hpp>
+
+#include <netboot32/interrupts.hpp>
+#include <textio/simple.hpp>
 
 CO_PUBLIC
 void ISR_handler(ISR_stack_frame& state)
 { 
+  using namespace textio::simple;
   if (state.which < 32) 
   {
-    println(fmt::repeat('-', 80));
-    println("Exception #", state.which, " has occured.");
-    println(fmt::repeat('-', 80));
-    println("eip : ", fmt::hex(state.eip), "eflags : ", fmt::bin(state.eflags));
-    println("eax : ", fmt::hex(state.eax), "edi : ", fmt::hex(state.edi));
-    println("ebx : ", fmt::hex(state.ebx), "esi : ", fmt::hex(state.esi));
-    println("ecx : ", fmt::hex(state.ecx), "ebp : ", fmt::hex(state.ebp));
-    println("edx : ", fmt::hex(state.edx), "esp : ", fmt::hex(state.esp));
-    println(" ds : ", fmt::hex(state.ds ), " es : ", fmt::hex(state.es ));
-    println(" fs : ", fmt::hex(state.fs ), " gs : ", fmt::hex(state.gs ));
-    println(" ss : ", fmt::hex(state.ss ), " cs : ", fmt::hex(state.cs ));    
-    println(fmt::repeat('-', 80));
+    writeln(tty(), fmt::repeat<80>('-'));
+    writeln(tty(), "Exception #", state.which, " has occured.");
+    writeln(tty(), fmt::repeat<80>('-'));
+    writeln(tty(), "eip : ", fmt::hex<'p'>(state.eip), "eflags : ", fmt::bin<'p'>(state.eflags));
+    writeln(tty(), "eax : ", fmt::hex<'p'>(state.eax), "edi : ", fmt::hex<'p'>(state.edi));
+    writeln(tty(), "ebx : ", fmt::hex<'p'>(state.ebx), "esi : ", fmt::hex<'p'>(state.esi));
+    writeln(tty(), "ecx : ", fmt::hex<'p'>(state.ecx), "ebp : ", fmt::hex<'p'>(state.ebp));
+    writeln(tty(), "edx : ", fmt::hex<'p'>(state.edx), "esp : ", fmt::hex<'p'>(state.esp));
+    writeln(tty(), " ds : ", fmt::hex<'p'>(state.ds ), " es : ", fmt::hex<'p'>(state.es ));
+    writeln(tty(), " fs : ", fmt::hex<'p'>(state.fs ), " gs : ", fmt::hex<'p'>(state.gs ));
+    writeln(tty(), " ss : ", fmt::hex<'p'>(state.ss ), " cs : ", fmt::hex<'p'>(state.cs ));    
+    writeln(tty(), fmt::repeat<80>('-'));
     return;
   }
   //println("IRQ : ", state.which);

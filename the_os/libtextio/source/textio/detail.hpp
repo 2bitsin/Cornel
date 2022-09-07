@@ -65,8 +65,16 @@ namespace textio::detail
 
 	 /*************************
 		* 
-		*		
+		*	 output_iterator	
 		* 
 		************************* 
 		*/
+
+	//template <typename I, typename O>
+	//concept output_iterator = requires(I&& i, O&& o) 
+	//{
+	//	{ std::forward<I>(i)++ };
+	//	{ ++std::forward<I>(i) };
+	//	{ *std::forward<I>(i) = std::forward<I>(o) };
+	//};
 }

@@ -2,12 +2,13 @@
 #include <span>
 #include <charconv>
 
-#include <interrupts.hpp>
-#include <runtime.hpp>
-#include <macros.hpp>
-#include <print.hpp>
-#include <bios_data_area.hpp>
-#include <assembly.hpp>
+#include <textio/simple.hpp>
+#include <netboot32/interrupts.hpp>
+#include <netboot32/runtime.hpp>
+#include <hardware/vga_text.hpp>
+#include <hardware/macros.hpp>
+#include <hardware/bios_data_area.hpp>
+#include <hardware/assembly.hpp>
 
 void initialize()
 {
@@ -26,16 +27,15 @@ CO_SECTION(".text.main")
 auto main () -> void
 {
   using namespace std::string_view_literals;
-  initialize();
+  using namespace textio::simple;
+//  initialize();
 
-  println("This is a hex value : ", fmt::hex(0xdeadbeef), " ...");
-  println("This is a dec value : ", 0xdeadbeef, " ...");
-  println("This is a dec value : ", fmt::dec(0xdeadbeef), " ...");
-  println("This is a oct value : ", fmt::oct(0xdeadbeef), " ...");
-  println("This is a bin value : ", fmt::bin(0xdeadbeef), " ...");
-
-  println("Available conventional memory : "sv, BDA::conventional_memory_size, " KiB"sv);
-  
+  writeln(tty(), "This is a dec value : "sv, 0xdeadbeef, " ..."sv);
+  writeln(tty(), "This is a dec value : "sv, fmt::dec(0xdeadbeef), " ..."sv);
+  writeln(tty(), "This is a hex value : "sv, fmt::hex(0xdeadbeef), " ..."sv);
+  writeln(tty(), "This is a oct value : "sv, fmt::oct(0xdeadbeef), " ..."sv);
+  writeln(tty(), "This is a bin value : "sv, fmt::bin(0xdeadbeef), " ..."sv);
+  writeln(tty(), "Available conventional memory : "sv, BDA::conventional_memory_size, " KiB"sv);  
  
-  finalize();
+//  finalize();
 }
