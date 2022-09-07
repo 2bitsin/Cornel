@@ -2,3 +2,5 @@
 .global bootstrap_entry
 bootstrap_entry:
 .incbin BOOTSTRAP_BINARY
+.global main
+  jmp main

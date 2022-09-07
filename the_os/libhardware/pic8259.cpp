@@ -49,3 +49,11 @@ void pic8259::configure (std::uint8_t offset_a, std::uint8_t offset_b)
   // Restore masks
   pic8259::write_mask(save_mask);
 }
+
+void pic8259::end_of_interrupt (std::uint8_t irq)
+{
+  using namespace assembly;
+  if (irq >= 8) 
+    outb (PIC8259B_PORT, 0x20);
+  outb (PIC8259A_PORT, 0x20);
+}

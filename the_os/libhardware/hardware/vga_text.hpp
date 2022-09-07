@@ -9,8 +9,7 @@
 
 #include <hardware/bios_data_area.hpp>
 #include <hardware/assembly.hpp>
-#include <hardware/utilities.hpp>
-#include <hardware/debug.hpp>
+#include <misc/debug.hpp>
 
 struct vga_text
 {
@@ -26,34 +25,12 @@ struct vga_text
     using value_type        = void;
     using pointer           = void;
     using reference         = void;
-
-#ifdef __cpp_lib_concepts
-    using difference_type = ptrdiff_t;
-#else
-    using difference_type = void;
-#endif // __cpp_lib_concepts
-
-    iterator& operator=(const char& val) {
-        vga_text::instance().write_char(val);
-        return *this;
-    }
-
-    iterator& operator=(char&& val) {
-        vga_text::instance().write_char(val);
-        return *this;
-    }
-
-    iterator& operator*() noexcept{
-        return *this;
-    }
-
-    iterator& operator++() noexcept{
-        return *this;
-    }
-
-    iterator operator++(int) noexcept{
-        return *this;
-    }
+    using difference_type   = ptrdiff_t;
+    iterator& operator = (const char& val) { vga_text::instance().write_char(val); return *this; }
+    iterator& operator = (char&& val) { vga_text::instance().write_char(val); return *this; }
+    iterator& operator * () noexcept { return *this; }
+    iterator& operator ++ () noexcept { return *this; }
+    iterator operator ++ (int) noexcept { return *this; }
   }; 
 
 protected:

@@ -16,7 +16,6 @@ declare BUILD_ROOT=`pwd`
 #  popd
 
 pushd netboot32
-  rm -rf build
   mkdir -p build
   cd build
 

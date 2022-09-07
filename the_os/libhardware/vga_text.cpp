@@ -1,18 +1,23 @@
 #include <hardware/vga_text.hpp>
+#include <misc/utilities_int.hpp>
 
 vga_text::vga_text() : 
-  attribute (0x0700u),
   tab_size  (8u),
+  attribute (0x0700u),
   video_io  (BDA::video_adapter_io_port),
   page_cols (BDA::number_of_columns),
   page_rows (BDA::last_row_number + 1),
   cursor_x  (BDA::page_cursor_position[BDA::active_video_page][0]),
   cursor_y  (BDA::page_cursor_position[BDA::active_video_page][1]),
   buffer    ((std::uint16_t*)(0xB8000 + BDA::offset_of_video_page), page_rows * page_cols)
-{}
+{
+  __debug_print("vga_text::vga_text()\r\n");
+}
 
 vga_text::~vga_text()
-{}
+{
+  __debug_print("vga_text::~vga_text()\r\n");
+}
 
 void vga_text::set_attribute(std::uint8_t value)
 {
@@ -21,7 +26,8 @@ void vga_text::set_attribute(std::uint8_t value)
 
 void vga_text::write_char(char value)
 {
-  if (value >= ' ') {
+  __debug_char(value);
+  if (value >= ' ') {    
     buffer[cursor_y * page_cols + cursor_x] = attribute + value;
   }
   advance_cursor(value);

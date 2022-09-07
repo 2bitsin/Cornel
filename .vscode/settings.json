@@ -77,7 +77,8 @@
     "*.ipp": "cpp",
     "iomanip": "cpp",
     "regex": "cpp",
-    "any": "cpp"
+    "any": "cpp",
+    "charconv": "cpp"
   },
   "C_Cpp.errorSquiggles": "Disabled"
 }

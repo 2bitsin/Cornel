@@ -4,7 +4,7 @@
 #include <span>
 
 #include <netboot32/runtime.hpp>
-#include <hardware/macros.hpp>
+#include <misc/macros.hpp>
 
 using ctor_fun_t = void(void);
 using ctor_ptr_t = ctor_fun_t*;
@@ -30,27 +30,19 @@ auto runtime::initialize() -> void
   std::ranges::fill(bss, 0);
 
   // Call all constructors
-  std::ranges::for_each(init_array, 
-    [] (auto&& ctor) { ctor(); });
+  std::ranges::for_each(init_array, [] (auto&& ctor) { ctor(); });
 }
 
 auto runtime::finalize() -> void
 {}
 
-
-CO_PUBLIC
-void __cxa_atexit(void (*dtor)(void*), void* arg, void* dso_handle)
-{}
-
-CO_PUBLIC
-void __cxa_finalize(void* dtor)
-{}
-
- 
   /* The ABI requires a 64-bit type.  */
 __extension__ typedef int __guard __attribute__((mode(__DI__)));   
-CO_PUBLIC int  __cxa_guard_acquire (__guard *g) { return !*(char *)(g); } 
-CO_PUBLIC void __cxa_guard_release (__guard *g) { *(char *)g = 1; } 
-CO_PUBLIC void __cxa_guard_abort   (__guard *)  {}
+
+CO_PUBLIC void __cxa_atexit         (void (*)(void*), void*, void*) {}
+CO_PUBLIC void __cxa_finalize       (void*) {}
+CO_PUBLIC int  __cxa_guard_acquire  (__guard *g) { return !*(char *)(g); } 
+CO_PUBLIC void __cxa_guard_release  (__guard *g) { *(char *)g = 1; } 
+CO_PUBLIC void __cxa_guard_abort    (__guard *)  {}
 
 void* __dso_handle = nullptr;

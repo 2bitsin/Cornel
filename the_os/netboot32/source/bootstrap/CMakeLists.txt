@@ -21,5 +21,6 @@ set_property(SOURCE bootstrap.s PROPERTY OBJECT_DEPENDS ${BOOTSTRAP_BINARY})
 set_property(SOURCE bootstrap.s PROPERTY COMPILE_DEFINITIONS "BOOTSTRAP_BINARY=\"${BOOTSTRAP_BINARY}\"")
 
 add_library(bootstrap bootstrap.s)
+target_compile_options(bootstrap PRIVATE -fno-lto)
 
 add_dependencies(bootstrap bootstrap_bin)
