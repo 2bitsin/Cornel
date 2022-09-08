@@ -1,8 +1,13 @@
+#include <cstdlib>
+
 #include <hardware/atwenty.hpp>
 #include <hardware/assembly.hpp>
 #include <hardware/kbdctrl.hpp>
 #include <hardware/pic8259.hpp>
+#include <hardware/console.hpp>
+
 #include <misc/utilities_var.hpp>
+#include <textio/simple.hpp>
 
 static inline const constexpr std::uint8_t FAST_GATE_A20_ENABLE_BIT = 0x02u;
 static inline const constexpr std::uint8_t FAST_GATE_RESET_BIT = 0x01u;
@@ -38,6 +43,18 @@ static inline void atwenty_kbdctl_enable()
   // TODO: restore interrupt flag state
 }
 
+/*
+uint16_t A20_enable_bios_15h();
+#pragma aux A20_enable_bios_15h = \
+  "stc"             \
+  "mov ax, 0x2401"  \
+  "int 0x15"        \
+  "mov al, ah"      \
+  "lahf"            \
+  "and ah, 1"       \
+  value [ax]        \
+  */
+
 auto atwenty::is_enabled() -> bool
 {
   auto&& lower = variable_at<0x000500u, volatile std::uint8_t>;
@@ -50,25 +67,35 @@ auto atwenty::try_enable() -> bool
 {
   if (is_enabled()) 
     return true;  
+
   atwenty_port_ee_enable();
-  if (is_enabled()) 
+
+  for (auto i = 0u; i < 10000u && !is_enabled(); ++i);
+  if (is_enabled())
     return true;
+
   atwenty_fast_enable();
-  if (is_enabled()) 
+
+  for (auto i = 0u; i < 10000u && !is_enabled(); ++i);
+  if (is_enabled())
     return true;
+
   atwenty_kbdctl_enable();
+
+  for (auto i = 0u; i < 10000u && !is_enabled(); ++i);
+  if (is_enabled())
+    return true;
+  
   // TODO : Add bios enable fallback
-  return is_enabled();
+  return false;
 }
 
-/*
-uint16_t A20_enable_bios_15h();
-#pragma aux A20_enable_bios_15h = \
-  "stc"             \
-  "mov ax, 0x2401"  \
-  "int 0x15"        \
-  "mov al, ah"      \
-  "lahf"            \
-  "and ah, 1"       \
-  value [ax]        \
-  */
+auto atwenty::initialize() -> void
+{
+  using namespace textio::simple;
+  if (!try_enable()) 
+  {
+    console::writeln("#001 - Failed to enable address line 20.");
+    std::abort();
+  }
+}

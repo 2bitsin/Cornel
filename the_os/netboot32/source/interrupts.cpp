@@ -84,21 +84,21 @@ int ISR_handler(ISR_stack_frame& state)
 
   if (state.which < 32) 
   {
-    writeln(tty(), fmt::repeat<79>('-'));
-    writeln(tty(), "Exception ", G_exception_string[state.which], " has occured.");
-    writeln(tty(), fmt::repeat<79>('-'));
+    console::writeln(fmt::repeat<79>('-'));
+    console::writeln("Exception ", G_exception_string[state.which], " has occured.");
+    console::writeln(fmt::repeat<79>('-'));
 
-    writeln(tty(), "cs:eip=", fmt::hex<'p'>(state.cs), ":", fmt::hex<'p'>(state.eip), " fs=", fmt::hex<'p'>(state.fs), " gs=", fmt::hex<'p'>(state.gs));
-    writeln(tty(), "ss:esp=", fmt::hex<'p'>(state.ss), ":", fmt::hex<'p'>(state.esp), " ebp=", fmt::hex<'p'>(state.ebp), " (esp + ", (state.ebp - state.esp), ")");
-    writeln(tty(), "ds:esi=", fmt::hex<'p'>(state.ds), ":", fmt::hex<'p'>(state.esi), " -> es:edi=", fmt::hex<'p'>(state.ds), ":", fmt::hex<'p'>(state.edi));
-    writeln(tty(), "edx:eax=", fmt::hex<'p'>(state.edx), ":", fmt::hex<'p'>(state.eax), "=", (state.edx*0x100000000ull + state.eax), ", ", std::tuple(state.edx, state.eax));
-    writeln(tty(), "ecx:ebx=", fmt::hex<'p'>(state.ecx), ":", fmt::hex<'p'>(state.ebx), "=", (state.ecx*0x100000000ull + state.ebx), ", ", std::tuple(state.ecx, state.ebx));
+    console::writeln("cs:eip=", fmt::hex<'p'>(state.cs), ":", fmt::hex<'p'>(state.eip), " fs=", fmt::hex<'p'>(state.fs), " gs=", fmt::hex<'p'>(state.gs));
+    console::writeln("ss:esp=", fmt::hex<'p'>(state.ss), ":", fmt::hex<'p'>(state.esp), " ebp=", fmt::hex<'p'>(state.ebp), " (esp + ", (state.ebp - state.esp), ")");
+    console::writeln("ds:esi=", fmt::hex<'p'>(state.ds), ":", fmt::hex<'p'>(state.esi), " -> es:edi=", fmt::hex<'p'>(state.ds), ":", fmt::hex<'p'>(state.edi));
+    console::writeln("edx:eax=", fmt::hex<'p'>(state.edx), ":", fmt::hex<'p'>(state.eax), "=", (state.edx*0x100000000ull + state.eax), ", ", std::tuple(state.edx, state.eax));
+    console::writeln("ecx:ebx=", fmt::hex<'p'>(state.ecx), ":", fmt::hex<'p'>(state.ebx), "=", (state.ecx*0x100000000ull + state.ebx), ", ", std::tuple(state.ecx, state.ebx));
 
-    writeln(tty()," eflags=", fmt::bin<'p'>(state.eflags));
-    writeln(tty(), fmt::repeat<79>('-'));    
+    console::writeln("eflags=", fmt::bin<'p'>(state.eflags));
+    console::writeln(fmt::repeat<79>('-'));    
     return 0;
   }
-  writeln(tty(), "IRQ : ", state.which - 32);
+  console::writeln( "IRQ : ", state.which - 32);
   pic8259::end_of_interrupt(state.which);
   return 0;
 }

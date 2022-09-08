@@ -1,10 +1,15 @@
 #include <cstdint>
 #include <cstddef>
+#include <cstdlib>
+
 #include <algorithm>
 #include <span>
 
+#include <hardware/assembly.hpp>
+#include <hardware/console.hpp>
 #include <netboot32/runtime.hpp>
 #include <misc/macros.hpp>
+#include <misc/debug.hpp>
 
 using ctor_fun_t = void(void);
 using ctor_ptr_t = ctor_fun_t*;
@@ -46,3 +51,11 @@ CO_PUBLIC void __cxa_guard_release  (__guard *g) { *(char *)g = 1; }
 CO_PUBLIC void __cxa_guard_abort    (__guard *)  {}
 
 void* __dso_handle = nullptr;
+
+CO_PUBLIC void abort()
+{
+  console::writeln("Halting system.");
+  assembly::cli();
+  assembly::hlt();
+  for(;;);
+}

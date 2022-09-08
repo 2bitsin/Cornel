@@ -10,6 +10,7 @@
 #include <hardware/bios_data_area.hpp>
 #include <hardware/assembly.hpp>
 #include <misc/debug.hpp>
+#include <textio/simple.hpp>
 
 struct console
 {
@@ -32,6 +33,9 @@ struct console
     iterator& operator ++ () noexcept { return *this; }
     iterator operator ++ (int) noexcept { return *this; }
   }; 
+
+  template <typename... T> static inline auto write   (T&&... args) { return textio::simple::write   (iterator{}, std::forward<T>(args)...); }
+  template <typename... T> static inline auto writeln (T&&... args) { return textio::simple::writeln (iterator{}, std::forward<T>(args)...); }
 
 protected:
   void scroll_down();
@@ -57,8 +61,3 @@ private:
   std::uint8_t  cursor_y;  
   std::span<std::uint16_t> buffer;
 };
-
-static inline auto tty() 
-{
-  return console::iterator{};
-}
