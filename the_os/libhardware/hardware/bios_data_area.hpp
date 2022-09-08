@@ -2,7 +2,7 @@
 
 #include <misc/utilities_var.hpp>
 
-namespace BDA
+struct bda
 {
   static inline auto&& com_port_address         = variable_at<0x0400u, volatile std::uint16_t [4]>;
   static inline auto&& lpt_port_address         = variable_at<0x0408u, volatile std::uint16_t [4]>;
@@ -17,4 +17,4 @@ namespace BDA
   static inline auto&& active_video_page        = variable_at<0x0462u, volatile std::uint8_t>;
   static inline auto&& video_adapter_io_port    = variable_at<0x0463u, volatile std::uint16_t>;
   static inline auto&& video_adapter_mode_reg   = variable_at<0x0465u, volatile std::uint8_t>;
-}
+};

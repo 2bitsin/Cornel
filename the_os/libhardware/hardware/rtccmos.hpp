@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-struct rtc
+struct rtccmos
 {
   static void nmi_enable() noexcept;
   static void nmi_disable() noexcept;

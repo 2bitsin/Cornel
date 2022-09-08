@@ -43,7 +43,7 @@ auto main () -> void
   writeln(tty(), "This is a dec uint value : ", fmt::dec<'x','p'>(0xDEADBEEFu), " ...");
   writeln(tty(), "This is a hex uint value : ", fmt::hex<'x','p'>(0xDEADBEEFu), " ...");
   
-  writeln(tty(), "Available conventional memory : ", BDA::conventional_memory_size, " KiB");  
+  writeln(tty(), "Available conventional memory : ", bda::conventional_memory_size, " KiB");  
  
   for(;;)
   {

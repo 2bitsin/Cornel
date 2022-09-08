@@ -30,7 +30,7 @@
                 "${workspaceFolder}/tools"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/g++",
+            "compilerPath": "/usr/bin/g++-12",
             "cStandard": "c99",
             "cppStandard": "c++23",
             "intelliSenseMode": "${default}"
@@ -38,14 +38,16 @@
         {
             "name": "netboot32",
             "includePath": [
-                "${workspaceFolder}/the_os/netboot32/source/include",
-                "${workspaceFolder}/the_os/cimpl",
-                "${workspaceFolder}/the_os/common"
+                "${workspaceFolder}/the_os/netboot32/source",
+                "${workspaceFolder}/the_os/libcimpl",
+                "${workspaceFolder}/the_os/libhardware",
+                "${workspaceFolder}/the_os/libmisc",
+                "${workspaceFolder}/the_os/libtextio"
             ],
             "defines": [
                 
             ],
-            "compilerPath": "/usr/bin/g++",
+            "compilerPath": "/usr/bin/g++-12",
             "cStandard": "c99",
             "cppStandard": "c++23",
             "intelliSenseMode": "${default}"

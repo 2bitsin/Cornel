@@ -1,4 +1,4 @@
-add_library(hardware hardware.cpp pic8259.cpp console.cpp)
+add_library(hardware hardware.cpp pic8259.cpp console.cpp kbdctrl.cpp atwenty.cpp)
 target_include_directories(hardware PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(hardware PUBLIC cimpl misc)
 set_target_properties(hardware PROPERTIES CXX_STANDARD 23)
