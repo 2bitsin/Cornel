@@ -116,19 +116,27 @@ auto block_list::try_split_block(block_type* head, std::size_t size) -> bool
 		m_tail = next;
 }
 
-auto block_list::try_mege_blocks(block_type* lower, block_type* upper) -> bool
+auto block_list::try_mege_blocks(block_type* lower, block_type* upper) -> block_type*
 {
 	if (lower == upper)
-		return false;
+		return nullptr;
 	if (lower > upper)
 		std::swap(upper, lower);
 	if (block_status(*lower) != block_status(*upper))
-		return false;	
+		return nullptr;	
+	lower->size += upper->size;
+	lower->next  = upper->next;
+	if (nullptr != upper->next) 
+		upper->next->prev = lower;	
+	if (m_tail == upper)
+		m_tail = lower;
+	return lower;
 }
 
 auto block_list::allocate(std::size_t size) noexcept -> std::variant<void*, std::errc>
 {	
-	size = (size + 15) & ~0xfu;
+	static constexpr const auto Q = sizeof(block_type);
+	size = ((size + Q - 1) / Q) * Q;
 	for (auto head = m_head; nullptr != head; head = head->next) 
 	{		
 		if (is_block_allocated(*head))
@@ -148,8 +156,8 @@ auto block_list::deallocate(void* what) noexcept -> std::errc
 	if (!is_block_allocated(*curr))
 		return std::errc::bad_address;
 	set_block_available(*curr);
-	while(nullptr != curr->next && try_mege_blocks(curr, curr->next));
-	while(nullptr != curr->prev && try_mege_blocks(curr->prev, curr));		
+	while(curr->next && try_mege_blocks(curr, curr->next));
+	while((curr = curr->prev) && try_mege_blocks(curr, curr->next));	
 	return std::errc();
 }
 

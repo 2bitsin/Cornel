@@ -57,7 +57,7 @@ protected:
 	auto block_status(block_type const& block) -> block_status_type;
 	
   auto try_split_block(block_type* head, std::size_t size) -> bool;
-	auto try_mege_blocks(block_type* lower, block_type* upper) -> bool;
+	auto try_mege_blocks(block_type* lower, block_type* upper) -> block_type*;
 	
 private:
   block_type*     m_head;
