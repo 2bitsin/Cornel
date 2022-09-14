@@ -5,11 +5,17 @@
 #include <algorithm>
 #include <span>
 
-#include <hardware/assembly.hpp>
-#include <hardware/console.hpp>
-#include <netboot32/runtime.hpp>
 #include <misc/macros.hpp>
 #include <misc/debug.hpp>
+
+#include <hardware/assembly.hpp>
+#include <hardware/console.hpp>
+#include <hardware/bios_data_area.hpp>
+
+#include <netboot32/runtime.hpp>
+
+#include <memory/block_list.hpp>
+
 
 using ctor_fun_t = void(void);
 using ctor_ptr_t = ctor_fun_t*;
@@ -19,26 +25,30 @@ using dtor_ptr_t = dtor_fun_t*;
 
 extern "C"
 {  
-  volatile ctor_ptr_t* G_init_array_begin;
-  volatile ctor_ptr_t* G_init_array_end;
+  ctor_ptr_t* volatile G_init_array_begin;
+  ctor_ptr_t* volatile G_init_array_end;
 
-  volatile std::uint8_t* G_bss_begin;
-  volatile std::uint8_t* G_bss_end;
+  std::byte* volatile G_bss_begin;
+  std::byte* volatile G_bss_end;
+
 }
 
-auto runtime::initialize() -> void
+auto runtime::initialize(bool first_time) -> void
 {  
-  std::span bss { G_bss_begin, G_bss_end };
-  std::span init_array { G_init_array_begin, G_init_array_end };
+  using std::span;
 
+  if (!first_time)
+    return;
+  
   // Zero out .bss section
-  std::ranges::fill(bss, 0);
+  std::ranges::fill(span{ G_bss_begin, G_bss_end }, std::byte());  
 
   // Call all constructors
-  std::ranges::for_each(init_array, [] (auto&& ctor) { ctor(); });
+  std::ranges::for_each(span{ G_init_array_begin, G_init_array_end }, [] (auto&& ctor) { ctor(); });
 }
 
-auto runtime::finalize() -> void
+
+auto runtime::finalize([[maybe_unused]] bool last_time) -> void
 {}
 
   /* The ABI requires a 64-bit type.  */
@@ -52,7 +62,10 @@ CO_PUBLIC void __cxa_guard_abort    (__guard *)  {}
 
 void* __dso_handle = nullptr;
 
-CO_PUBLIC void abort()
+
+CO_PUBLIC 
+[[noreturn]]
+void abort()
 {
   console::writeln("Halting system.");
   assembly::cli();

@@ -3,12 +3,11 @@
 struct runtime
 {
 
-  static auto initialize() -> void;
-  static auto finalize() -> void;
+  static auto initialize(bool first_time) -> void;
+  static auto finalize(bool last_time) -> void;
   static auto panick() -> void;
 
-  static auto allocate_lower(std::size_t size) -> void*;
-  static auto allocate_upper(std::size_t size) -> void*;
-  static auto deallocate_lower(void* pointer, std::size_t size) -> bool;
-  static auto deallocate_upper(void* pointer, std::size_t size) -> bool;
+  // Allocate below 1 MiB
+  static auto allocate(std::size_t size) -> void*;
+  static auto deallocate(void* pointer, std::size_t size) -> bool;
 };

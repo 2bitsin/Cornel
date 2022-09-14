@@ -108,7 +108,7 @@ extern "C" const assembly::Xdtr_t G_idtr;
 
 static std::uint16_t save_mask = 0;
 
-void isr::initialize()
+void isr::initialize([[maybe_unused]] bool first_time)
 { 
   assembly::cli();  
   assembly::lidt(G_idtr);
@@ -117,8 +117,8 @@ void isr::initialize()
   pic8259::write_mask(1);
   assembly::sti();
 }
-
-void isr::finalize()
+          
+void isr::finalize([[maybe_unused]] bool last_time)
 { 
   assembly::cli();
   pic8259::write_mask(save_mask);

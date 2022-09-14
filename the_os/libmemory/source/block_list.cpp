@@ -2,7 +2,6 @@
 #include <memory>
 #include <ranges>
 #include <algorithm>
-#include <iostream>
 
 #include <memory/block_list.hpp>
 
@@ -172,7 +171,48 @@ auto block_list::deallocate(void* what) noexcept -> bool
   return true;
 }
 
+auto block_list::size(void const* what) const noexcept -> std::size_t
+{
+  auto curr = block_list::block_from_pointer(what);
+
+  if (!block_list::is_block_allocated(*curr))
+    return 0u;
+
+  if ((curr->size <= sizeof(block_type)))
+    return 0u;
+
+  return curr->size - sizeof(block_type);
+}
+
 auto block_list::deallocate(void* what,[[maybe_unused]] std::size_t size) noexcept -> bool
 {
   return deallocate(what);
+}
+
+auto block_list::reallocate([[maybe_unused]] void* what, [[maybe_unused]] std::size_t size) noexcept -> void*
+{
+  // TODO : implement and test
+  /*
+  if (nullptr == what)
+    return allocate(size);
+  auto curr = block_from_pointer(what);
+  if (!is_block_allocated(*curr))
+    return nullptr;
+  if (curr->size >= size)
+    return what;
+  auto next = curr->next;
+  if (next && is_block_available(*next) && (curr->size + next->size) >= size)
+  {
+    try_mege_blocks(curr, next);
+    try_split_block(curr, size);
+    return what;
+  }
+  auto new_what = allocate(size);
+  if (nullptr == new_what)
+    return nullptr;
+  std::ranges::copy_n((std::byte*)what, curr->size, (std::byte*)new_what);
+  deallocate(what);
+  return new_what;
+  */
+  return nullptr;
 }

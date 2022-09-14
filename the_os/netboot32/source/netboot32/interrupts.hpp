@@ -48,6 +48,6 @@
 
 struct isr
 {
-  static void initialize();
-  static void finalize();
+  static void initialize(bool first_time);
+  static void finalize(bool last_time);
 };

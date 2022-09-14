@@ -2,42 +2,69 @@
 #include <cstdint>
 #include <span>
 #include <charconv>
+#include <vector>
+#include <string>
 
-#include <misc/macros.hpp>
-#include <textio/simple.hpp>
-#include <netboot32/interrupts.hpp>
-#include <netboot32/runtime.hpp>
 #include <hardware/console.hpp>
 #include <hardware/bios_data_area.hpp>
 #include <hardware/assembly.hpp>
 #include <hardware/atwenty.hpp>
 
-void initialize()
+#include <misc/macros.hpp>
+
+#include <textio/simple.hpp>
+
+#include <netboot32/interrupts.hpp>
+#include <netboot32/runtime.hpp>
+#include <netboot32/memory.hpp>
+
+void initialize(bool first_time)
 {
-  runtime::initialize();
-  isr::initialize();
-  atwenty::initialize();
+  runtime::initialize(first_time);
+  isr::initialize(first_time);  
+  atwenty::initialize(first_time);
+  memory::initialize(first_time);
+  
 }
 
-void finalize()
+void finalize(bool last_time)
 {
-  atwenty::finalize();
-  isr::finalize();
-  runtime::finalize();
+  memory::finalize(last_time);
+  atwenty::finalize(last_time);
+  isr::finalize(last_time);
+  runtime::finalize(last_time);
 }
 
 CO_PUBLIC 
 auto main () -> void
 {
   using namespace std::string_view_literals;
+  using namespace std::string_literals;
   using namespace textio::simple;
-  initialize();
+  initialize(true);
   
-  console::writeln("Available conventional memory : ", bda::conventional_memory_size, " KiB");  
+  std::vector<std::string> test = 
+  {
+    "Hello world!"s,
+    "This is a test."s,
+    "This is a test of the emergency broadcast system."s,
+    "This is only a test."s,
+    "If this had been an actual emergency, you would have been instructed to do something."s
+  };
   
-  asm("int $0x3");
+  for (auto&& line : test)
+  {
+    console::writeln(std::string_view(line));
+  }
+  
 
-  for(;;) assembly::hlt();
+  for(;;) 
+  {
+    assembly::hlt();
+    console::write("Tick!\r");
+    assembly::hlt();
+    console::write("Tock!\r");
+  }
 
-  finalize();
+  finalize(true);
 }

@@ -37,6 +37,10 @@ struct block_list
   auto deallocate(void*, std::size_t) noexcept -> bool;
   auto deallocate(void*) noexcept -> bool;
 
+  auto size(void const* ptr) const noexcept -> std::size_t;
+
+  auto reallocate(void*, std::size_t) noexcept -> void*;
+
   friend auto pretty_print(block_list const& blist, std::ostream& oss) noexcept -> void;    
 
   ~block_list();

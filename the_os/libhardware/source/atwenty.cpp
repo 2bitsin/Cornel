@@ -57,10 +57,14 @@ uint16_t A20_enable_bios_15h();
 
 auto atwenty::is_enabled() -> bool
 {
-  auto&& lower = variable_at<0x000500u, volatile std::uint8_t>;
-  auto&& upper = variable_at<0x100500u, volatile std::uint8_t>;
+  using Q = std::uint8_t;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"  
+  auto& lower = *(volatile Q*)(0x000500u);
+  auto& upper = *(volatile Q*)(0x100500u);
   upper = ~lower;
-  return upper == (std::uint8_t)~lower;
+  return upper == (Q)~lower;
+ #pragma GCC diagnostic pop
 }
 
 auto atwenty::try_enable() -> bool
@@ -90,12 +94,18 @@ auto atwenty::try_enable() -> bool
   return false;
 }
 
-auto atwenty::initialize() -> void
+auto atwenty::initialize(bool first_time) -> void
 {
   using namespace textio::simple;
+  if (!first_time)
+    return;
   if (!try_enable()) 
   {
     console::writeln("#001 - Failed to enable address line 20.");
     std::abort();
   }
+}
+
+auto atwenty::finalize([[maybe_unused]] bool last_time) -> void
+{
 }
