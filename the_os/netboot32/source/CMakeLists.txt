@@ -8,10 +8,11 @@ add_executable(netboot32
   interrupts.cpp
   main.cpp
   runtime.cpp
+  memory.cpp
 )
 
 target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(netboot32 textio hardware bootstrap misc cimpl ${LIB_GCC_PATH})
+target_link_libraries(netboot32 textio hardware bootstrap misc cimpl memory ${LIB_GCC_PATH})
 set_target_properties(netboot32 PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 target_link_options(netboot32 PUBLIC -Xlinker -Map=${NETBOOT32_MAP} -T ${LINKER_SCRIPT})
 

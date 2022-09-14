@@ -34,11 +34,10 @@ auto main () -> void
   initialize();
   
   console::writeln("Available conventional memory : ", bda::conventional_memory_size, " KiB");  
+  
   asm("int $0x3");
-  for(;;)
-  {
-    assembly::hlt();
-  }
+
+  for(;;) assembly::hlt();
 
   finalize();
 }

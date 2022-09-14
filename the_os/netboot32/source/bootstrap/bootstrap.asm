@@ -1,7 +1,9 @@
     format binary    
     use16
 
-    org     0x7c00
+    LOAD_ADDRESS equ 0x7c00
+
+    org     LOAD_ADDRESS
     jmp     preamble    
 
 strings:
@@ -30,21 +32,24 @@ gdtr_bits:
     include "console.asi"
 
 preamble:
-    pop     eax             ; Discard return address
-    pop     eax             ; Grab pointer to !PXE structure
+    pop     eax                   ; Discard return address
+    pop     eax                   ; Grab pointer to !PXE structure
+    xor     esp,    esp
+    mov     ss,     sp
+    mov     esp,    LOAD_ADDRESS  ; Reset stack pointer
     
-    movzx   edx,    ax      ; edx = offset of !PXE structure
-    shr     eax,    16      ; eax = segment of !PXE structure
-    shl     eax,    4       ; eax = segment of !PXE structure * 16
-    add     eax,    edx     ; eax = linear address of !PXE structure
-    push    eax             ; Save pointer to !PXE structure
+    movzx   edx,    ax            ; edx = offset of !PXE structure
+    shr     eax,    16            ; eax = segment of !PXE structure
+    shl     eax,    4             ; eax = segment of !PXE structure * 16
+    add     eax,    edx           ; eax = linear address of !PXE structure
+    push    eax                   ; Save pointer to !PXE structure
 
-    mov     ax,     es      ; ax = segment of PXENV+ structure
-    movzx   eax,    ax      ; eax = segment PXENV+ structure
-    shl     eax,    4       ; eax = PXENV+ structure * 16
-    movzx   ebx,    bx      ; ebx = offset PXENV+ structure
-    add     eax,    ebx     ; eax = linear address PXENV+ structure
-    push    eax             ; save PXENV+ structure address on stack   
+    mov     ax,     es            ; ax = segment of PXENV+ structure
+    movzx   eax,    ax            ; eax = segment PXENV+ structure
+    shl     eax,    4             ; eax = PXENV+ structure * 16
+    movzx   ebx,    bx            ; ebx = offset PXENV+ structure
+    add     eax,    ebx           ; eax = linear address PXENV+ structure
+    push    eax                   ; save PXENV+ structure address on stack   
 
     mov     ax,     cs
     mov     ds,     ax
