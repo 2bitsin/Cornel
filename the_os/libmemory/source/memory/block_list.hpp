@@ -3,11 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
-#include <system_error>
-#include <initializer_list>
-#include <variant>
-
-//#include <type_traits>
+#include <iostream>
 
 struct block_list
 {
@@ -35,11 +31,13 @@ struct block_list
 
   block_list();
 	
-	auto initialize(range_type) noexcept -> std::errc;
+	auto initialize(range_type) noexcept -> bool;
+	auto allocate(std::size_t) noexcept -> void*;
 
-	auto allocate(std::size_t) noexcept -> std::variant<void*, std::errc> ;
-	auto deallocate(void*, std::size_t) noexcept -> std::errc;
-	auto deallocate(void*) noexcept -> std::errc;
+	auto deallocate(void*, std::size_t) noexcept -> bool;
+	auto deallocate(void*) noexcept -> bool;
+
+	auto pretty_print(std::ostream& oss) const noexcept -> void;		
 
   ~block_list();
 	
@@ -51,10 +49,10 @@ protected:
 	
 	auto set_block_allocated(block_type& block) -> void;
 	auto set_block_available(block_type& block) -> void;
-	auto is_block_allocated(block_type const& block) -> bool;
-	auto is_block_available(block_type const& block) -> bool;	
-	auto block_status(block_type& block) -> block_status_type;
-	auto block_status(block_type const& block) -> block_status_type;
+	auto is_block_allocated(block_type const& block) const -> bool;
+	auto is_block_available(block_type const& block) const -> bool;	
+	auto block_status(block_type& block) const -> block_status_type;
+	auto block_status(block_type const& block) const -> block_status_type;
 	
   auto try_split_block(block_type* head, std::size_t size) -> bool;
 	auto try_mege_blocks(block_type* lower, block_type* upper) -> block_type*;

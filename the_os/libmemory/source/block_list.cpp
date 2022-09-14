@@ -1,8 +1,10 @@
 #include <functional>
 #include <memory>
+#include <ranges>
+#include <algorithm>
+#include <iostream>
 
 #include <memory/block_list.hpp>
-#include "block_list.hpp"
 
 static const constexpr std::hash<void const*> ptr_hash{ };
 
@@ -54,17 +56,17 @@ auto block_list::set_block_available(block_type& block) -> void
 	block.meta = available(&block);
 }
 
-auto block_list::is_block_allocated(block_type const& block) -> bool
+auto block_list::is_block_allocated(block_type const& block) const -> bool
 {
 	return block.meta == allocated(&block);
 }
 
-auto block_list::is_block_available(block_type const& block) -> bool
+auto block_list::is_block_available(block_type const& block) const -> bool
 {
 	return block.meta == available(&block);
 }
 
-auto block_list::block_status(block_type& block) -> block_status_type
+auto block_list::block_status(block_type& block) const -> block_status_type
 {
 	if(is_block_allocated(block))
 		return block_allocated;
@@ -73,12 +75,19 @@ auto block_list::block_status(block_type& block) -> block_status_type
 	return block_invalid;
 }
 
-auto block_list::initialize(range_type init) noexcept -> std::errc
+auto block_list::block_status(block_type const& block) const -> block_status_type
+{
+	if(is_block_allocated(block))
+		return block_allocated;
+	if(is_block_available(block))
+		return block_available;
+	return block_invalid;
+}
+
+auto block_list::initialize(range_type init) noexcept -> bool
 {
 	if (init.size() < sizeof(block_type) * 2u) 
-	{
-		return std::errc::not_enough_memory;	
-	}
+		return false;
 
 	auto block = (block_type*)init.data();
 	
@@ -91,7 +100,7 @@ auto block_list::initialize(range_type init) noexcept -> std::errc
 	m_head = block;
 	m_tail = block;
 
-	return std::errc();
+	return true;
 }
 
 auto block_list::try_split_block(block_type* head, std::size_t size) -> bool
@@ -114,6 +123,8 @@ auto block_list::try_split_block(block_type* head, std::size_t size) -> bool
 
 	if (head == m_tail)
 		m_tail = next;
+	
+	return true;
 }
 
 auto block_list::try_mege_blocks(block_type* lower, block_type* upper) -> block_type*
@@ -133,7 +144,7 @@ auto block_list::try_mege_blocks(block_type* lower, block_type* upper) -> block_
 	return lower;
 }
 
-auto block_list::allocate(std::size_t size) noexcept -> std::variant<void*, std::errc>
+auto block_list::allocate(std::size_t size) noexcept -> void*
 {	
 	static constexpr const auto Q = sizeof(block_type);
 	size = ((size + Q - 1) / Q) * Q;
@@ -147,21 +158,77 @@ auto block_list::allocate(std::size_t size) noexcept -> std::variant<void*, std:
 		set_block_allocated(*head);		
 		return pointer_from_block(head);
 	}
-	return std::errc::not_enough_memory;	
+	return nullptr;
 }
 
-auto block_list::deallocate(void* what) noexcept -> std::errc
+auto block_list::deallocate(void* what) noexcept -> bool
 {
 	auto curr = block_from_pointer(what);
 	if (!is_block_allocated(*curr))
-		return std::errc::bad_address;
+		return false;
 	set_block_available(*curr);
 	while(curr->next && try_mege_blocks(curr, curr->next));
 	while((curr = curr->prev) && try_mege_blocks(curr, curr->next));	
-	return std::errc();
+	return true;
 }
 
-auto block_list::deallocate(void* what, std::size_t size) noexcept -> std::errc
+auto block_list::pretty_print(std::ostream& oss) const noexcept -> void
+{
+	auto status = [this](block_type const& head) -> std::string_view		
+	{
+		switch (block_status(head))
+		{
+		case block_allocated: 
+			return "allocated"; 
+		case block_available: 
+			return "available"; 
+		default: 
+			return "invalid"; 
+		}
+	};
+
+	auto byte_diff = [](auto* lhs, auto* rhs)
+	{
+		if (lhs > rhs) std::swap(lhs, rhs);
+		return (std::byte const*)rhs - (std::byte const*)lhs;
+	};
+
+	char buffer[2048];
+	std::ranges::fill(buffer, 0);
+
+	snprintf(buffer, sizeof(buffer)-1, "head = %08x, tail = %08x", 0u, byte_diff(m_head, m_tail));
+	oss << buffer << "\n";
+
+	std::uintptr_t total_size{ 0 }, allocated{ 0 }, available{ 0 };	
+	for (auto head = m_head; head; head = head->next)
+	{
+
+		snprintf(buffer, sizeof(buffer)-1, "%08x :", byte_diff(head, m_head));
+		oss << buffer << " ";
+
+		snprintf(buffer, sizeof(buffer)-1, head->next ? "next=%08x" : "next=( null )", head->next ? byte_diff(head->next, m_head) : 0);
+		oss << buffer << " ";
+		
+		snprintf(buffer, sizeof(buffer)-1, head->prev ? "prev=%08x" : "prev=( null )", head->prev ? byte_diff(head->prev, m_head) : 0);
+		oss << buffer << " ";
+
+		snprintf(buffer, sizeof(buffer)-1, "status=%s size=%08x", status(*head).data(), head->size);
+		oss << buffer << "\n";
+
+		
+		total_size += head->size;		
+		if (is_block_available(*head))
+			available += head->size;
+		if (is_block_allocated(*head))
+			allocated += head->size;
+	}
+	snprintf(buffer, sizeof(buffer)-1, "total_size=%08x, allocated=%08x, available=%08x", total_size, allocated, available);
+	oss << buffer << "\n";
+	
+	
+}
+
+auto block_list::deallocate(void* what, std::size_t size) noexcept -> bool
 {
 	return deallocate(what);
 }
