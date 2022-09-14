@@ -1,5 +1,3 @@
 #!/bin/sh
+cmake --build ./build --target clean
 
-pushd ./netboot32
-  cmake --build ./build --target clean
-  popd

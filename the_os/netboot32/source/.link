@@ -32,6 +32,9 @@ SECTIONS
   G_bss_end = .;
     LONG(ADDR(.bss) + SIZEOF(.bss))
 
+  G_heap_begin = .;
+    LONG(ADDR(.heap))
+
     *(.rodata.*)
     *(.rodata)
     *(.data.*)
@@ -43,6 +46,11 @@ SECTIONS
   {    
     *(.bss)
   }
+
+  . = ALIGN(16);
+  .heap :
+  {}
+  
 
   /DISCARD/ : 
   {    

@@ -18,7 +18,7 @@ int main(int argc, char **grgv)
 
   dut.initialize({buffer.get(), 1024u * 1024u});
 	
-	dut.pretty_print(sst);
+	pretty_print(dut, sst);
 	sst << "\n";
 
 	auto a = dut.allocate(128);
@@ -28,25 +28,25 @@ int main(int argc, char **grgv)
 	auto e = dut.allocate(128);
 	auto f = dut.allocate(64);
 
-	dut.pretty_print(sst);
+	pretty_print(dut, sst);
 	sst << "\n";
 
 	dut.deallocate(b);	
 	dut.deallocate(c);
 	
-	dut.pretty_print(sst);
+	pretty_print(dut, sst);
 	sst << "\n";
 
 	dut.deallocate(a);
 	dut.deallocate(d);
   
-	dut.pretty_print(sst);
+	pretty_print(dut, sst);
 	sst << "\n";
 
 	dut.deallocate(e);
 	dut.deallocate(f);
 
-	dut.pretty_print(sst);
+	pretty_print(dut, sst);
 	sst << "\n";
 	const auto result = sst.str();
 	expect_eq(result, expected_output);
