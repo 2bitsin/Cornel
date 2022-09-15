@@ -30,14 +30,14 @@ gdtr_bits:
 
     include "nmictl.asi"
     include "console.asi"
-    include "pxeapi.asi"
 
 preamble:
-    pop     eax                   ; Discard return address
+    add     sp,     4     
     pop     eax                   ; Grab pointer to !PXE structure
-    xor     esp,    esp
+
+    xor     sp,     sp
     mov     ss,     sp
-    mov     esp,    LOAD_ADDRESS  ; Reset stack pointer
+    mov     sp,     LOAD_ADDRESS  ; Reset stack pointer
     
     movzx   edx,    ax            ; edx = offset of !PXE structure
     shr     eax,    16            ; eax = segment of !PXE structure
@@ -50,38 +50,13 @@ preamble:
     shl     eax,    4             ; eax = PXENV+ structure * 16
     movzx   ebx,    bx            ; ebx = offset PXENV+ structure
     add     eax,    ebx           ; eax = linear address PXENV+ structure
+    push    eax                   ; push pointer to PXENV+ structure
 
-    pop     esi                   ; pop pointer to !PXE structure
-    push    esi                   ; push pointer to !PXE structure
-
-    push    eax                   ; push PXENV+ structure address on stack     
-                                          
-    mov     ax,     cs            ; setup all segment registers
+    mov     ax,     cs            ; ax = segment of PXENV+ structure
     mov     ds,     ax            ; 
-    mov     es,     ax            ;
-    mov     fs,     ax            ;
-    mov     gs,     ax            ;
-    
-    call    PXEbang_validate      ; validate !PXE structure at ds:[esi]
-    or      eax,    eax           ; success?
-    jz      not_PXEbang           ; nope, try PXENV+           
-    call    PXE_unload_stack      ; yes, call PXE_unload_stack
-    jmp     done_with_PXE         ; we're done
-        
-not_PXEbang:
-
-    pop     esi                   ; pop pointer to PXENV+ structure
-    push    esi                   ; push pointer to PXENV+ structure
-
-    call    PXENVplus_validate    ; validate PXENV+ structure at ds:[esi]
-    or      eax,    eax           ; success?
-    jz      done_with_PXE         ; nope, we're done
-    call    PXE_unload_stack      ; yes, call PXE_unload_stack
-
-done_with_PXE:
-
-    push    cs                    ;
-    pop     es                    ; Fix possibly clobbered ES 
+    mov     es,     ax            ; 
+    mov     fs,     ax            ; 
+    mov     gs,     ax            ; 
 
     call    coninit
     mov     si,     strings.hello
