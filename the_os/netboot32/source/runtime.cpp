@@ -62,13 +62,3 @@ CO_PUBLIC void __cxa_guard_abort    (__guard *)  {}
 
 void* __dso_handle = nullptr;
 
-
-CO_PUBLIC 
-[[noreturn]]
-void abort()
-{
-  console::writeln("Halting system.");
-  assembly::cli();
-  assembly::hlt();
-  for(;;);
-}

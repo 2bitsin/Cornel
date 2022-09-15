@@ -8,6 +8,7 @@ add_executable(netboot32
   interrupts.cpp
   runtime.cpp
   memory.cpp
+  panick.cpp
   main.cpp)
 
 target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

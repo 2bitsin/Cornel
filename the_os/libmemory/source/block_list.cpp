@@ -85,12 +85,25 @@ auto block_list::block_status(block_type const& block) -> block_status_type
 
 auto block_list::initialize(range_type init) noexcept -> bool
 {
+  using std::byte;
+  using std::uintptr_t;
+
+  auto size = init.size();
+  auto addr = init.data();
+
+  static constexpr auto Q = sizeof(block_type);
+
+  if ((uintptr_t)addr % Q) 
+  {
+    addr = (byte*)(((uintptr_t)addr + Q) & ~(Q - 1));
+    size -= (uintptr_t)addr - (uintptr_t)init.data();
+  }
+
   if (init.size() < sizeof(block_type) * 2u) 
     return false;
 
-  auto block = (block_type*)init.data();
-  
-  block->size = init.size();
+  auto block = (block_type*)addr;  
+  block->size = size;
   block->next = nullptr;
   block->prev = nullptr;
   
@@ -146,7 +159,7 @@ auto block_list::try_mege_blocks(block_type* lower, block_type* upper) -> block_
 auto block_list::allocate(std::size_t size) noexcept -> void*
 { 
   static constexpr const auto Q = sizeof(block_type);
-  size = ((size + Q - 1) / Q) * Q;
+  size = ((size + Q - 1) / Q) * Q + Q;
   for (auto head = m_head; nullptr != head; head = head->next) 
   {   
     if (is_block_allocated(*head))

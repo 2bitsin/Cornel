@@ -1,6 +1,6 @@
 #include <memory/block_list.hpp>
 
-#include <sstream>
+#include <string>
 #include <memory>
 
 #include "expect.hpp"
@@ -8,9 +8,9 @@
 
 int main(int argc, char **grgv)
 {
-	std::ostringstream sst;
+	
 
-	static const std::string expected_output = "head = 00000000, tail = 00000000\n00000000 : next=( null ) prev=( null ) status=available size=00100000\ntotal_size=00100000, allocated=00000000, available=00100000\n\nhead = 00000000, tail = 000001f0\n00000000 : next=00000080 prev=( null ) status=allocated size=00000080\n00000080 : next=000000c0 prev=00000000 status=allocated size=00000040\n000000c0 : next=000000f0 prev=00000080 status=allocated size=00000030\n000000f0 : next=00000130 prev=000000c0 status=allocated size=00000040\n00000130 : next=000001b0 prev=000000f0 status=allocated size=00000080\n000001b0 : next=000001f0 prev=00000130 status=allocated size=00000040\n000001f0 : next=( null ) prev=000001b0 status=available size=000ffe10\ntotal_size=00100000, allocated=000001f0, available=000ffe10\n\nhead = 00000000, tail = 000001f0\n00000000 : next=00000080 prev=( null ) status=allocated size=00000080\n00000080 : next=000000f0 prev=00000000 status=available size=00000070\n000000f0 : next=00000130 prev=00000080 status=allocated size=00000040\n00000130 : next=000001b0 prev=000000f0 status=allocated size=00000080\n000001b0 : next=000001f0 prev=00000130 status=allocated size=00000040\n000001f0 : next=( null ) prev=000001b0 status=available size=000ffe10\ntotal_size=00100000, allocated=00000180, available=000ffe80\n\nhead = 00000000, tail = 000001f0\n00000000 : next=00000130 prev=( null ) status=available size=00000130\n00000130 : next=000001b0 prev=00000000 status=allocated size=00000080\n000001b0 : next=000001f0 prev=00000130 status=allocated size=00000040\n000001f0 : next=( null ) prev=000001b0 status=available size=000ffe10\ntotal_size=00100000, allocated=000000c0, available=000fff40\n\nhead = 00000000, tail = 00000000\n00000000 : next=( null ) prev=( null ) status=available size=00100000\ntotal_size=00100000, allocated=00000000, available=00100000\n\n";
+	static const std::string expected_output = ">>> head = 00000000, tail = 00000000\r\n00000000: next=( null ), prev=( null ), size=00100000 status=available\r\n>>> head = 00000000, tail = 00000250\r\n00000000: next=00000090, prev=( null ), size=00000090 status=allocated\r\n00000090: next=000000E0, prev=00000000, size=00000050 status=allocated\r\n000000E0: next=00000120, prev=00000090, size=00000040 status=allocated\r\n00000120: next=00000170, prev=000000E0, size=00000050 status=allocated\r\n00000170: next=00000200, prev=00000120, size=00000090 status=allocated\r\n00000200: next=00000250, prev=00000170, size=00000050 status=allocated\r\n00000250: next=( null ), prev=00000200, size=000FFDB0 status=available\r\n>>> head = 00000000, tail = 00000250\r\n00000000: next=00000090, prev=( null ), size=00000090 status=allocated\r\n00000090: next=000000E0, prev=00000000, size=00000050 status=allocated\r\n000000E0: next=00000120, prev=00000090, size=00000040 status=allocated\r\n00000120: next=00000170, prev=000000E0, size=00000050 status=allocated\r\n00000170: next=00000200, prev=00000120, size=00000090 status=allocated\r\n00000200: next=00000250, prev=00000170, size=00000050 status=allocated\r\n00000250: next=( null ), prev=00000200, size=000FFDB0 status=available\r\n>>> head = 00000000, tail = 00000250\r\n00000000: next=00000090, prev=( null ), size=00000090 status=allocated\r\n00000090: next=00000120, prev=00000000, size=00000090 status=available\r\n00000120: next=00000170, prev=00000090, size=00000050 status=allocated\r\n00000170: next=00000200, prev=00000120, size=00000090 status=allocated\r\n00000200: next=00000250, prev=00000170, size=00000050 status=allocated\r\n00000250: next=( null ), prev=00000200, size=000FFDB0 status=available\r\n>>> head = 00000000, tail = 00000250\r\n00000000: next=00000170, prev=( null ), size=00000170 status=available\r\n00000170: next=00000200, prev=00000000, size=00000090 status=allocated\r\n00000200: next=00000250, prev=00000170, size=00000050 status=allocated\r\n00000250: next=( null ), prev=00000200, size=000FFDB0 status=available\r\n>>> head = 00000000, tail = 00000000\r\n00000000: next=( null ), prev=( null ), size=00100000 status=available\r\n";
 
   auto buffer = std::make_unique<std::byte []> (1024u*1024u);
 
@@ -18,8 +18,9 @@ int main(int argc, char **grgv)
 
   dut.initialize({buffer.get(), 1024u * 1024u});
 	
-	pretty_print(dut, sst);
-	sst << "\n";
+	std::string output;
+	
+	pretty_print(dut, std::back_inserter(output));	
 
 	auto a = dut.allocate(128);
 	auto b = dut.allocate(64);
@@ -28,28 +29,34 @@ int main(int argc, char **grgv)
 	auto e = dut.allocate(128);
 	auto f = dut.allocate(64);
 
-	pretty_print(dut, sst);
-	sst << "\n";
+	pretty_print(dut, std::back_inserter(output));	
+	
+	std::memset(a, 0, 128);
+	std::memset(b, 0, 64);
+	std::memset(c, 0, 48);
+	std::memset(d, 0, 64);
+	std::memset(e, 0, 128);
+	std::memset(f, 0, 64);
+
+	pretty_print(dut, std::back_inserter(output));	
 
 	dut.deallocate(b);	
 	dut.deallocate(c);
 	
-	pretty_print(dut, sst);
-	sst << "\n";
+	pretty_print(dut, std::back_inserter(output));	
 
 	dut.deallocate(a);
 	dut.deallocate(d);
   
-	pretty_print(dut, sst);
-	sst << "\n";
+	pretty_print(dut, std::back_inserter(output));	
 
 	dut.deallocate(e);
 	dut.deallocate(f);
 
-	pretty_print(dut, sst);
-	sst << "\n";
-	const auto result = sst.str();
-	expect_eq(result, expected_output);
+	pretty_print(dut, std::back_inserter(output));	
+	
+	
+	expect_eq(output, expected_output);
 	
 	return 0;
 }

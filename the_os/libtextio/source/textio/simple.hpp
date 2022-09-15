@@ -15,7 +15,6 @@
 #include "detail.hpp"
 #include "consts.hpp"
 #include "simple_fmt.hpp"
-#include <misc/debug.hpp>
 
 namespace textio::simple
 {
@@ -103,7 +102,7 @@ namespace textio::simple
       std::ranges::fill(buffer, '@');
       std::to_chars_result result;
       result = std::to_chars(std::begin(buffer), std::end(buffer), arg0);
-      co_assert(result.ec == std::errc());
+//      co_assert(result.ec == std::errc());
       return write(out_i, std::string_view(buffer, result.ptr));
     }   
   } 
@@ -136,7 +135,7 @@ namespace textio::simple
     {
       auto const& value = (std::make_signed_t<T> const&)what.value;
       result = std::to_chars(std::begin(buffer), std::end(buffer), std::abs(value), what.base);
-      co_assert(result.ec == std::errc());
+//      co_assert(result.ec == std::errc());
       if (value < 0) 
         out_i = write(out_i, '-');
     }
@@ -144,7 +143,7 @@ namespace textio::simple
     {
       auto const& value = (std::make_unsigned_t<T> const&)what.value;
       result = std::to_chars(std::begin(buffer), std::end(buffer), value, what.base);
-      co_assert(result.ec == std::errc());
+//      co_assert(result.ec == std::errc());
     }
     std::string_view value_s{ std::begin(buffer), result.ptr };
     if (what.upperc_flag) std::ranges::transform(buffer, std::begin(buffer), [] (auto c) { return std::toupper(c); });

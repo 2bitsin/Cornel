@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
-#include <iosfwd>
+#include <textio/simple.hpp>
 
 struct block_list
 {
@@ -41,7 +41,8 @@ struct block_list
 
   auto reallocate(void*, std::size_t) noexcept -> void*;
 
-  friend auto pretty_print(block_list const& blist, std::ostream& oss) noexcept -> void;    
+  template <std::output_iterator<char> O>
+  friend auto pretty_print(block_list const& blist, O oi) noexcept -> void;    
 
   ~block_list();
   
@@ -65,3 +66,51 @@ private:
   block_type*     m_head;
   block_type*     m_tail;
 };
+
+
+template <std::output_iterator<char> O>
+auto pretty_print(block_list const& blist, O oss) noexcept -> void
+{
+  auto status = [](block_list::block_type const& head) -> std::string_view    
+  {
+    switch (block_list::block_status(head))
+    {
+    case block_list::block_allocated: 
+      return "allocated"; 
+    case block_list::block_available: 
+      return "available"; 
+    default: 
+      return "invalid"; 
+    }
+  };
+
+  auto byte_diff = [](auto* lhs, auto* rhs)
+  {
+    if (lhs > rhs) std::swap(lhs, rhs);
+    return (std::byte const*)rhs - (std::byte const*)lhs;
+  };
+
+  using namespace textio::simple;
+  using namespace textio::simple::fmt;
+
+  writeln(oss, ">>> head = 00000000, tail = ", hex<'&'>(byte_diff(blist.m_head, blist.m_tail)));
+
+
+  std::uintptr_t total_size{ 0 }, allocated{ 0 }, available{ 0 }; 
+  for (auto head = blist.m_head; head; head = head->next)
+  {
+
+    write(oss, hex<'&'>(byte_diff(head, blist.m_head)), ": ");
+
+    if (head->next) write(oss, "next=", hex<'&'>(byte_diff(head->next, blist.m_head)), ", "); else write(oss, "next=( null ), ");
+    if (head->prev) write(oss, "prev=", hex<'&'>(byte_diff(head->prev, blist.m_head)), ", "); else write(oss, "prev=( null ), ");
+
+    writeln(oss, "size=", hex<'&'>(head->size), " status=", status(*head));
+     
+    total_size += head->size;   
+    if (block_list::is_block_available(*head))
+      available += head->size;
+    if (block_list::is_block_allocated(*head))
+      allocated += head->size;
+  }    
+}

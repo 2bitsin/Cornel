@@ -2,7 +2,7 @@
 #include <hardware/console.hpp>
 #include <memory/block_list.hpp>
 #include <netboot32/memory.hpp>
-
+#include <netboot32/panick.hpp>
 
 #include <cstdlib>
 #include <algorithm>
@@ -14,44 +14,16 @@ extern "C"
 
 static block_list G_heap;
 
-[[noreturn]] 
-static void panick_out_of_memory()
-{
-  console::writeln("#002 - Out of memory!");
-  std::abort();
-}
-
-[[noreturn]] 
-static void panick_invalid_free()
-{
-  console::writeln("#003 - Heap deallocation failed, possible corruption.");
-  std::abort();
-}
-
-namespace std
-{
-  void __throw_bad_alloc()
-  {
-    console::writeln("#005 - Bad allocation error");
-    std::abort();
-  }
-
-
-  void __throw_length_error(char const* err)
-  {
-    console::writeln("#004 - Length error, ", err);
-    std::abort();
-  }
-}
-
 
 void memory::initialize(bool first_time)
 {
   if (!first_time)
     return;
+  console::writeln("Initializing heap");
   console::writeln("Available heap size : ", bda::conventional_memory_size * 1024u - (std::uintptr_t)G_heap_begin, " bytes");  
   // Initialize heap
   G_heap.initialize({ G_heap_begin, G_heap_begin + bda::conventional_memory_size * 1024u });
+  pretty_print(G_heap, console::iterator{});
 }
 
 void memory::finalize(bool last_time)
@@ -65,7 +37,12 @@ using namespace std;
 CO_PUBLIC 
 void* malloc(std::size_t size)
 {
-  return G_heap.allocate(size);
+  auto ptr = G_heap.allocate(size);
+  if (nullptr == ptr)
+  {
+    panick::out_of_memory(size, G_heap);
+  }
+  return ptr;
 }
 
 CO_PUBLIC 
@@ -81,13 +58,20 @@ void* calloc(std::size_t nelem, std::size_t size)
     // Zero out new block
     __builtin_memset(ptr, 0, size);
   }
+  else 
+  {
+    panick::out_of_memory(size, G_heap);
+  }
   return ptr;
 }
 
 CO_PUBLIC
 void free(void* ptr)
 {
-  G_heap.deallocate(ptr);
+  if (!G_heap.deallocate(ptr))
+  {
+    panick::invalid_free(ptr, G_heap);
+  }
 }
 
 CO_PUBLIC 
@@ -118,38 +102,38 @@ void* realloc(void* old_ptr, std::size_t new_size)
     return new_ptr;
   }
   
-  panick_out_of_memory();
+  panick::out_of_memory(new_size, G_heap);
 }
 
 void operator delete(void* ptr) noexcept
 {
   if(!G_heap.deallocate(ptr))
-    panick_invalid_free();
+    panick::invalid_free(ptr, G_heap);
 }
 
 void operator delete[](void* ptr) noexcept
 {
   if(!G_heap.deallocate(ptr))
-    panick_invalid_free();
+    panick::invalid_free(ptr, G_heap);
 }
 
 void operator delete(void* ptr, [[maybe_unused]] std::size_t size) noexcept
 {
   if(!G_heap.deallocate(ptr))
-    panick_invalid_free();
+    panick::invalid_free(ptr, G_heap);
 }
 
 void operator delete[](void* ptr, [[maybe_unused]] std::size_t size) noexcept
 {
   if(!G_heap.deallocate(ptr))
-    panick_invalid_free();
+    panick::invalid_free(ptr, G_heap);
 }
 
 void* operator new[](std::size_t size) noexcept
 {
   auto ptr = G_heap.allocate(size);
   if (nullptr == ptr) 
-    panick_out_of_memory();
+    panick::out_of_memory(size, G_heap);
   return ptr;
 }
 
@@ -157,6 +141,6 @@ void* operator new(std::size_t size) noexcept
 {
   auto ptr = G_heap.allocate(size);
   if (nullptr == ptr) 
-    panick_out_of_memory();
+    panick::out_of_memory(size, G_heap);
   return ptr;
 }
