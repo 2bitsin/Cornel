@@ -1,0 +1,59 @@
+
+
+; Input ds:esi - pointer to structure
+PXENVplus_validate:
+  push        esi
+  mov         eax,    esi
+  shr         eax,    4
+  mov         es,     ax
+  and         esi,    0Fh
+
+  xor         eax,    eax
+
+  mov         ebx,    [es:esi]
+  cmp         ebx,    'ENV+'
+  jnz         .not_it
+  mov         bx,     [es:esi+4]
+  cmp         bx,     'PX'
+  jnz         .not_it
+
+  mov         eax,    0x0A
+
+.not_it:
+  pop         esi
+  ret
+
+; Input ds:esi - pointer to structure
+PXEbang_validate:
+  push        esi
+  mov         eax,    esi
+  shr         eax,    4
+  mov         es,     ax
+  and         esi,    0Fh
+
+  xor         eax,    eax
+  mov         ebx,    [es:esi]
+  cmp         ebx,    '!PXE'
+  jnz         .not_it
+  
+  mov         eax,    0x10  
+
+.not_it:
+  pop         esi
+  ret
+
+PXE_unload_stack:
+  push        bp            ; save BP
+  
+  sub         sp,     10    ; make room for PXE_unload_stack_t on stack
+  mov         bp,     sp    ; SS:BP -> PXE_unload_stack_t
+  push        ss            ; push SS:BP on stack
+  push        bp             
+  push        word 0x70     ; push PXE_unload_stack opcode on stack
+
+  call        dword [es:esi+eax] ; call PXEAPI
+  mov         ax,     [bp]
+  add         sp,     14    ; freeup stack
+
+  pop         bp            ; restore BP
+  ret
