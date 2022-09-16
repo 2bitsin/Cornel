@@ -23,7 +23,6 @@ void memory::initialize(bool first_time)
   console::writeln("Available heap size : ", bda::conventional_memory_size * 1024u - (std::uintptr_t)G_heap_begin, " bytes");  
   // Initialize heap
   G_heap.initialize({ G_heap_begin, G_heap_begin + bda::conventional_memory_size * 1024u });
-  pretty_print(G_heap, console::iterator{});
 }
 
 void memory::finalize(bool last_time)

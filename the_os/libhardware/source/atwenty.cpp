@@ -14,17 +14,17 @@ static inline const constexpr std::uint8_t FAST_GATE_RESET_BIT = 0x01u;
 
 static inline void atwenty_port_ee_enable()
 {
-  assembly::inb(0xee);
+  x86arch::inb(0xee);
 }
 
 static inline void atwenty_fast_enable()
 {
-  uint8_t state = assembly::inb(0x92);
+  uint8_t state = x86arch::inb(0x92);
   if (!(state & FAST_GATE_A20_ENABLE_BIT)) 
   {
     state &= ~FAST_GATE_RESET_BIT;    
     state |= FAST_GATE_A20_ENABLE_BIT;
-    assembly::outb(0x92, state);
+    x86arch::outb(0x92, state);
   }
 }
 

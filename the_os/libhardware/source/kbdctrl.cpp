@@ -4,12 +4,12 @@
 
 void kbdctrl::wait_for_input_buffer_empty()
 {
-  while (assembly::inb(kbdctrl::STATUS_PORT) & kbdctrl::STATUS_INPUT_BUFFER_FULL_BIT);
+  while (x86arch::inb(kbdctrl::STATUS_PORT) & kbdctrl::STATUS_INPUT_BUFFER_FULL_BIT);
 }
 
 void kbdctrl::wait_for_output_buffer_not_empty()
 {
-  while (!(assembly::inb(kbdctrl::STATUS_PORT) & kbdctrl::STATUS_OUTPUT_BUFFER_FULL_BIT));
+  while (!(x86arch::inb(kbdctrl::STATUS_PORT) & kbdctrl::STATUS_OUTPUT_BUFFER_FULL_BIT));
 }
 
 
@@ -17,21 +17,21 @@ void kbdctrl::send_command(std::uint8_t value, std::uint8_t wait)
 {
   if (wait)
     kbdctrl::wait_for_input_buffer_empty();
-  assembly::outb(kbdctrl::COMMAND_PORT, value); 
+  x86arch::outb(kbdctrl::COMMAND_PORT, value); 
 }
 
 void kbdctrl::send_data(std::uint8_t value, std::uint8_t wait)
 {
   if (wait)
     kbdctrl::wait_for_input_buffer_empty();
-  assembly::outb(kbdctrl::DATA_PORT, value);
+  x86arch::outb(kbdctrl::DATA_PORT, value);
 }
 
 std::uint8_t kbdctrl::read_data(std::uint8_t wait)
 {
   if (wait)
     kbdctrl::wait_for_output_buffer_not_empty();
-  return assembly::inb(kbdctrl::DATA_PORT);  
+  return x86arch::inb(kbdctrl::DATA_PORT);  
 }
 
 void kbdctrl::pulse_output_lines(std::uint8_t value)

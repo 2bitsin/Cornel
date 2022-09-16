@@ -16,13 +16,13 @@ void pic8259::mask_and(std::uint16_t m)
 
 auto pic8259::read_mask() -> std::uint16_t
 {
-  using namespace assembly;
+  using namespace x86arch;
   return (inb(PIC8259B_PORT+1u) * 0x100u) | inb(PIC8259A_PORT+1u) ;
 }
 
 auto pic8259::write_mask(std::uint16_t m) -> void
 {
-  using namespace assembly;
+  using namespace x86arch;
   std::uint8_t lower = m & 0xffu;
   std::uint8_t upper = m >> 8u;
   if (lower) outb(PIC8259A_PORT+1u, lower);
@@ -31,7 +31,7 @@ auto pic8259::write_mask(std::uint16_t m) -> void
 
 void pic8259::configure (std::uint8_t offset_a, std::uint8_t offset_b)
 {
-  using namespace assembly;
+  using namespace x86arch;
 
   // Save masks
   auto save_mask = pic8259::read_mask();
@@ -52,7 +52,7 @@ void pic8259::configure (std::uint8_t offset_a, std::uint8_t offset_b)
 
 void pic8259::end_of_interrupt (std::uint8_t irq)
 {
-  using namespace assembly;
+  using namespace x86arch;
   if (irq >= 8) 
     outb (PIC8259B_PORT, 0x20);
   outb (PIC8259A_PORT, 0x20);

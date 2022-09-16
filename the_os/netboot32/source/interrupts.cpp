@@ -99,29 +99,29 @@ int ISR_handler(ISR_stack_frame& state)
     return 0;
   }
   const auto IRQ_num = state.which - 0x20;
-  console::writeln( "IRQ : ", IRQ_num);
+  //console::writeln( "IRQ : ", IRQ_num);
   pic8259::end_of_interrupt(IRQ_num);
   return 0;
 }
 
-extern "C" const assembly::Xdtr_t G_idtr;
+extern "C" const x86arch::Xdtr_t G_idtr;
 
 static std::uint16_t save_mask = 0;
 
 void isr::initialize([[maybe_unused]] bool first_time)
 { 
-  assembly::cli();  
-  assembly::lidt(G_idtr);
+  x86arch::cli();  
+  x86arch::lidt(G_idtr);
   pic8259::configure(0x20, 0x28);
   save_mask = pic8259::read_mask();
-  pic8259::write_mask(1);
-  assembly::sti();
+  pic8259::write_mask(0);
+  x86arch::sti();
 }
           
 void isr::finalize([[maybe_unused]] bool last_time)
 { 
-  assembly::cli();
+  x86arch::cli();
   pic8259::write_mask(save_mask);
   pic8259::configure(0x08, 0x70);
-  assembly::lidt({ .limit = 0x400, .base = nullptr });
+  x86arch::lidt({ .limit = 0x400, .base = nullptr });
 }

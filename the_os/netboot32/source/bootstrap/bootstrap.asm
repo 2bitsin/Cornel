@@ -73,8 +73,8 @@ pmode_start:
     or      eax,    1
     mov     cr0,    eax
 
-    jmp     0x0008:$+5
-
+    jmp     0x0008:.32
+.32:
 use32
 
     mov     ax,     ss
@@ -90,17 +90,12 @@ use32
     mov     gs,     ax    
 
     call    start_32bit_code
-    
-    cli
-    hlt    
-
-    call    reboot_via_8042
-    
+    call    reboot_via_8042    
     cli
     hlt    
 
     include "reboot.asi"
 
-    times ((($ + 0xf) and not 0xf) - $) nop
+;   times ((($ + 0xf) and not 0xf) - $) nop
 
 start_32bit_code:

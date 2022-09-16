@@ -5,7 +5,8 @@
 
 #pragma pack(push, 1)
 
-namespace PXE
+
+struct pxe_api
 {
   struct segoff
   {   
@@ -13,7 +14,7 @@ namespace PXE
     uint16_t seg;
     
     template <typename T = void> 
-    constexpr auto ptr() noexcept const -> T* 
+    constexpr auto ptr() const noexcept -> T* 
     { return (T*)(seg*16ul + off); }
   };
 
@@ -24,7 +25,7 @@ namespace PXE
     uint16_t size;
   };
 
-  struct pxenv
+  struct PXENVplus
   {
     char      signature[6];    
     uint16_t  version;
@@ -46,12 +47,13 @@ namespace PXE
     segoff    pxe_bang_ptr;
   };
 
-  struct pxebang
+  struct bangPXE
   {
     char      signature[4];
     uint8_t   length;
     uint8_t   checksum;
-    uint8_t   rsv0;
+    uint8_t   revision;
+    uint8_t   reserved;
     segoff    undi_rom_id;
     segoff    base_rom_id;
     segoff    entry_point_16;
@@ -60,14 +62,19 @@ namespace PXE
     uint8_t   rsv1;
     uint8_t   count_seg_desc;
     uint16_t  first_seg_sel;
-    segdesc   stack;
-    segdesc   undi_data;
-    segdesc   undi_code;
-    segdesc   undi_code_write;
-    segdesc   base_data;
-    segdesc   base_code;
-    segdesc   base_code_write;
+    // Can be any number of segdescs
+    segdesc   descriptors[0xffffffffu];
   };
-}
+
+  static auto initialize(bool first_time, struct initialize_context const&) -> void;
+  static auto finalize(bool last_time, struct initialize_context const&) -> void;
+};
+
+struct initialize_context
+{
+  struct pxe_api::PXENVplus& m_PXENVplus;
+  struct pxe_api::bangPXE&   m_bangPXE;
+};
+
 
 #pragma pack(pop)

@@ -7,7 +7,7 @@
 #include <misc/macros.hpp>
 #include <misc/debug.hpp>
 
-namespace assembly
+namespace x86arch
 {
   CO_INLINE
   static inline void outb (std::uint16_t port, std::uint8_t value)
@@ -142,6 +142,7 @@ namespace assembly
   CO_INLINE static inline void cli() { __asm__ volatile ("cli"); }
   CO_INLINE static inline void sti() { __asm__ volatile ("sti"); }
   CO_INLINE static inline void hlt() { __asm__ volatile ("hlt"); }
+  CO_INLINE static inline void yield() { __asm__ volatile ("hlt"); }
   
 }
 

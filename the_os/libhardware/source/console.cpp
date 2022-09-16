@@ -96,7 +96,7 @@ void console::advance_cursor(char value)
 
 void console::update_hardware_cursor()
 {
-  using namespace assembly;
+  using namespace x86arch;
   const std::uint16_t pos = bda::offset_of_video_page + cursor_y * page_cols + cursor_x; 
   bda::page_cursor_position[bda::active_video_page][0] = cursor_x;
   bda::page_cursor_position[bda::active_video_page][1] = cursor_y;

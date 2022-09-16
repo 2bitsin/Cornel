@@ -4,3 +4,6 @@
 #include <hardware/rtccmos.hpp>
 #include <hardware/kbdctrl.hpp>
 #include <hardware/atwenty.hpp>
+#include <hardware/x86arch.hpp>
+#include <hardware/console.hpp>
+

@@ -9,8 +9,8 @@ CO_PUBLIC
 void abort()
 {
   console::writeln("Halting system.");
-  assembly::cli();
-  assembly::hlt();
+  x86arch::cli();
+  x86arch::hlt();
   for(;;);
 }
 
@@ -63,3 +63,17 @@ namespace std
   }
 }
 
+
+[[noreturn]] 
+void panick::invalid_pxenvplus()
+{
+  console::writeln("#006 - Invalid PXENV+ structure");
+  std::abort();
+}
+
+[[noreturn]]
+void panick::invalid_bangpxe()
+{
+  console::writeln("#007 - Invalid !PXE structure");
+  std::abort();
+}
