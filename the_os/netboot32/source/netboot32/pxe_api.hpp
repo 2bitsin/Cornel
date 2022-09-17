@@ -21,7 +21,7 @@ struct pxe_api
   struct segdesc
   {
     uint16_t real_seg; 
-    uint32_t phys_addr;
+    uint32_t base;
     uint16_t size;
   };
 
@@ -63,7 +63,10 @@ struct pxe_api
     uint8_t   count_seg_desc;
     uint16_t  first_seg_sel;
     // Can be any number of segdescs
-    segdesc   descriptors[0xffffffffu];
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"  
+    segdesc   descriptors[0];
+ #pragma GCC diagnostic pop
   };
 
   static auto initialize(bool first_time, struct initialize_context const&) -> void;

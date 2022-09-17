@@ -114,28 +114,28 @@ namespace x86arch
   template <typename T>
   requires (sizeof (T) == 8)
   CO_INLINE
-  static inline void lgdt (const std::span<T> table)
+  static inline void lgdt (std::span<T> table)
   {
     co_assert(table.size () * sizeof(T) < 0x10000u);   
-    lgdt ({ table.data(), (std::uint16_t)table.size() });
+    lgdt (Xdtr_t{ (std::uint16_t)table.size(), table.data() });
   }
 
   template <typename T>
   requires (sizeof (T) == 8)
   CO_INLINE
-  static inline void lldt (const std::span<T> table)
+  static inline void lldt (std::span<T> table)
   {
     co_assert(table.size () * sizeof(T) < 0x10000u);   
-    lldt ({ table.data(), (std::uint16_t)table.size() });
+    lldt (Xdtr_t{ (std::uint16_t)table.size(), table.data() });
   }
 
   template <typename T>
   requires (sizeof (T) == 8)
   CO_INLINE
-  static inline void lidt (const std::span<T> table)
+  static inline void lidt (std::span<T> table)
   {
     co_assert(table.size () * sizeof(T) < 0x10000u);   
-    lidt ({ table.data(), (std::uint16_t)table.size() });
+    lidt (Xdtr_t{ (std::uint16_t)table.size(), table.data() });
   }
 #endif // __cpp_lib_span
 
