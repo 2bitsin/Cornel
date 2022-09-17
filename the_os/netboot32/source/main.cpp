@@ -43,17 +43,8 @@ auto main (pxe_api::PXENVplus& _PXENVplus,
            pxe_api::bangPXE& _bangPXE) 
   -> void
 {
-  initialize_context context
-  {
-    _PXENVplus, 
-    _bangPXE
-  };
-
+  initialize_context context {_PXENVplus, _bangPXE};
   initialize(true, context);
-
-  using namespace std::string_view_literals;
-  using namespace std::string_literals;
-  using namespace textio::simple::fmt;
   
   for(;;)  
   {

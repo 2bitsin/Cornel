@@ -8,12 +8,14 @@
 
 #include <memory/allocate_buffer.hpp>
 
+#include <misc/utilities_bits.hpp>
+
 
 static std::span<std::uint64_t> pxe_descriptor_table;
 
 static void initialize(pxe_api::bangPXE& pxe_s)
 {  
-  using namespace x86arch;
+  using namespace x86arch;  
   pxe_descriptor_table = allocate_buffer_of<std::uint64_t>(
     pxe_s.count_seg_desc, 
     [&pxe_s] (std::size_t index) 
@@ -74,6 +76,23 @@ void pxe_api::initialize(bool first_time, initialize_context const& context)
     panick::invalid_pxenvplus();
     return;
   }
+
+  auto[minor, major] = bits::unpack_as_tuple<8, 8>(context.m_PXENVplus.version);
+  using namespace textio::simple::fmt;
+
+  console::writeln("Initializing PXE v", major, '.', minor, " ... ");
+  console::writeln("prot_mode_stack_seg  : ", hex<'&'>(context.m_PXENVplus.prot_mode_stack_seg));
+  console::writeln("prot_mode_stack_size : ", hex<'&'>(context.m_PXENVplus.prot_mode_stack_size));
+  console::writeln("base_code_seg        : ", hex<'&'>(context.m_PXENVplus.base_code_seg));
+  console::writeln("base_code_size       : ", hex<'&'>(context.m_PXENVplus.base_code_size));
+  console::writeln("base_data_seg        : ", hex<'&'>(context.m_PXENVplus.base_data_seg));
+  console::writeln("base_data_size       : ", hex<'&'>(context.m_PXENVplus.base_data_size));
+  console::writeln("undi_data_seg        : ", hex<'&'>(context.m_PXENVplus.undi_data_seg));
+  console::writeln("undi_data_size       : ", hex<'&'>(context.m_PXENVplus.undi_data_size));
+  console::writeln("undi_code_seg        : ", hex<'&'>(context.m_PXENVplus.undi_code_seg));
+  console::writeln("undi_code_size       : ", hex<'&'>(context.m_PXENVplus.undi_code_size));
+
+  
 
   if (context.m_PXENVplus.version >= 0x201)
   {
