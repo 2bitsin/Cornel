@@ -17,7 +17,7 @@ static void initialize([[maybe_unused]] pxe_api::bangPXE& pxe_s)
 {  
   using namespace x86arch;  
   using textio::simple::fmt::hex;
-  x86arch::gdt_resize(x86arch::gdt_size() + pxe_s.count_seg_desc);
+  x86arch::gdt_table_resize(x86arch::gdt_table_size() + pxe_s.count_seg_desc);
   for(std::size_t i = 0u; i < pxe_s.count_seg_desc; ++i)
   {
     const auto& seg_desc = pxe_s.seg_desc[i];
@@ -38,12 +38,13 @@ static void initialize([[maybe_unused]] pxe_api::bangPXE& pxe_s)
     default: type = x86arch::segment_type::data; break;  // BC Code Write
     }
 
-    x86arch::gdt_set(x86arch::gdt_size() + i, gdt_descriptor({
+    x86arch::gdt_descriptor_set(x86arch::gdt_table_size() + i, gdt_descriptor({
       .type = type,
       .base = seg_desc.base,
       .size = seg_desc.size
-    }));
+    }));   
   }
+
 }
 
 static void initialize([[maybe_unused]] pxe_api::PXENVplus& pxe_s)

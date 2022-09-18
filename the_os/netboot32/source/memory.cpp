@@ -1,4 +1,5 @@
 #include <misc/macros.hpp>
+#include <misc/debug.hpp>
 
 #include <memory/block_list.hpp>
 #include <memory/allocate_buffer.hpp>
@@ -22,6 +23,7 @@ static block_list G_heap;
 
 void memory::initialize(bool first_time)
 {
+  using namespace textio::simple::fmt;
   if (!first_time)
     return;
   
@@ -36,11 +38,10 @@ void memory::initialize(bool first_time)
     panick::cant_enable_atwenty();
 
   const auto initial_table_size = x86arch::gdt_table_size();
-
+  console::writeln(_debug_var(initial_table_size, hex<'&'>));
   /* Add 16bit code and data segments */
   x86arch::gdt_table_resize(initial_table_size + 2u, 0u, 
     reallocate_dont_release_prev_flag);  
-
   /* 16bit code segment */
   x86arch::gdt_descriptor_set(initial_table_size + 0u, 
     x86arch::gdt_descriptor({

@@ -10,22 +10,26 @@
 
 using namespace x86arch;
 
-auto x86arch::gdt_descritor(gta_make32_type params) -> std::uint64_t
+auto x86arch::gdt_descriptor(gdt_descriptor_type params) -> std::uint64_t
 {
   using namespace std;
 
   uint8_t flags { 0u };
   uint32_t size { params.size };
+  uint32_t base { params.base };
 
   if (params.is_32bit)
   { flags |= 0b0100u; } 
   else 
-  { size = std::clamp(size, 0u, 0xfffffu); }
+  { 
+    size = std::clamp(size, 0u, 0x00ffffu); 
+    base = std::clamp(base, 0u, 0xffffffu);
+  }
      
   if (size >= 0x100000u) 
   { 
     size = (size >> 12u) + !!(size & 0xfffu);
-    size = std::clamp(size, 0u, 0xfffffu);
+    size = std::clamp(size, 0u, 0xfffffu);    
     flags |= 0b1000u;    
   }
 
@@ -44,7 +48,7 @@ auto x86arch::gdt_descritor(gta_make32_type params) -> std::uint64_t
   })() };
     
   const auto [size_l, size_h] = bits::unpack_as_tuple<16, 16>(size);
-  const auto [base_l, base_h] = bits::unpack_as_tuple<24, 8>(params.base);
+  const auto [base_l, base_h] = bits::unpack_as_tuple<24, 8>(base);
 
   return bits::pack<16, 24, 8, 4, 4, 8>(size_l, base_l, access, size_h, flags, base_h);
 }
@@ -54,8 +58,10 @@ auto x86arch::gdt_table_resize(std::uint16_t new_size, std::uint64_t defval, std
 {
   using textio::simple::fmt::hex;
   x86arch::interrupt_guard cli;
-  std::span<std::uint64_t> curr_gdt = x86arch::sgdt();  
+  auto curr_gdt = x86arch::sgdt(); 
+  console::writeln("curr_gdt=(", hex<'&'>(curr_gdt.data()), ", ", hex<'&'>(curr_gdt.size()), ")"); 
   curr_gdt = reallocate_buffer(curr_gdt, new_size, defval, flags);
+  console::writeln("curr_gdt=(", hex<'&'>(curr_gdt.data()), ", ", hex<'&'>(curr_gdt.size()), ")"); 
   x86arch::lgdt(curr_gdt);
   return curr_gdt;
 }

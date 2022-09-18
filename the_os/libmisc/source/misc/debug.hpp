@@ -23,3 +23,5 @@ static inline void __debug_print(char const* message)
   for (auto i = 0; message[i] != '\0'; ++i)
     __debug_char(message[i]);  
 }
+
+#define _debug_var(X, Fmt) #X "=", Fmt((X)) 
