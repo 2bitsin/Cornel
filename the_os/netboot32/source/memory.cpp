@@ -38,11 +38,12 @@ void memory::initialize(bool first_time)
     panick::cant_enable_atwenty();
 
   const auto initial_table_size = x86arch::gdt_table_size();
-  console::writeln(_debug_var(initial_table_size, hex<'&'>));
   /* Add 16bit code and data segments */
+  console::writeln("Growing GDT by two entries");  
   x86arch::gdt_table_resize(initial_table_size + 2u, 0u, 
     reallocate_dont_release_prev_flag);  
   /* 16bit code segment */
+  console::writeln("Adding 16bit code segment");  
   x86arch::gdt_descriptor_set(initial_table_size + 0u, 
     x86arch::gdt_descriptor({
       .type = x86arch::segment_type::code,
@@ -52,6 +53,7 @@ void memory::initialize(bool first_time)
     }));
 
   /* 16bit data segment */
+  console::writeln("Adding 16bit data segment");  
   x86arch::gdt_descriptor_set(initial_table_size + 1u, 
     x86arch::gdt_descriptor({
       .type = x86arch::segment_type::data,

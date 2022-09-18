@@ -58,7 +58,9 @@ namespace x86arch
     }
 
     ~interrupt_guard() {
-      x86arch::load_flags(flags);
+      if (flags & 0x200u) {
+        x86arch::sti();
+      }
     }
 
     std::uint16_t flags;

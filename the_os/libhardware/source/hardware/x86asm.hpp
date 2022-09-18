@@ -140,14 +140,14 @@ namespace x86arch
   requires (std::is_integral_v<T> && sizeof(T) >= 2 && sizeof(T) <= 4)
   CO_INLINE static inline void store_flags(T& value) 
   {
-    __asm__ volatile ("pushf; pop %0": "=rm" (value)); 
+    __asm__ volatile ("pushf \n\t" "pop %0": "=rm" (value)); 
   }
 
   template <typename T>
   requires (std::is_integral_v<T> && sizeof(T) >= 2 && sizeof(T) <= 4)
   CO_INLINE static inline void load_flags(T value) 
   {
-    __asm__ volatile ("push %0; popf" : : "rm" (value));
+    __asm__ volatile ("push %0 \n\t" "popf" : : "rm" (value) : "cc");
   }
 
 }
