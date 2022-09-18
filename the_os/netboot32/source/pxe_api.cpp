@@ -16,7 +16,34 @@ static std::span<std::uint64_t> pxe_descriptor_table;
 static void initialize([[maybe_unused]] pxe_api::bangPXE& pxe_s)
 {  
   using namespace x86arch;  
-  
+  using textio::simple::fmt::hex;
+  x86arch::gdt_resize(x86arch::gdt_size() + pxe_s.count_seg_desc);
+  for(std::size_t i = 0u; i < pxe_s.count_seg_desc; ++i)
+  {
+    const auto& seg_desc = pxe_s.seg_desc[i];
+    console::writeln("!PXE.seg_desc[", i, "]: { ", 
+      ".real_seg=", hex<'&'>(seg_desc.real_seg),
+      ", .base=", hex<'&'>(seg_desc.base),
+      ", .size=", hex<'&'>(seg_desc.size)," }");
+    x86arch::segment_type type;
+    switch(i)
+    {
+    case 0 : type = x86arch::segment_type::stack; break; // Stack
+    case 1 : type = x86arch::segment_type::data; break;  // UNDI Data
+    case 2 : type = x86arch::segment_type::code; break;  // UNDI Code
+    case 3 : type = x86arch::segment_type::data; break;  // UNDI Code Write
+    case 4 : type = x86arch::segment_type::data; break;  // BC Data
+    case 5 : type = x86arch::segment_type::code; break;  // BC Code
+    case 6 : type = x86arch::segment_type::data; break;  // BC Code Write
+    default: type = x86arch::segment_type::data; break;  // BC Code Write
+    }
+
+    x86arch::gdt_set(x86arch::gdt_size() + i, gdt_make32({
+      .type = type,
+      .base = seg_desc.base,
+      .size = seg_desc.size
+    }));
+  }
 }
 
 static void initialize([[maybe_unused]] pxe_api::PXENVplus& pxe_s)

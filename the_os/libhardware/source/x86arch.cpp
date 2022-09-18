@@ -48,12 +48,12 @@ auto x86arch::gdt_make32(gta_make32_type params) -> std::uint64_t
 
 auto x86arch::gdt_resize(std::uint16_t new_size, std::uint64_t defval, std::uint32_t flags) -> std::span<std::uint64_t>
 {
+  // TODO : figure out why GDT is set to limit = 0
+  using textio::simple::fmt::hex;
   std::uint16_t save_flags;
   x86arch::store_flags(save_flags);
   x86arch::cli();
-  std::span<std::uint64_t> curr_gdt;
-  curr_gdt = x86arch::sgdt();
-  console::writeln("gdt_resize: curr_gdt = (", hex<'&'> (curr_gdt.data()), hex<'&'>(curr_gdt.size()), ")");
+  std::span<std::uint64_t> curr_gdt = x86arch::sgdt();  
   curr_gdt = reallocate_buffer(curr_gdt, new_size, defval, flags);
   x86arch::lgdt(curr_gdt);
   x86arch::load_flags(save_flags);

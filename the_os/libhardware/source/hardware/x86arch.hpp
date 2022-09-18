@@ -8,6 +8,49 @@
 namespace x86arch
 {
 
+#ifdef __cpp_lib_span
+  template <typename T>
+  requires (sizeof (T) == 8)
+  CO_INLINE
+  static inline void lgdt (std::span<T> table)
+  {
+    const auto limit = table.size()*sizeof(T);
+    co_assert(limit < 0x10000u);   
+    lgdt (Xdtr_t{ (std::uint16_t)limit, table.data() });
+  }
+
+  template <typename T>
+  requires (sizeof (T) == 8)
+  CO_INLINE
+  static inline void lidt (std::span<T> table)
+  {
+    const auto limit = table.size()*sizeof(T);
+    co_assert(limit < 0x10000u);   
+    lidt (Xdtr_t{ (std::uint16_t)limit, table.data() });
+  }
+
+  /// -----------------------------------------------------------------------
+
+  template <typename T = std::uint64_t>
+  CO_INLINE
+  static inline auto sgdt () -> std::span<T>
+  {
+    Xdtr_t tr;
+    sgdt (tr);
+    return std::span<T> { (T*)tr.base, tr.limit / sizeof(T) };
+  }
+
+  template <typename T = std::uint64_t>
+  CO_INLINE
+  static inline auto sidt () -> std::span<T>
+  {
+    Xdtr_t tr;
+    sidt (tr);
+    return std::span<T> { (T*)tr.base, tr.limit / sizeof(T) };
+  }
+
+#endif // __cpp_lib_span
+
   enum class segment_type
   {
     code,

@@ -65,7 +65,7 @@ struct pxe_api
     // Can be any number of segdescs
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"  
-    segdesc   descriptors[0];
+    segdesc   seg_desc[0];
  #pragma GCC diagnostic pop
   };
 

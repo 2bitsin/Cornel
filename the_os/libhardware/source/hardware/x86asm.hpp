@@ -106,7 +106,7 @@ namespace x86arch
   CO_INLINE
   static inline void lldt (uint16_t tr)
   {
-    __asm__ volatile ("lldt %0" : : "r" (tr));
+    __asm__ volatile ("lldt %0" : : "rm" (tr));
   }
   
   /// -----------------------------------------------------------------------
@@ -126,51 +126,10 @@ namespace x86arch
   CO_INLINE
   static inline void sldt (uint16_t& tr)
   {
-    __asm__ volatile ("sldt %0" : "=r" (tr));  
+    __asm__ volatile ("sldt %0" : "=rm" (tr));  
   }
 
-  /// -----------------------------------------------------------------------
-  
-#ifdef __cpp_lib_span
-  template <typename T>
-  requires (sizeof (T) == 8)
-  CO_INLINE
-  static inline void lgdt (std::span<T> table)
-  {
-    co_assert(table.size () * sizeof(T) < 0x10000u);   
-    lgdt (Xdtr_t{ (std::uint16_t)table.size(), table.data() });
-  }
-
-  template <typename T>
-  requires (sizeof (T) == 8)
-  CO_INLINE
-  static inline void lidt (std::span<T> table)
-  {
-    co_assert(table.size () * sizeof(T) < 0x10000u);   
-    lidt (Xdtr_t{ (std::uint16_t)table.size(), table.data() });
-  }
-
-  /// -----------------------------------------------------------------------
-
-  template <typename T = std::uint64_t>
-  CO_INLINE
-  static inline auto sgdt () -> std::span<T>
-  {
-    Xdtr_t tr;
-    sgdt (tr);
-    return std::span<T> { (T*)tr.base, tr.limit / sizeof(T) };
-  }
-
-  template <typename T = std::uint64_t>
-  CO_INLINE
-  static inline auto sidt () -> std::span<T>
-  {
-    Xdtr_t tr;
-    sidt (tr);
-    return std::span<T> { (T*)tr.base, tr.limit / sizeof(T) };
-  }
-
-#endif // __cpp_lib_span
+  /// -----------------------------------------------------------------------  
 
   CO_INLINE static inline void cli() { __asm__ volatile ("cli"); }
   CO_INLINE static inline void sti() { __asm__ volatile ("sti"); }
@@ -181,14 +140,14 @@ namespace x86arch
   requires (std::is_integral_v<T> && sizeof(T) >= 2 && sizeof(T) <= 4)
   CO_INLINE static inline void store_flags(T& value) 
   {
-    __asm__ volatile ("pushf; pop %0": "=r" (value)); 
+    __asm__ volatile ("pushf; pop %0": "=rm" (value)); 
   }
 
   template <typename T>
   requires (std::is_integral_v<T> && sizeof(T) >= 2 && sizeof(T) <= 4)
   CO_INLINE static inline void load_flags(T value) 
   {
-    __asm__ volatile ("push %0; popf" : : "r" (value));
+    __asm__ volatile ("push %0; popf" : : "rm" (value));
   }
 
 }

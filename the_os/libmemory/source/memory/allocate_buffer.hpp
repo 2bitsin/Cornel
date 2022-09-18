@@ -43,7 +43,7 @@ template <typename T>
 static inline auto reallocate_buffer(std::span<T> buffer, std::size_t new_size, T const& defval = T(), std::uint32_t flags = 0u) -> std::span<T>
 {
   if (new_size <= buffer.size() && !(flags & reallocate_force_copy_flag))
-    return buffer.subspan(new_size);
+    return buffer.subspan(0, new_size);
   auto new_buffer = allocate_buffer_of<T>(new_size, defval);
   const auto min_size = std::min(buffer.size(), new_size);
   std::copy_n(buffer.begin(), min_size, new_buffer.begin());

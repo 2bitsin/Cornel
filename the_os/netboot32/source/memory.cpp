@@ -35,11 +35,9 @@ void memory::initialize(bool first_time)
   if (!atwenty::try_enable()) 
     panick::cant_enable_atwenty();
 
-  console::write("Copying GDT ...");
   __debugbreak();
-  x86arch::gdt_resize(x86arch::gdt_size(), reallocate_force_copy_flag|reallocate_dont_release_prev_flag);  
+  x86arch::gdt_resize(x86arch::gdt_size(), x86arch::gdt_make32({}), reallocate_force_copy_flag|reallocate_dont_release_prev_flag);  
   __debugbreak();
-  console::writeln("done.");
 }
 
 void memory::finalize(bool last_time)
