@@ -10,22 +10,28 @@
 
 using namespace x86arch;
 
-auto x86arch::gdt_make32(gta_make32_type params) -> std::uint64_t
+auto x86arch::gdt_descritor(gta_make32_type params) -> std::uint64_t
 {
   using namespace std;
 
-  auto Gbit{ params.size >= 0x100000u };
-  auto size{ params.size };
+  uint8_t flags { 0u };
+  uint32_t size { params.size };
 
-  if (Gbit) 
+  if (params.is_32bit)
+  { flags |= 0b0100u; } 
+  else 
+  { size = std::clamp(size, 0u, 0xfffffu); }
+     
+  if (size >= 0x100000u) 
   { 
     size = (size >> 12u) + !!(size & 0xfffu);
     size = std::clamp(size, 0u, 0xfffffu);
+    flags |= 0b1000u;    
   }
 
   const uint8_t access { ([&params] () -> uint8_t
   {
-    const auto p = params.present ? 1u : 0u;
+    const auto p = params.is_present ? 1u : 0u;
     const auto l = std::clamp(1u*params.priv_level, 0u, 3u);
     using enum segment_type;
     switch (params.type)
@@ -36,8 +42,6 @@ auto x86arch::gdt_make32(gta_make32_type params) -> std::uint64_t
     case code  : return bits::pack<5, 2, 1> (0b11110u, l, p);
     }
   })() };
-
-  const uint8_t flags = Gbit ? 0x8u : 0x0u ;
     
   const auto [size_l, size_h] = bits::unpack_as_tuple<16, 16>(size);
   const auto [base_l, base_h] = bits::unpack_as_tuple<24, 8>(params.base);
@@ -46,28 +50,26 @@ auto x86arch::gdt_make32(gta_make32_type params) -> std::uint64_t
 }
 
 
-auto x86arch::gdt_resize(std::uint16_t new_size, std::uint64_t defval, std::uint32_t flags) -> std::span<std::uint64_t>
+auto x86arch::gdt_table_resize(std::uint16_t new_size, std::uint64_t defval, std::uint32_t flags) -> std::span<std::uint64_t>
 {
-  // TODO : figure out why GDT is set to limit = 0
   using textio::simple::fmt::hex;
-  std::uint16_t save_flags;
-  x86arch::store_flags(save_flags);
-  x86arch::cli();
+  x86arch::interrupt_guard cli;
   std::span<std::uint64_t> curr_gdt = x86arch::sgdt();  
   curr_gdt = reallocate_buffer(curr_gdt, new_size, defval, flags);
   x86arch::lgdt(curr_gdt);
-  x86arch::load_flags(save_flags);
   return curr_gdt;
 }
 
-auto x86arch::gdt_set(std::uint16_t index, std::uint64_t desc) 
+auto x86arch::gdt_descriptor_set(std::uint16_t index, std::uint64_t desc) 
   -> std::uint64_t 
 {
+  x86arch::interrupt_guard cli;
   return std::exchange(sgdt()[index], desc);
 }
 
-auto x86arch::gdt_get(std::uint16_t index) -> std::uint64_t
+auto x86arch::gdt_descriptor_get(std::uint16_t index) -> std::uint64_t
 {
+  x86arch::interrupt_guard cli;
   return sgdt()[index];
 }
 
@@ -76,7 +78,7 @@ auto x86arch::gdt_selector(std::uint16_t index, std::uint8_t rpl) -> std::uint16
   return bits::pack<2, 1, 13>(rpl, 0, index);
 }
 
-auto x86arch::gdt_size() -> std::uint16_t
+auto x86arch::gdt_table_size() -> std::uint16_t
 {
   return sgdt().size();
 }

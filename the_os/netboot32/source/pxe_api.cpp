@@ -38,7 +38,7 @@ static void initialize([[maybe_unused]] pxe_api::bangPXE& pxe_s)
     default: type = x86arch::segment_type::data; break;  // BC Code Write
     }
 
-    x86arch::gdt_set(x86arch::gdt_size() + i, gdt_make32({
+    x86arch::gdt_set(x86arch::gdt_size() + i, gdt_descriptor({
       .type = type,
       .base = seg_desc.base,
       .size = seg_desc.size

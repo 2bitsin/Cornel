@@ -35,9 +35,29 @@ void memory::initialize(bool first_time)
   if (!atwenty::try_enable()) 
     panick::cant_enable_atwenty();
 
-  __debugbreak();
-  x86arch::gdt_resize(x86arch::gdt_size(), x86arch::gdt_make32({}), reallocate_force_copy_flag|reallocate_dont_release_prev_flag);  
-  __debugbreak();
+  const auto initial_table_size = x86arch::gdt_table_size();
+
+  /* Add 16bit code and data segments */
+  x86arch::gdt_table_resize(initial_table_size + 2u, 0u, 
+    reallocate_dont_release_prev_flag);  
+
+  /* 16bit code segment */
+  x86arch::gdt_descriptor_set(initial_table_size + 0u, 
+    x86arch::gdt_descriptor({
+      .type = x86arch::segment_type::code,
+      .base = 0u,
+      .size = 0xFFFFu,
+      .is_32bit = false
+    }));
+
+  /* 16bit data segment */
+  x86arch::gdt_descriptor_set(initial_table_size + 1u, 
+    x86arch::gdt_descriptor({
+      .type = x86arch::segment_type::data,
+      .base = 0u,
+      .size = 0xFFFFu,
+      .is_32bit = false
+    }));
 }
 
 void memory::finalize(bool last_time)
