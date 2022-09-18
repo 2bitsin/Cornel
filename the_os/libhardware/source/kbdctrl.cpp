@@ -1,5 +1,5 @@
 #include <hardware/kbdctrl.hpp>
-#include <hardware/assembly.hpp>
+#include <hardware/x86asm.hpp>
 
 
 void kbdctrl::wait_for_input_buffer_empty()

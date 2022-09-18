@@ -1,12 +1,12 @@
 #include <cstdlib>
 
 #include <hardware/atwenty.hpp>
-#include <hardware/assembly.hpp>
+#include <hardware/x86asm.hpp>
 #include <hardware/kbdctrl.hpp>
 #include <hardware/pic8259.hpp>
 #include <hardware/console.hpp>
 
-#include <misc/utilities_var.hpp>
+#include <misc/var.hpp>
 #include <textio/simple.hpp>
 
 static inline const constexpr std::uint8_t FAST_GATE_A20_ENABLE_BIT = 0x02u;
@@ -92,20 +92,4 @@ auto atwenty::try_enable() -> bool
   
   // TODO : Add bios enable fallback
   return false;
-}
-
-auto atwenty::initialize(bool first_time) -> void
-{
-  using namespace textio::simple;
-  if (!first_time)
-    return;
-  if (!try_enable()) 
-  {
-    console::writeln("#001 - Failed to enable address line 20.");
-    std::abort();
-  }
-}
-
-auto atwenty::finalize([[maybe_unused]] bool last_time) -> void
-{
 }

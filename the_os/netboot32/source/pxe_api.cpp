@@ -8,27 +8,15 @@
 
 #include <memory/allocate_buffer.hpp>
 
-#include <misc/utilities_bits.hpp>
+#include <misc/bits.hpp>
 
 
 static std::span<std::uint64_t> pxe_descriptor_table;
 
-static void initialize(pxe_api::bangPXE& pxe_s)
+static void initialize([[maybe_unused]] pxe_api::bangPXE& pxe_s)
 {  
   using namespace x86arch;  
-  pxe_descriptor_table = allocate_buffer_of<std::uint64_t>(
-    pxe_s.count_seg_desc, 
-    [&pxe_s] (std::size_t index) 
-    {
-      const auto& desc = pxe_s.descriptors[index];    
-      return make_32bit_segment({ 
-        .type = segment_type::data,
-        .base = desc.base,
-        .size = desc.size
-      });
-    });
-  lldt(pxe_descriptor_table);
-  pxe_s.first_seg_sel = 0b100u; // start from LDT(0, RPL=0)
+  
 }
 
 static void initialize([[maybe_unused]] pxe_api::PXENVplus& pxe_s)

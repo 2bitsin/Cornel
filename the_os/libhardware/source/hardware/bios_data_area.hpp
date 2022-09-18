@@ -1,8 +1,8 @@
 #pragma once
 
-#include <misc/utilities_var.hpp>
+#include <misc/var.hpp>
 
-struct bda
+namespace bda
 {
   static inline auto&& com_port_address         = variable_at<0x0400u, volatile std::uint16_t [4]>;
   static inline auto&& lpt_port_address         = variable_at<0x0408u, volatile std::uint16_t [4]>;

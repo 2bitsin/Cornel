@@ -1,6 +1,12 @@
 #include <misc/macros.hpp>
-#include <hardware/console.hpp>
+
 #include <memory/block_list.hpp>
+#include <memory/allocate_buffer.hpp>
+
+#include <hardware/console.hpp>
+#include <hardware/atwenty.hpp>
+#include <hardware/x86arch.hpp>
+
 #include <netboot32/memory.hpp>
 #include <netboot32/panick.hpp>
 
@@ -14,15 +20,26 @@ extern "C"
 
 static block_list G_heap;
 
-
 void memory::initialize(bool first_time)
 {
   if (!first_time)
     return;
-  console::writeln("Initializing heap");
-  console::writeln("Available heap size : ", bda::conventional_memory_size * 1024u - (std::uintptr_t)G_heap_begin, " bytes");  
+  
+  const auto* top_of_heap = (std::byte const *)(bda::conventional_memory_size * 0x400u);
+  std::span heap_bytes { G_heap_begin, top_of_heap };
+
   // Initialize heap
-  G_heap.initialize({ G_heap_begin, G_heap_begin + bda::conventional_memory_size * 1024u });
+  G_heap.initialize(heap_bytes);
+  console::writeln("Initializing heap, ",  heap_bytes.size(), " bytes available.");  
+
+  if (!atwenty::try_enable()) 
+    panick::cant_enable_atwenty();
+
+  console::write("Copying GDT ...");
+  __debugbreak();
+  x86arch::gdt_resize(x86arch::gdt_size(), reallocate_force_copy_flag|reallocate_dont_release_prev_flag);  
+  __debugbreak();
+  console::writeln("done.");
 }
 
 void memory::finalize(bool last_time)
@@ -67,10 +84,8 @@ void* calloc(std::size_t nelem, std::size_t size)
 CO_PUBLIC
 void free(void* ptr)
 {
-  if (!G_heap.deallocate(ptr))
-  {
+  if(!G_heap.deallocate(ptr))
     panick::invalid_free(ptr, G_heap);
-  }
 }
 
 CO_PUBLIC 
@@ -142,4 +157,9 @@ void* operator new(std::size_t size) noexcept
   if (nullptr == ptr) 
     panick::out_of_memory(size, G_heap);
   return ptr;
+}
+
+auto memory::is_valid(void* ptr) -> bool
+{
+  return G_heap.is_valid(ptr);
 }

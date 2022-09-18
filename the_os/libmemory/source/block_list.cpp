@@ -92,7 +92,6 @@ auto block_list::initialize(range_type init) noexcept -> bool
   auto addr = init.data();
 
   static constexpr auto Q = sizeof(block_type);
-
   if ((uintptr_t)addr % Q) 
   {
     addr = (byte*)(((uintptr_t)addr + Q) & ~(Q - 1));
@@ -102,6 +101,7 @@ auto block_list::initialize(range_type init) noexcept -> bool
   if (init.size() < sizeof(block_type) * 2u) 
     return false;
 
+
   auto block = (block_type*)addr;  
   block->size = size;
   block->next = nullptr;
@@ -109,9 +109,10 @@ auto block_list::initialize(range_type init) noexcept -> bool
   
   set_block_available(*block);
   
+  m_bits = std::span{ addr, size };
   m_head = block;
   m_tail = block;
-
+  
   return true;
 }
 
@@ -200,6 +201,20 @@ auto block_list::size(void const* what) const noexcept -> std::size_t
 auto block_list::deallocate(void* what,[[maybe_unused]] std::size_t size) noexcept -> bool
 {
   return deallocate(what);
+}
+
+auto block_list::contains(void const* ptr) const noexcept -> bool
+{
+  auto const b_ptr = (std::byte const*)ptr;
+  return m_bits.data() <= b_ptr && b_ptr < (m_bits.data() + m_bits.size());
+}
+
+auto block_list::is_valid(void const* ptr) const noexcept -> bool
+{
+  auto const b_ptr = block_list::block_from_pointer(ptr);    
+  if (nullptr == b_ptr || !block_list::contains(b_ptr))
+    return false;
+  return block_invalid != block_list::block_status(*b_ptr);
 }
 
 auto block_list::reallocate([[maybe_unused]] void* what, [[maybe_unused]] std::size_t size) noexcept -> void*

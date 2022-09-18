@@ -3,13 +3,10 @@
 #include <cstdint>
 #include <cstddef>
 
-struct atwenty
+namespace atwenty
 {
-  static auto is_enabled() -> bool;
-  static auto try_enable() -> bool;
-
-  static auto initialize(bool first_time) -> void;
-  static auto finalize(bool last_time) -> void;
+  auto is_enabled() -> bool;
+  auto try_enable() -> bool;
 };
 
 

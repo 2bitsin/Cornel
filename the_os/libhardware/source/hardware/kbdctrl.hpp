@@ -3,8 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 
-
-struct kbdctrl
+namespace kbdctrl
 {
   static inline const constexpr std::uint8_t STATUS_PORT                     = 0x64u;
   static inline const constexpr std::uint8_t COMMAND_PORT                    = 0x64u;
@@ -30,16 +29,15 @@ struct kbdctrl
   static inline const constexpr std::uint8_t WAIT                            = 0x01u;
   static inline const constexpr std::uint8_t DONT_WAIT                       = 0x00u;
 
-
-  static void hardware_reset();
-  static void send_command(std::uint8_t value, std::uint8_t wait);
-  static auto read_data(std::uint8_t wait) -> std::uint8_t;
-  static void send_data(std::uint8_t value, std::uint8_t wait);
-  static void pulse_output_lines(std::uint8_t value);
-  static void disable_keyboard();
-  static void enable_keyboard();
-  static auto read_output_port() -> std::uint8_t;
-  static void send_output_port(std::uint8_t value);
-  static void wait_for_output_buffer_not_empty();
-  static void wait_for_input_buffer_empty();
+  void hardware_reset();
+  void send_command(std::uint8_t value, std::uint8_t wait);
+  auto read_data(std::uint8_t wait) -> std::uint8_t;
+  void send_data(std::uint8_t value, std::uint8_t wait);
+  void pulse_output_lines(std::uint8_t value);
+  void disable_keyboard();
+  void enable_keyboard();
+  auto read_output_port() -> std::uint8_t;
+  void send_output_port(std::uint8_t value);
+  void wait_for_output_buffer_not_empty();
+  void wait_for_input_buffer_empty();
 };

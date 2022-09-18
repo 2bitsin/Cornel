@@ -1,5 +1,5 @@
 #include <hardware/rtccmos.hpp>
-#include <hardware/assembly.hpp>
+#include <hardware/x86asm.hpp>
 
 static inline constexpr auto NMI_DISABLE_BIT = 0x80u;
 

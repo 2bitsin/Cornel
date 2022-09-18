@@ -44,10 +44,8 @@
 #undef A1
 #undef A4
 
-
-
-struct isr
+namespace isr
 {
-  static void initialize(bool first_time);
-  static void finalize(bool last_time);
+  void initialize(bool first_time);
+  void finalize(bool last_time);
 };

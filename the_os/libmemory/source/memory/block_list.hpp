@@ -41,6 +41,9 @@ struct block_list
 
   auto reallocate(void*, std::size_t) noexcept -> void*;
 
+  auto contains(void const* ptr) const noexcept -> bool;
+  auto is_valid(void const* ptr) const noexcept -> bool;
+
   template <std::output_iterator<char> O>
   friend auto pretty_print(block_list const& blist, O oi) noexcept -> void;    
 
@@ -65,6 +68,7 @@ protected:
 private:
   block_type*     m_head;
   block_type*     m_tail;
+  range_type      m_bits;
 };
 
 

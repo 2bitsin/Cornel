@@ -14,6 +14,13 @@ void abort()
   for(;;);
 }
 
+[[noreturn]]
+void panick::cant_enable_atwenty() noexcept
+{
+  console::writeln("#001 - Unable to enable address line 20");
+  std::abort();
+}
+
 [[noreturn]] 
 void panick::out_of_memory(std::size_t size) noexcept
 {
@@ -30,7 +37,7 @@ void panick::invalid_free(void* ptr) noexcept
 }
 
 [[noreturn]] 
-void panick::out_of_memory(std::size_t size, struct block_list const& blist) noexcept
+void panick::out_of_memory(std::size_t size, struct ::block_list const& blist) noexcept
 {
   console::writeln("#002 - Out of memory, unable to allocate ", size, " bytes");
   pretty_print(blist, console::iterator{});
@@ -38,7 +45,7 @@ void panick::out_of_memory(std::size_t size, struct block_list const& blist) noe
 }
 
 [[noreturn]] 
-void panick::invalid_free(void* ptr, struct block_list const& blist) noexcept
+void panick::invalid_free(void* ptr, struct ::block_list const& blist) noexcept
 {
   using namespace textio::simple::fmt;
   console::writeln("#003 - Heap deallocation failed (", hex<'&'>(ptr), "), possible corruption.");
@@ -65,14 +72,14 @@ namespace std
 
 
 [[noreturn]] 
-void panick::invalid_pxenvplus()
+void panick::invalid_pxenvplus() noexcept
 {
   console::writeln("#006 - Invalid PXENV+ structure");
   std::abort();
 }
 
 [[noreturn]]
-void panick::invalid_bangpxe()
+void panick::invalid_bangpxe() noexcept
 {
   console::writeln("#007 - Invalid !PXE structure");
   std::abort();

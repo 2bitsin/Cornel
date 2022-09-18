@@ -98,17 +98,38 @@ namespace x86arch
   }
 
   CO_INLINE
-  static inline void lldt (Xdtr_t const& tr)
-  {
-    __asm__ volatile ("lldt %0" : : "m" (tr));
-  }
-
-  CO_INLINE
   static inline void lidt (Xdtr_t const& tr)
   {
     __asm__ volatile ("lidt %0" : : "m" (tr));
   }
+
+  CO_INLINE
+  static inline void lldt (uint16_t tr)
+  {
+    __asm__ volatile ("lldt %0" : : "r" (tr));
+  }
   
+  /// -----------------------------------------------------------------------
+
+  CO_INLINE
+  static inline void sgdt (Xdtr_t& tr)
+  {
+    __asm__ volatile ("sgdt %0" : "=m" (tr));  
+  }
+
+  CO_INLINE
+  static inline void sidt (Xdtr_t& tr)
+  {
+    __asm__ volatile ("sidt %0" : "=m" (tr));  
+  }
+
+  CO_INLINE
+  static inline void sldt (uint16_t& tr)
+  {
+    __asm__ volatile ("sldt %0" : "=r" (tr));  
+  }
+
+  /// -----------------------------------------------------------------------
   
 #ifdef __cpp_lib_span
   template <typename T>
@@ -123,20 +144,32 @@ namespace x86arch
   template <typename T>
   requires (sizeof (T) == 8)
   CO_INLINE
-  static inline void lldt (std::span<T> table)
-  {
-    co_assert(table.size () * sizeof(T) < 0x10000u);   
-    lldt (Xdtr_t{ (std::uint16_t)table.size(), table.data() });
-  }
-
-  template <typename T>
-  requires (sizeof (T) == 8)
-  CO_INLINE
   static inline void lidt (std::span<T> table)
   {
     co_assert(table.size () * sizeof(T) < 0x10000u);   
     lidt (Xdtr_t{ (std::uint16_t)table.size(), table.data() });
   }
+
+  /// -----------------------------------------------------------------------
+
+  template <typename T = std::uint64_t>
+  CO_INLINE
+  static inline auto sgdt () -> std::span<T>
+  {
+    Xdtr_t tr;
+    sgdt (tr);
+    return std::span<T> { (T*)tr.base, tr.limit / sizeof(T) };
+  }
+
+  template <typename T = std::uint64_t>
+  CO_INLINE
+  static inline auto sidt () -> std::span<T>
+  {
+    Xdtr_t tr;
+    sidt (tr);
+    return std::span<T> { (T*)tr.base, tr.limit / sizeof(T) };
+  }
+
 #endif // __cpp_lib_span
 
   CO_INLINE static inline void cli() { __asm__ volatile ("cli"); }
@@ -144,5 +177,19 @@ namespace x86arch
   CO_INLINE static inline void hlt() { __asm__ volatile ("hlt"); }
   CO_INLINE static inline void yield() { __asm__ volatile ("hlt"); }
   
+  template <typename T>
+  requires (std::is_integral_v<T> && sizeof(T) >= 2 && sizeof(T) <= 4)
+  CO_INLINE static inline void store_flags(T& value) 
+  {
+    __asm__ volatile ("pushf; pop %0": "=r" (value)); 
+  }
+
+  template <typename T>
+  requires (std::is_integral_v<T> && sizeof(T) >= 2 && sizeof(T) <= 4)
+  CO_INLINE static inline void load_flags(T value) 
+  {
+    __asm__ volatile ("push %0; popf" : : "r" (value));
+  }
+
 }
 

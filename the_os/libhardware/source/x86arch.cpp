@@ -1,10 +1,16 @@
 #include <hardware/x86arch.hpp>
-#include <misc/utilities_bits.hpp>
+#include <hardware/console.hpp>
+
+#include <memory/allocate_buffer.hpp>
+#include <misc/bits.hpp>
+
 #include <algorithm>
+#include <ranges>
+#include <utility>
 
 using namespace x86arch;
 
-auto x86arch::make_32bit_segment(make_32bit_segment_t params) -> std::uint64_t
+auto x86arch::gdt_make32(gta_make32_type params) -> std::uint64_t
 {
   using namespace std;
 
@@ -37,4 +43,40 @@ auto x86arch::make_32bit_segment(make_32bit_segment_t params) -> std::uint64_t
   const auto [base_l, base_h] = bits::unpack_as_tuple<24, 8>(params.base);
 
   return bits::pack<16, 24, 8, 4, 4, 8>(size_l, base_l, access, size_h, flags, base_h);
+}
+
+
+auto x86arch::gdt_resize(std::uint16_t new_size, std::uint64_t defval, std::uint32_t flags) -> std::span<std::uint64_t>
+{
+  std::uint16_t save_flags;
+  x86arch::store_flags(save_flags);
+  x86arch::cli();
+  std::span<std::uint64_t> curr_gdt;
+  curr_gdt = x86arch::sgdt();
+  console::writeln("gdt_resize: curr_gdt = (", hex<'&'> (curr_gdt.data()), hex<'&'>(curr_gdt.size()), ")");
+  curr_gdt = reallocate_buffer(curr_gdt, new_size, defval, flags);
+  x86arch::lgdt(curr_gdt);
+  x86arch::load_flags(save_flags);
+  return curr_gdt;
+}
+
+auto x86arch::gdt_set(std::uint16_t index, std::uint64_t desc) 
+  -> std::uint64_t 
+{
+  return std::exchange(sgdt()[index], desc);
+}
+
+auto x86arch::gdt_get(std::uint16_t index) -> std::uint64_t
+{
+  return sgdt()[index];
+}
+
+auto x86arch::gdt_selector(std::uint16_t index, std::uint8_t rpl) -> std::uint16_t
+{
+  return bits::pack<2, 1, 13>(rpl, 0, index);
+}
+
+auto x86arch::gdt_size() -> std::uint16_t
+{
+  return sgdt().size();
 }
