@@ -1,8 +1,7 @@
 #include <hardware/x86arch.hpp>
-#include <hardware/console.hpp>
 
 #include <memory/allocate_buffer.hpp>
-#include <misc/bits.hpp>
+#include <utils/bits.hpp>
 
 #include <algorithm>
 #include <ranges>
@@ -59,9 +58,7 @@ auto x86arch::gdt_table_resize(std::uint16_t new_size, std::uint64_t defval, std
   using textio::simple::fmt::hex;
   x86arch::interrupt_guard cli;
   auto curr_gdt = x86arch::sgdt(); 
-  console::writeln("curr_gdt=(", hex<'&'>(curr_gdt.data()), ", ", hex<'&'>(curr_gdt.size()), ")"); 
   curr_gdt = reallocate_buffer(curr_gdt, new_size, defval, flags);
-  console::writeln("curr_gdt=(", hex<'&'>(curr_gdt.data()), ", ", hex<'&'>(curr_gdt.size()), ")"); 
   x86arch::lgdt(curr_gdt);
   return curr_gdt;
 }

@@ -1,5 +1,5 @@
 #include <hardware/console.hpp>
-#include <misc/int.hpp>
+#include <utils/int.hpp>
 
 console::console() : 
   tab_size  (8u),

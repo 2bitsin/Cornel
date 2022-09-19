@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <type_traits>
 
-#include <misc/macros.hpp>
-#include <misc/debug.hpp>
+#include <utils/macros.hpp>
+#include <utils/debug.hpp>
 
 namespace x86arch
 {
@@ -136,18 +136,27 @@ namespace x86arch
   CO_INLINE static inline void hlt() { __asm__ volatile ("hlt"); }
   CO_INLINE static inline void yield() { __asm__ volatile ("hlt"); }
   
-  template <typename T>
-  requires (std::is_integral_v<T> && sizeof(T) >= 2 && sizeof(T) <= 4)
-  CO_INLINE static inline void store_flags(T& value) 
+  
+  CO_INLINE static inline void store_flags(std::uint16_t& value) 
   {
-    __asm__ volatile ("pushf \n\t" "pop %0": "=rm" (value)); 
+    __asm__ volatile ("pushfw \n\t" "popw %0": "=rm" (value)); 
   }
 
-  template <typename T>
-  requires (std::is_integral_v<T> && sizeof(T) >= 2 && sizeof(T) <= 4)
-  CO_INLINE static inline void load_flags(T value) 
+  template <typename T> 
+  CO_INLINE static inline void load_flags(std::uint16_t value) 
   {
-    __asm__ volatile ("push %0 \n\t" "popf" : : "rm" (value) : "cc");
+    __asm__ volatile ("pushw %0 \n\t" "popfw" : : "rm" (value) : "cc");
+  }
+  
+  CO_INLINE static inline void store_flags(std::uint32_t& value) 
+  {
+    __asm__ volatile ("pushfl \n\t" "popl %0": "=rm" (value)); 
+  }
+
+  template <typename T> 
+  CO_INLINE static inline void load_flags(std::uint32_t value) 
+  {
+    __asm__ volatile ("pushl %0 \n\t" "popfl" : : "rm" (value) : "cc");
   }
 
 }

@@ -9,7 +9,7 @@
 #include <hardware/bios_data_area.hpp>
 #include <hardware/x86arch.hpp>
 
-#include <misc/macros.hpp>
+#include <utils/macros.hpp>
 
 #include <textio/simple.hpp>
 
@@ -36,13 +36,25 @@ void finalize(bool last_time, initialize_context const& context)
 }
 
 CO_PUBLIC 
-auto main (pxe_api::PXENVplus& _PXENVplus, 
-           pxe_api::bangPXE& _bangPXE) 
+auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) 
   -> void
 {
   initialize_context context {_PXENVplus, _bangPXE};
   initialize(true, context);
-  
+
+  std::span<const std::byte> buffer;
+  std::uint16_t buffer_limit{ 0 };
+
+  if (!pxe_api::get_cached_info(pxe_api::PACKET_TYPE_DHCP_DISCOVER, buffer, buffer_limit))
+  {
+    console::writeln("pxe_api::get_cached_info() failed");
+  }
+  else 
+  {
+    using textio::simple::fmt::hex;
+    console::writeln("pxe_api::get_cached_info() : ", "buffer.size=", buffer.size(), ", buffer.data=", hex<'&'>(buffer.data()), ", buffer_limit=", buffer_limit);
+  }
+
   for(;;)  
   {
     x86arch::yield();

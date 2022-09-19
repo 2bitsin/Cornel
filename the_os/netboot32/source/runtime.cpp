@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <span>
 
-#include <misc/macros.hpp>
-#include <misc/debug.hpp>
+#include <utils/macros.hpp>
+#include <utils/debug.hpp>
 
 #include <hardware/x86asm.hpp>
 #include <hardware/console.hpp>

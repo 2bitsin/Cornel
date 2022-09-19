@@ -3,7 +3,7 @@
 #include <span>
 #include <hardware/x86asm.hpp>
 #include <hardware/x86arch.hpp>
-#include <misc/macros.hpp>
+#include <utils/macros.hpp>
 
 namespace x86arch
 {
@@ -88,6 +88,6 @@ namespace x86arch
   auto gdt_table_size() -> std::uint16_t;
   auto gdt_descriptor_set(std::uint16_t index, std::uint64_t descriptor) -> std::uint64_t;
   auto gdt_descriptor_get(std::uint16_t index) -> std::uint64_t;
-  auto gdt_selector(std::uint16_t index, std::uint8_t rpl) -> std::uint16_t;
+  auto gdt_selector(std::uint16_t index, std::uint8_t rpl = 0u) -> std::uint16_t;
 
 }

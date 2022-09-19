@@ -5,7 +5,7 @@ add_subdirectory(libcimpl)
 add_subdirectory(libhardware)
 add_subdirectory(libtextio)
 add_subdirectory(libmemory)
-add_subdirectory(libmisc)
+add_subdirectory(libutils)
 add_subdirectory(config)
 add_subdirectory(netboot32)
 

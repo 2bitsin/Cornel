@@ -1,7 +1,7 @@
 #include <string_view>
 
-#include <misc/macros.hpp>
-#include <misc/debug.hpp>
+#include <utils/macros.hpp>
+#include <utils/debug.hpp>
 #include <hardware/x86asm.hpp>
 #include <hardware/pic8259.hpp>
 #include <hardware/console.hpp>

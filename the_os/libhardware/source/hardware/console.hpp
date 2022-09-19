@@ -9,7 +9,7 @@
 
 #include <hardware/bios_data_area.hpp>
 #include <hardware/x86asm.hpp>
-#include <misc/debug.hpp>
+#include <utils/debug.hpp>
 #include <textio/simple.hpp>
 
 struct console

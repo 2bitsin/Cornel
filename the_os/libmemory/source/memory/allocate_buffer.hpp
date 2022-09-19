@@ -43,8 +43,7 @@ static constexpr auto reallocate_dont_release_prev_flag = 0x2u;
 
 template <typename T>
 static inline auto reallocate_buffer(std::span<T> buffer, std::size_t new_size, T const& defval = T(), std::uint32_t flags = 0u) -> std::span<T>
-{
-  using textio::simple::fmt::hex;  
+{    
   if (new_size <= buffer.size() && !(flags & reallocate_force_copy_flag))
     return buffer.subspan(0, new_size);
   auto new_buffer = allocate_buffer_of<T>(new_size, defval);
