@@ -18,6 +18,8 @@ desctbl:
     dq 0x0000000000000000 ; 0x0000 = null
     dq 0x00cf9e000000ffff ; 0x0008 = 32bit code 
     dq 0x00cf92000000ffff ; 0x0010 = 32bit data/stack
+    dq 0x00009e000000ffff ; 0x0018 = 16bit code
+    dq 0x000092000000ffff ; 0x0020 = 16bit data/stack
   .end:
 
     dw 0x0000 

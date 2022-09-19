@@ -18,7 +18,6 @@
 #include <netboot32/runtime.hpp>
 #include <netboot32/memory.hpp>
 
-
 void initialize(bool first_time, initialize_context const& context)
 {
   runtime::initialize(first_time);
@@ -41,19 +40,6 @@ auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE)
 {
   initialize_context context {_PXENVplus, _bangPXE};
   initialize(true, context);
-
-  std::span<const std::byte> buffer;
-  std::uint16_t buffer_limit{ 0 };
-
-  if (!pxe_api::get_cached_info(pxe_api::PACKET_TYPE_DHCP_DISCOVER, buffer, buffer_limit))
-  {
-    console::writeln("pxe_api::get_cached_info() failed");
-  }
-  else 
-  {
-    using textio::simple::fmt::hex;
-    console::writeln("pxe_api::get_cached_info() : ", "buffer.size=", buffer.size(), ", buffer.data=", hex<'&'>(buffer.data()), ", buffer_limit=", buffer_limit);
-  }
 
   for(;;)  
   {

@@ -9,6 +9,7 @@ add_executable(netboot32
   runtime.cpp
   memory.cpp
   panick.cpp
+  call16.cpp
   pxe_api.cpp
   main.cpp)
 

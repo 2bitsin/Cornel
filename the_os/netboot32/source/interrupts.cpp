@@ -81,7 +81,7 @@ static std::uint16_t save_mask = 0;
 
 void isr::initialize([[maybe_unused]] bool first_time)
 { 
-  x86arch::cli();  
+  x86arch::cli(); 
   x86arch::lidt(G_idtr);
   pic8259::configure(0x20, 0x28);
   save_mask = pic8259::read_mask();
