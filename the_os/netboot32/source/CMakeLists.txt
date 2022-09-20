@@ -11,7 +11,6 @@ add_executable(netboot32
   panick.cpp
   pxe_api.cpp
   netboot32.cpp
-  call16.cpp
   )
 
 target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

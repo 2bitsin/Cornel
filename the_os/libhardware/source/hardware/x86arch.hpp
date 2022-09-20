@@ -15,7 +15,7 @@ namespace x86arch
   static inline void lgdt (std::span<T> table)
   {
     const auto limit = table.size()*sizeof(T);
-    co_assert(limit < 0x10000u);   
+    __debug_assert(limit < 0x10000u);
     lgdt (Xdtr_t{ (std::uint16_t)limit, table.data() });
   }
 
@@ -25,7 +25,7 @@ namespace x86arch
   static inline void lidt (std::span<T> table)
   {
     const auto limit = table.size()*sizeof(T);
-    co_assert(limit < 0x10000u);   
+    __debug_assert(limit < 0x10000u);
     lidt (Xdtr_t{ (std::uint16_t)limit, table.data() });
   }
 

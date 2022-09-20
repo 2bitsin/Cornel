@@ -11,5 +11,7 @@ namespace pic8259
   auto read_mask () -> std::uint16_t;
   void write_mask (std::uint16_t m);
   void end_of_interrupt (std::uint8_t irq);
+  void switch_to_prot_mode ();
+  void switch_to_real_mode ();
 };
 

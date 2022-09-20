@@ -5,6 +5,7 @@
 #include <hardware/x86asm.hpp>
 #include <hardware/pic8259.hpp>
 #include <hardware/console.hpp>
+#include <hardware/rtccmos.hpp>
 
 #include <netboot32/interrupts.hpp>
 #include <textio/simple.hpp>
@@ -82,8 +83,9 @@ static std::uint16_t save_mask = 0;
 void isr::initialize([[maybe_unused]] bool first_time)
 { 
   x86arch::cli(); 
-  x86arch::lidt(G_idtr);
-  pic8259::configure(0x20, 0x28);
+  
+  x86arch::lidt(G_idtr);  
+  pic8259::switch_to_prot_mode();
   save_mask = pic8259::read_mask();
   pic8259::write_mask(0);
   x86arch::sti();
@@ -93,6 +95,6 @@ void isr::finalize([[maybe_unused]] bool last_time)
 { 
   x86arch::cli();
   pic8259::write_mask(save_mask);
-  pic8259::configure(0x08, 0x70);
+  pic8259::switch_to_real_mode();
   x86arch::lidt({ .limit = 0x400, .base = nullptr });
 }

@@ -57,3 +57,35 @@ void pic8259::end_of_interrupt (std::uint8_t irq)
     outb (PIC8259B_PORT, 0x20);
   outb (PIC8259A_PORT, 0x20);
 }
+
+void pic8259::switch_to_prot_mode ()
+{
+  pic8259::configure(0x20u, 0x28u);
+}
+
+void pic8259::switch_to_real_mode ()
+{  
+  pic8259::configure(0x08u, 0x70u);
+}
+
+
+
+/*
+
+15 - 1   - Secondary ATA
+14 - 0   - Primary ATA
+13 - 0   - FPU
+12 - 0   - PS/2 Mouse
+11 - 1   - ******
+10 - 1   - ******
+09 - 1   - ******
+08 - 1   - CMOS / RTC
+07 - 1   - LPT1
+06 - 0   - Floppy
+05 - 1   - LPT2
+04 - 1   - COM1/COM3
+03 - 1   - COM2/COM4
+02 - 0   - ******
+01 - 0   - PS/2 Keyboard
+00 - 0   - PIT
+*/

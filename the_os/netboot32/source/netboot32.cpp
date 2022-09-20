@@ -8,6 +8,7 @@
 #include <hardware/console.hpp>
 #include <hardware/bios_data_area.hpp>
 #include <hardware/x86arch.hpp>
+#include <hardware/x86call16.hpp>
 
 #include <utils/macros.hpp>
 
@@ -18,7 +19,6 @@
 #include <netboot32/runtime.hpp>
 #include <netboot32/memory.hpp>
 #include <netboot32/netboot32.hpp>
-#include <netboot32/call16.hpp>
 
 namespace netboot32
 {
@@ -39,23 +39,26 @@ namespace netboot32
 
 void test_call16()
 {
-  netboot32::call16_context_type ctx;
-  ctx.eax = 0x12344321;
-  ctx.ebx = 0x56788765;
-  ctx.ecx = 0x9abccba9;
-  ctx.edx = 0xdef00fed;
-  ctx.esi = 0x12345678;
-  ctx.edi = 0x9abcdef0;
-  ctx.ebp = 0x12345678;
-  ctx.ds = 0x1234;
-  ctx.es = 0x5678;
-  ctx.fs = 0x9abc;
-  ctx.gs = 0xdef0;
+  x86arch::call16_context ctx { 
+    .eax    = 0,
+    .ebx    = 0,
+    .ecx    = 0,
+    .edx    = 0,
+    .esi    = 0,
+    .edi    = 0,
+    .ebp    = 0,
+    .ds     = 0,
+    .es     = 0,
+    .fs     = 0,
+    .gs     = 0,
+    .esp    = 0,
+    .ss     = 0,
+    .flags  = 0
+  };
 
-  ctx.flags = 0b0'0000'0000'0000'0000;
-
-  netboot32::call16_int(ctx, 0x12);
-
+  x86arch::call16_stack_allocate(ctx, 0x1000);
+  x86arch::call16_invoke(ctx, 0x12);
+  x86arch::call16_stack_deallocate(ctx);
   console::writeln("INT 12H, EAX = ", ctx.eax & 0xffff);
 
 }

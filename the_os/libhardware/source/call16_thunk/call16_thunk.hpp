@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstddef>
+#include <hardware/x86utils.hpp>
+
 namespace x86arch::detail
 {
   extern "C"
@@ -10,7 +13,7 @@ namespace x86arch::detail
   }
 
   #pragma pack(push, 1)
-  struct call16_context_type
+  struct call16_context
   { 
     std::uint32_t eax;
     std::uint32_t ebx;
@@ -28,16 +31,12 @@ namespace x86arch::detail
 
     std::uint32_t esp;
     std::uint16_t ss;
-    std::uint16_t flags;        
-  };
-
-  struct call16_target_type
-  {
-    std::uint16_t ip;
-    std::uint16_t cs;
+    std::uint16_t flags;
   };
 
   using four_bytes_type = std::byte[4];
+
+  using call16_address = x86arch::real_address;
   
   union call16_thunk_layout
   {
@@ -46,9 +45,9 @@ namespace x86arch::detail
     std::uint8_t code[512];
     struct
     {
-      four_bytes_type     jump;
-      call16_context_type regs;
-      call16_target_type  addr;
+      four_bytes_type jump;
+      call16_context regs;
+      call16_address addr;
     };
   #pragma GCC diagnostic pop
   };
