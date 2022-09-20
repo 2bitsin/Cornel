@@ -1,15 +1,16 @@
 #include <netboot32/call16.hpp>
-#include <memory>
+#include <netboot32/netboot32.hpp>
 
-
-void x86arch::call_fun16(call_context_type& ctx, std::uint32_t eip, std::uint16_t cs)
+void netboot32::call16_fun (call16_context_type& ctx, std::uint16_t cs, std::uint16_t ip)
 {
-  auto staging_area = std::make_unique<std::uint8_t[]>(0x1000);
-
-
+  netboot32::finalize(false);
+  x86arch::call16_fun(ctx, cs, ip);
+  netboot32::initialize(false);
 }
 
-void x86arch::call_int16(call_context_type& ctx, std::uint8_t num)
+void netboot32::call16_int (call16_context_type& ctx, std::uint8_t num)
 {
-
+  netboot32::finalize(false);
+  x86arch::call16_int(ctx, num);
+  netboot32::initialize(false);
 }

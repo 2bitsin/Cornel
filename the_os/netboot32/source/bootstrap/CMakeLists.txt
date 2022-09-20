@@ -3,7 +3,6 @@ set(BOOTSTRAP_BINARY ${CMAKE_CURRENT_BINARY_DIR}/bootstrap.bin)
 string(TIMESTAMP G_BUILD_TIMESTAMP "'%Y-%m-%d',32,'%H:%M'")
 set(BOOTSTRAP_DEFINE -d G_BUILD_TIMESTAMP="${G_BUILD_TIMESTAMP}")
 
-
 find_program(FASM fasm)
 
 add_custom_command(OUTPUT ${BOOTSTRAP_BINARY}

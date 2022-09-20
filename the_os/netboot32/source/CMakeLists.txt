@@ -9,9 +9,10 @@ add_executable(netboot32
   runtime.cpp
   memory.cpp
   panick.cpp
-  call16.cpp
   pxe_api.cpp
-  main.cpp)
+  netboot32.cpp
+  call16.cpp
+  )
 
 target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(netboot32 textio hardware bootstrap utils cimpl memory ${LIB_GCC_PATH})

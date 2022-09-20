@@ -84,7 +84,7 @@ void pxe_api::finalize(bool last_time, initialize_context const&)
     return;
 }
 
-auto pxe_api::get_cached_info(std::uint16_t packet_type, std::span<const std::byte>& buffer, std::uint16_t& buffer_limit) -> std::uint16_t
+auto pxe_api::get_cached_info([[maybe_unused]] std::uint16_t packet_type, [[maybe_unused]] std::span<const std::byte>& buffer, [[maybe_unused]] std::uint16_t& buffer_limit) -> std::uint16_t
 {
   using namespace textio::simple::fmt;
 
