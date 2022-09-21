@@ -136,7 +136,6 @@ namespace x86arch
   CO_INLINE static inline void hlt() { __asm__ volatile ("hlt"); }
   CO_INLINE static inline void yield() { __asm__ volatile ("hlt"); }
   
-  
   CO_INLINE static inline void store_flags(std::uint16_t& value) 
   {
     __asm__ volatile ("pushfw \n\t" "popw %0": "=rm" (value)); 
@@ -157,6 +156,14 @@ namespace x86arch
   CO_INLINE static inline void load_flags(std::uint32_t value) 
   {
     __asm__ volatile ("pushl %0 \n\t" "popfl" : : "rm" (value) : "cc");
+  }
+
+  template <typename T = const void>
+  CO_INLINE static inline auto stack_pointer() -> T*
+  {
+    T* value;
+    __asm__ volatile ("movl %%esp, %0" : "=rm" (value));
+    return value;
   }
 
 }

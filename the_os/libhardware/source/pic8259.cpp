@@ -72,6 +72,8 @@ void pic8259::switch_to_real_mode ()
 
 /*
 
+1000111110111000
+
 15 - 1   - Secondary ATA
 14 - 0   - Primary ATA
 13 - 0   - FPU

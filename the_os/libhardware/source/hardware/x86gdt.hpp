@@ -2,7 +2,6 @@
 
 #include <span>
 #include <hardware/x86asm.hpp>
-#include <hardware/x86arch.hpp>
 #include <utils/macros.hpp>
 
 namespace x86arch

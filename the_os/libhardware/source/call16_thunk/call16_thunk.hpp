@@ -13,45 +13,44 @@ namespace x86arch::detail
   }
 
   #pragma pack(push, 1)
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wpedantic"
+  
   struct call16_context
-  { 
-    std::uint32_t eax;
-    std::uint32_t ebx;
-    std::uint32_t ecx;
-    std::uint32_t edx;    
-    std::uint32_t esi;
-    std::uint32_t edi;
-    std::uint32_t ebp;
-    
+  {  
+    union { std::uint32_t eax; std::uint16_t ax; struct { std::uint8_t al, ah; }; }; 
+    union { std::uint32_t ebx; std::uint16_t bx; struct { std::uint8_t bl, bh; }; }; 
+    union { std::uint32_t ecx; std::uint16_t cx; struct { std::uint8_t cl, ch; }; }; 
+    union { std::uint32_t edx; std::uint16_t dx; struct { std::uint8_t dl, dh; }; };
+    union { std::uint32_t esi; std::uint16_t si; };
+    union { std::uint32_t edi; std::uint16_t di; };
+    union { std::uint32_t ebp; std::uint16_t bp; };
+      
     std::uint16_t ds;    
     std::uint16_t es;
-
     std::uint16_t fs;
     std::uint16_t gs;
 
-    std::uint32_t esp;
+    union { std::uint32_t esp; std::uint16_t sp; };
+
     std::uint16_t ss;
     std::uint16_t flags;
   };
-
-  using four_bytes_type = std::byte[4];
 
   using call16_address = x86arch::real_address;
   
   union call16_thunk_layout
   {
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wpedantic"
     std::uint8_t code[512];
     struct
     {
-      four_bytes_type jump;
+      std::byte jump[4];
       call16_context regs;
       call16_address addr;
     };
-  #pragma GCC diagnostic pop
   };
 
+  #pragma GCC diagnostic pop
   #pragma pack(pop)
 
 } // namespace name

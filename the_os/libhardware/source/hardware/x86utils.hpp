@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <new>
 
+#include <bits/functexcept.h>
+
 namespace x86arch
 {
   #pragma pack(push, 1)
@@ -15,10 +17,13 @@ namespace x86arch
 
     static constexpr inline auto from_pointer(void const* value) noexcept
     { 
-      return real_address {
-        .off = (std::uint8_t)(((std::uintptr_t)value) & 0xfu),
-        .seg = (std::uint8_t)(((std::uintptr_t)value) >> 4u)   
-      };
+      using namespace std;
+
+      if ((std::uintptr_t)value >= 0x100000u)
+      { std::__throw_invalid_argument("real_address::from_pointer: pointer >= 0x100000"); }
+
+      return real_address { .off = (uint16_t)(((uintptr_t)value) & 0xfu), 
+                            .seg = (uint16_t)(((uintptr_t)value) >> 4u) };
     }
 
   #pragma GCC diagnostic push

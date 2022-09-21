@@ -3,10 +3,12 @@
 #include <cstddef>
 #include <cstdint>
 
+namespace interrupts
+{
 #define A4 __attribute__((aligned(4)))
 #define A1 __attribute__((aligned(1)))
 
-  struct ISR_stack_frame 
+  struct stack_frame 
   {
     A4 std::uint16_t ss;
     A4 std::uint16_t gs;
@@ -44,8 +46,6 @@
 #undef A1
 #undef A4
 
-namespace isr
-{
   void initialize(bool first_time);
   void finalize(bool last_time);
 };

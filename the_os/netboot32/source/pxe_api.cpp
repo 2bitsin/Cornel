@@ -3,7 +3,7 @@
 #include <cstddef>
 
 #include <hardware/console.hpp>
-#include <hardware/x86arch.hpp>
+#include <hardware/x86gdt.hpp>
 
 #include <netboot32/pxe_api.hpp>
 #include <netboot32/panick.hpp>

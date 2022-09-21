@@ -47,7 +47,7 @@ static inline constexpr std::string_view G_exception_string [] =
 };
 
 CO_PUBLIC
-int ISR_handler(ISR_stack_frame& state)
+int ISR_handler(interrupts::stack_frame& state)
 { 
   using namespace textio::simple;
   using namespace textio::simple::fmt;
@@ -80,7 +80,7 @@ extern "C" const x86arch::Xdtr_t G_idtr;
 
 static std::uint16_t save_mask = 0;
 
-void isr::initialize([[maybe_unused]] bool first_time)
+void interrupts::initialize([[maybe_unused]] bool first_time)
 { 
   x86arch::cli(); 
   
@@ -91,7 +91,7 @@ void isr::initialize([[maybe_unused]] bool first_time)
   x86arch::sti();
 }
           
-void isr::finalize([[maybe_unused]] bool last_time)
+void interrupts::finalize([[maybe_unused]] bool last_time)
 { 
   x86arch::cli();
   pic8259::write_mask(save_mask);

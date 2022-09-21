@@ -1,4 +1,4 @@
-#include <hardware/x86arch.hpp>
+#include <hardware/x86gdt.hpp>
 
 #include <memory/allocate_buffer.hpp>
 #include <utils/bits.hpp>

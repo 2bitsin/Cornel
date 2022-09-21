@@ -1,5 +1,5 @@
 #include <hardware/x86asm.hpp>
-#include <hardware/x86arch.hpp>
+#include <hardware/x86gdt.hpp>
 #include <hardware/x86call16.hpp>
 #include <hardware/bios_data_area.hpp>
 #include <hardware/pic8259.hpp>

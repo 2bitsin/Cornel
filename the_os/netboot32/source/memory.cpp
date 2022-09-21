@@ -6,7 +6,7 @@
 
 #include <hardware/console.hpp>
 #include <hardware/atwenty.hpp>
-#include <hardware/x86arch.hpp>
+#include <hardware/x86gdt.hpp>
 
 #include <netboot32/memory.hpp>
 #include <netboot32/panick.hpp>
