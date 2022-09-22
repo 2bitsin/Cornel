@@ -86,5 +86,17 @@
       },
       "dependsOn":["Build"]
     },
+
+    {
+      "type":"shell",
+      "label":"Test On Machine",
+      "command":"${workspaceFolder}/test-machine.sh",
+      "group":
+      {
+        "kind":"build",
+        "isDefault":true
+      },
+      "dependsOn":["Build"]
+    }
   ]
 }

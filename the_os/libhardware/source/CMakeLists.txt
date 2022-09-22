@@ -8,6 +8,7 @@ add_library(hardware
   x86gdt.cpp 
   x86call16.cpp
   x86call16_stack.cpp
+  x86bios.cpp
 )
 
 target_include_directories(hardware PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

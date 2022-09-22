@@ -43,6 +43,7 @@ static inline std::uint32_t call16_invoke(x86arch::call16_context& ctx, Target c
     save_idtr = x86arch::sidt();
     x86arch::lidt (x86arch::Xdtr_t{ .limit = 0x400, .base = nullptr });
     
+    __debugbreak();
     ((call16_function*)&call16_thunk.code[0])();
 
     x86arch::lidt (save_idtr);
