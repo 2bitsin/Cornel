@@ -16,7 +16,7 @@ int main(int argc, char **grgv)
 
   block_list dut;
 
-  dut.insert_block({buffer.get(), 1024u * 1024u});
+  dut.insert_range({buffer.get(), 1024u * 1024u});
 	
 	std::string output;
 	

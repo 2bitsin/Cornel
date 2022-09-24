@@ -130,7 +130,7 @@ auto block_list::block_status(block_type const& block) -> block_status_type
   return block_invalid;
 }
 
-auto block_list::insert_block(range_type init) noexcept -> bool
+auto block_list::insert_range(range_type init) noexcept -> bool
 {
   init = block_list::align_range(init);
 	

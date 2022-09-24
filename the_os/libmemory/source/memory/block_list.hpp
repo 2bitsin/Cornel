@@ -37,7 +37,7 @@ struct block_list
 
   block_list();
   
-  auto insert_block(range_type) noexcept -> bool;
+  auto insert_range(range_type) noexcept -> bool;
 	
   auto allocate(std::size_t) noexcept -> void*;
 

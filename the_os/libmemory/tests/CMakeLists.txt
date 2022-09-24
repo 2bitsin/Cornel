@@ -2,6 +2,8 @@ set (TEST_SOURCES
   t000_allocator.cpp
 	t001_ranges_overlap.cpp
 	t002_align_range.cpp
+	t003_insert_range.cpp
+	t004_realloc.cpp
 )
 
 set (TEST_PREFIX memory)
