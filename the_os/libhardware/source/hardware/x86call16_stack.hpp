@@ -6,7 +6,7 @@
 #include <cstring>
 
 #include <hardware/x86call16.hpp>
-#include <hardware/x86utils.hpp>
+#include <hardware/x86real_addr.hpp>
 #include <memory/allocate_buffer.hpp>
   
 namespace x86arch

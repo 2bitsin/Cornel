@@ -55,7 +55,7 @@ __next:
       case  2: type_str = "Reserved    " ; break;
       case  3: type_str = "ACPI Reclaim" ; break;
       case  4: type_str = "ACPI NVS    " ; break;
-      default: type_str = " ---------- " ; break;
+      default: type_str = "------------" ; break;
 
       }
       console::writeln(hex<'&'>(proffs), " | ", hex<'&'>(entry.base), " .. ", hex<'&'>(entry.base + entry.size), " | ", type_str," (", entry.type, ") | ", dec<'&'>(entry.attr));      

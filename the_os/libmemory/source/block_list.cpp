@@ -25,6 +25,53 @@ block_list::block_list()
 block_list::~block_list()
 {}
 
+auto block_list::range_from_block(block_type& block) -> range_type
+{
+	if (block_status(block) == block_invalid)
+		return {};
+	return std::span((std::byte*)&block, block.size);
+}
+
+auto block_list::block_from_range(range_type range) -> block_type*
+{
+	range = align_range(range);
+	if (range.empty() || range.size () < block_threshold)
+		return nullptr;
+	return (block_type*)range.data();	
+}
+
+auto block_list::initialize_block(range_type range) -> block_type*
+{
+	auto block = block_from_range(range);
+	if (nullptr == block)
+		return nullptr;
+	set_block_available(*block);
+	block->size = range.size();
+	block->next = nullptr;
+	block->prev = nullptr;
+	return block;
+}
+
+auto block_list::align_range(range_type range) -> range_type
+{
+	const auto address = (std::uintptr_t)range.data();
+	if (0u == address % sizeof(block_type))
+		return range;		
+	const auto offset = sizeof(block_type) - address % sizeof(block_type);
+	if (offset >= range.size())
+		return {};
+	return range.subspan(offset);
+}
+
+auto block_list::ranges_overlap(range_type a, range_type b) -> bool
+{
+	if (a.data () > b.data())
+		std::swap(a, b);
+	if (b.data() - a.data () < a.size())
+		return true;
+	return false;
+}
+
 auto block_list::block_from_pointer(void* pointer) -> block_type*
 {
   return (((block_type*)pointer) - 1u);
@@ -83,42 +130,58 @@ auto block_list::block_status(block_type const& block) -> block_status_type
   return block_invalid;
 }
 
-auto block_list::initialize(range_type init) noexcept -> bool
+auto block_list::insert_block(range_type init) noexcept -> bool
 {
-  using std::byte;
-  using std::uintptr_t;
+  init = block_list::align_range(init);
+	
+	if (init.empty() || init.size() < block_threshold)		
+		return false;
 
-  auto size = init.size();
-  auto addr = init.data();
+	if (nullptr == m_head)
+	{
+		m_head = m_tail = initialize_block(init);
+		return true;
+	}
 
-  static constexpr auto Q = sizeof(block_type);
-  if ((uintptr_t)addr % Q) 
-  {
-    addr = (byte*)(((uintptr_t)addr + Q) & ~(Q - 1));
-    size -= (uintptr_t)addr - (uintptr_t)init.data();
-  }
-
-  if (init.size() < sizeof(block_type) * 2u) 
-    return false;
-
-
-  auto block = (block_type*)addr;  
-  block->size = size;
-  block->next = nullptr;
-  block->prev = nullptr;
-  
-  set_block_available(*block);
-  
-  m_bits = std::span{ addr, size };
-  m_head = block;
-  m_tail = block;
-  
+	auto node = initialize_block(init);
+	auto insert_here = m_head;
+	
+	while (node > insert_here && insert_here->next)
+		insert_here = insert_here->next;
+	
+	if (ranges_overlap(range_from_block(*insert_here), range_from_block(*node)))
+	{
+		return false;
+	}
+	
+	if (node < insert_here)
+	{		
+		node->next = insert_here;
+		node->prev = insert_here->prev;
+		insert_here->prev = node;
+		if (node->prev)
+			node->prev->next = node;
+		else if (m_head == insert_here)
+			m_head = node;
+	}
+	else
+	{
+		node->prev = insert_here;
+		node->next = insert_here->next;
+		insert_here->next = node;
+		if (node->next)
+			node->next->prev = node;
+		else if (m_tail == insert_here)
+			m_tail = node;		
+	}
+	
+	defragmentate(node);	
   return true;
 }
 
 auto block_list::try_split_block(block_type* head, std::size_t size) -> bool
 {
-  if((head->size - size) < sizeof(block_type) * 2u)
+  if((head->size - size) < block_threshold)
     return false;
   
   auto next = (block_type*)((std::byte*)head + size);
@@ -126,10 +189,7 @@ auto block_list::try_split_block(block_type* head, std::size_t size) -> bool
   next->size = head->size - size; 
   next->prev = head;
   
-  if (is_block_allocated(*head)) 
-    set_block_allocated(*next);
-  else 
-    set_block_available(*next);
+	set_block_available(*next);
     
   head->next = next;
   head->size = size;
@@ -146,8 +206,10 @@ auto block_list::try_mege_blocks(block_type* lower, block_type* upper) -> block_
     return nullptr;
   if (lower > upper)
     std::swap(upper, lower);
-  if (block_status(*lower) != block_status(*upper))
-    return nullptr; 
+	if ((std::uintptr_t)lower + lower->size < (std::uintptr_t)upper)
+		return nullptr;
+  if (!is_block_available(*lower) || !is_block_available(*upper))
+    return nullptr;
   lower->size += upper->size;
   lower->next  = upper->next;
   if (nullptr != upper->next) 
@@ -174,14 +236,19 @@ auto block_list::allocate(std::size_t size) noexcept -> void*
   return nullptr;
 }
 
+auto block_list::defragmentate(block_type* curr) -> void
+{
+  while(curr->next && try_mege_blocks(curr, curr->next));
+  while((curr = curr->prev) && try_mege_blocks(curr, curr->next));	
+}
+
 auto block_list::deallocate(void* what) noexcept -> bool
 {
   auto curr = block_from_pointer(what);
   if (!is_block_allocated(*curr))
     return false;
   set_block_available(*curr);
-  while(curr->next && try_mege_blocks(curr, curr->next));
-  while((curr = curr->prev) && try_mege_blocks(curr, curr->next));  
+	defragmentate(curr);
   return true;
 }
 
@@ -217,30 +284,66 @@ auto block_list::is_valid(void const* ptr) const noexcept -> bool
   return block_invalid != block_list::block_status(*b_ptr);
 }
 
-auto block_list::reallocate([[maybe_unused]] void* what, [[maybe_unused]] std::size_t size) noexcept -> void*
+auto block_list::probe_available(block_type const* node) -> std::size_t
 {
-  // TODO : implement and test
-  /*
-  if (nullptr == what)
-    return allocate(size);
-  auto curr = block_from_pointer(what);
-  if (!is_block_allocated(*curr))
-    return nullptr;
-  if (curr->size >= size)
-    return what;
-  auto next = curr->next;
-  if (next && is_block_available(*next) && (curr->size + next->size) >= size)
-  {
-    try_mege_blocks(curr, next);
-    try_split_block(curr, size);
-    return what;
-  }
-  auto new_what = allocate(size);
-  if (nullptr == new_what)
-    return nullptr;
-  std::ranges::copy_n((std::byte*)what, curr->size, (std::byte*)new_what);
-  deallocate(what);
-  return new_what;
-  */
-  return nullptr;
+	std::size_t available{ 0u };	
+	while (node && is_block_available(*node)) 
+	{
+		available += node->size;
+		node = node->next;
+	}	
+	return available;
+}
+
+auto block_list::reallocate(void* what, std::size_t size) noexcept -> void*
+{
+	// If the pointer is null, then this is equivalent to a call to allocate(size).
+	if (nullptr == what)
+		return allocate(size);	
+	// Get the block from pointer
+	auto curr = block_list::block_from_pointer(what);
+	// If it's an invalid block, we can't reallocate it
+	if (!block_list::is_block_allocated(*curr))
+		return nullptr;
+	// Get actual size of the block
+	auto curr_size = curr->size - sizeof(block_type);
+	// If requested size is same as current size, do nothing
+	if (size == curr_size)
+		return what;
+	// If requested less then current size, just split the block
+	if (size < curr_size) {
+		// If we can split the block, do it
+		try_split_block(curr, size);
+		return what;
+	}				
+	// Check if we have enough headroom 
+	if (curr_size + probe_available(curr->next) >= size)
+	{
+		// Try deallocate the node, and that should merge nodes ahead
+		// while not stomping on this node
+		deallocate(what);
+		// Let's double check our assumption
+		curr_size = curr->size - sizeof(block_type);		
+		// If we have enough room
+		if (size <= curr_size) {
+			// Allocate the same block again
+			set_block_allocated(*curr);
+			// Try spliting off the remainder
+			try_split_block(curr, size);
+			// Return the pointer
+			return what;
+		}
+	}
+	// If all else fails, allocate a new block
+	auto new_block = allocate(size);	
+	// Did we get a new block ?
+	if (nullptr == new_block)
+		// No
+		return nullptr;
+	// Yes, Copy the data
+	std::memcpy(new_block, what, curr_size);
+	// Deallocate the old block
+	deallocate(what);
+	// Return the new block
+	return new_block;
 }
