@@ -18,13 +18,13 @@ auto x86arch::bios_acpi_memory_map_read(bios_acpi_memory_map_entry_t& entry, std
 {
   x86arch::call16_context ctx;
   x86arch::call16_stack stack{ctx, 0x400u};    
-  auto [seg, off] = real_address::from_pointer(&entry);
+  auto [off, seg] = real_address::from_pointer(&entry);
   ctx.eax = 0x0000e820;
   ctx.edx = 0x534d4150;
   ctx.ecx = sizeof(bios_acpi_memory_map_entry_t);
   ctx.ebx = i_offset;
   ctx.es  = seg;
-  ctx.edi = off;
+  ctx.edi = off;  
   x86arch::call16_invoke(ctx, 0x15);  
   if ((ctx.flags & x86arch::flags::carry) || (ctx.eax != 0x534d4150)) { 
     return std::errc::not_supported;    

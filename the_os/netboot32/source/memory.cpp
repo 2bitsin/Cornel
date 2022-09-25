@@ -7,6 +7,9 @@
 #include <hardware/console.hpp>
 #include <hardware/atwenty.hpp>
 #include <hardware/x86gdt.hpp>
+#include <hardware/x86flags.hpp>
+#include <hardware/x86real_addr.hpp>
+#include <hardware/x86bios.hpp>
 
 #include <netboot32/memory.hpp>
 #include <netboot32/panick.hpp>
@@ -20,22 +23,55 @@ extern "C"
 }
 
 static block_list G_heap;
+static block_list G_extended_heap;
+
+static void initialize_extended_heap() 
+{
+  // Initialize extended memory heap
+  x86arch::bios_acpi_memory_map_entry_t entry;
+  std::uint32_t i_offset = 0u, o_offset = 0u, length = 0u;
+  std::uint64_t heap_size = 0u;
+
+  // Must enable A20 line to access extended memory
+  if (!atwenty::try_enable()) {
+    panick::cant_enable_atwenty();
+  }
+
+  do
+  {
+    i_offset = o_offset;
+    if (std::errc{} != x86arch::bios_acpi_memory_map_read(entry, length, o_offset, i_offset)) 
+      break;
+    if (length < 20 || length > 24)
+      break;
+
+    // Is available memory?
+    if (entry.type == 1u)
+    {                   
+      G_extended_heap.insert_range({(std::byte*)entry.base, (std::size_t)entry.size }); 
+      heap_size += entry.size;
+    }
+  } 
+  while(o_offset != 0u);
+  console::writeln("Initializing extended heap, ", heap_size, " bytes available.");  
+}
+
+static void initialize_base_heap()
+{
+  const auto* top_of_heap = (std::byte const *)(bda::conventional_memory_size * 0x400u);
+  std::span heap_bytes { G_heap_begin, top_of_heap };
+  // Initialize heap
+  G_heap.insert_range(heap_bytes);
+  console::writeln("Initializing base heap, ",  heap_bytes.size(), " bytes available."); 
+}
 
 void memory::initialize(bool first_time)
 {
   using namespace textio::simple::fmt;
   if (!first_time)
     return;
-  
-  const auto* top_of_heap = (std::byte const *)(bda::conventional_memory_size * 0x400u);
-  std::span heap_bytes { G_heap_begin, top_of_heap };
-
-  // Initialize heap
-  G_heap.initialize(heap_bytes);
-  console::writeln("Initializing heap, ",  heap_bytes.size(), " bytes available.");  
-
-  if (!atwenty::try_enable()) 
-    panick::cant_enable_atwenty();
+  initialize_base_heap();
+  initialize_extended_heap();
 }
 
 void memory::finalize(bool last_time)
