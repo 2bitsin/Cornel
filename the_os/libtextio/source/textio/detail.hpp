@@ -63,18 +63,9 @@ namespace textio::detail
 	template <auto T, auto... Q>
 	static inline constexpr auto one_of_v = one_of_value_impl<T, Q...>::value;
 
-	 /*************************
-		* 
-		*	 output_iterator	
-		* 
-		************************* 
-		*/
+	template <typename T, typename O>
+	concept is_writable = requires(T && t, O && o) {
+		{ t.write(o) } -> std::convertible_to<O>;
+	};
 
-	//template <typename I, typename O>
-	//concept output_iterator = requires(I&& i, O&& o) 
-	//{
-	//	{ std::forward<I>(i)++ };
-	//	{ ++std::forward<I>(i) };
-	//	{ *std::forward<I>(i) = std::forward<I>(o) };
-	//};
 }

@@ -7,6 +7,7 @@ set (TEST_SOURCES
   t005_simple_fmt_address.cpp
   t006_simple_tuple.cpp
   t007_simple_random0.cpp
+	t008_simple_gmkb.cpp
 )
 
 set (TEST_PREFIX textio)

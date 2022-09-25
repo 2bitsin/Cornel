@@ -91,6 +91,8 @@ namespace textio::simple::fmt
       T const& value;
       std::uintmax_t times; 
     };
+
+
   }
 
   template <auto... Flags, std::integral T> auto bin(T const& value) -> detail::format_base<T, 2,  Flags...> { return { value }; }
@@ -107,5 +109,6 @@ namespace textio::simple::fmt
 
   template <auto N, typename T> auto repeat(T const& value) -> detail::const_repeat_impl<T, N> { return { value }; }
   template <typename T> auto repeat(T const& value, std::uintmax_t times) -> detail::repeat_impl<T> { return { value, times }; }
+
 
 }

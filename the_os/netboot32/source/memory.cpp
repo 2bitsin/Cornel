@@ -22,7 +22,7 @@ extern "C"
   std::byte* volatile G_heap_begin;  
 }
 
-static block_list G_heap;
+static block_list G_base_heap;
 static block_list G_extended_heap;
 
 static void initialize_extended_heap() 
@@ -53,7 +53,7 @@ static void initialize_extended_heap()
     }
   } 
   while(o_offset != 0u);
-  console::writeln("Initializing extended heap, ", heap_size, " bytes available.");  
+  console::writeln("  * ", heap_size, " bytes extended memory available.");  
 }
 
 static void initialize_base_heap()
@@ -61,8 +61,8 @@ static void initialize_base_heap()
   const auto* top_of_heap = (std::byte const *)(bda::conventional_memory_size * 0x400u);
   std::span heap_bytes { G_heap_begin, top_of_heap };
   // Initialize heap
-  G_heap.insert_range(heap_bytes);
-  console::writeln("Initializing base heap, ",  heap_bytes.size(), " bytes available."); 
+  G_base_heap.insert_range(heap_bytes);
+  console::writeln("  * ", heap_bytes.size(), " bytes base memory available."); 
 }
 
 void memory::initialize(bool first_time)
@@ -70,6 +70,7 @@ void memory::initialize(bool first_time)
   using namespace textio::simple::fmt;
   if (!first_time)
     return;
+  console::writeln("Initializing heap ...");  
   initialize_base_heap();
   initialize_extended_heap();
 }
@@ -85,10 +86,10 @@ using namespace std;
 CO_PUBLIC 
 void* malloc(std::size_t size)
 {
-  auto ptr = G_heap.allocate(size);
+  auto ptr = G_base_heap.allocate(size);
   if (nullptr == ptr)
   {
-    panick::out_of_memory(size, G_heap);
+    panick::out_of_memory(size, G_base_heap);
   }
   return ptr;
 }
@@ -99,7 +100,7 @@ void* calloc(std::size_t nelem, std::size_t size)
   // Get total size
   size *= nelem;
   // Allocate memory
-  auto ptr = G_heap.allocate(size);
+  auto ptr = G_base_heap.allocate(size);
   // If successful, fill with zeros
   if (nullptr != ptr) 
   {
@@ -108,7 +109,7 @@ void* calloc(std::size_t nelem, std::size_t size)
   }
   else 
   {
-    panick::out_of_memory(size, G_heap);
+    panick::out_of_memory(size, G_base_heap);
   }
   return ptr;
 }
@@ -116,8 +117,8 @@ void* calloc(std::size_t nelem, std::size_t size)
 CO_PUBLIC
 void free(void* ptr)
 {
-  if(!G_heap.deallocate(ptr))
-    panick::invalid_free(ptr, G_heap);
+  if(!G_base_heap.deallocate(ptr))
+    panick::invalid_free(ptr, G_base_heap);
 }
 
 CO_PUBLIC 
@@ -126,72 +127,67 @@ void* realloc(void* old_ptr, std::size_t new_size)
   if (nullptr == old_ptr) 
   {
     // realloc(NULL, size) is equivalent to malloc(size)
-    return G_heap.allocate(new_size);  
+    return G_base_heap.allocate(new_size);  
   }
 
   // Try to resize block
-  if (auto new_ptr = G_heap.reallocate(old_ptr, new_size); nullptr != new_ptr)
+  if (auto new_ptr = G_base_heap.reallocate(old_ptr, new_size); nullptr != new_ptr)
   {
     // Success
     return new_ptr;
   }
 
   // Allocate new block and copy data
-  if (auto new_ptr = G_heap.allocate(new_size); nullptr != new_ptr) 
+  if (auto new_ptr = G_base_heap.allocate(new_size); nullptr != new_ptr) 
   {
     // Get old block size
-    auto old_size = G_heap.size(old_ptr);
+    auto old_size = G_base_heap.size(old_ptr);
     // Copy data
     __builtin_memcpy(new_ptr, old_ptr,std::min(new_size, old_size));
     // Free old block
-    G_heap.deallocate(old_ptr);
+    G_base_heap.deallocate(old_ptr);
     return new_ptr;
   }
   
-  panick::out_of_memory(new_size, G_heap);
+  panick::out_of_memory(new_size, G_base_heap);
 }
 
 void operator delete(void* ptr) noexcept
 {
-  if(!G_heap.deallocate(ptr))
-    panick::invalid_free(ptr, G_heap);
+  if(!G_base_heap.deallocate(ptr))
+    panick::invalid_free(ptr, G_base_heap);
 }
 
 void operator delete[](void* ptr) noexcept
 {
-  if(!G_heap.deallocate(ptr))
-    panick::invalid_free(ptr, G_heap);
+  if(!G_base_heap.deallocate(ptr))
+    panick::invalid_free(ptr, G_base_heap);
 }
 
 void operator delete(void* ptr, [[maybe_unused]] std::size_t size) noexcept
 {
-  if(!G_heap.deallocate(ptr))
-    panick::invalid_free(ptr, G_heap);
+  if(!G_base_heap.deallocate(ptr))
+    panick::invalid_free(ptr, G_base_heap);
 }
 
 void operator delete[](void* ptr, [[maybe_unused]] std::size_t size) noexcept
 {
-  if(!G_heap.deallocate(ptr))
-    panick::invalid_free(ptr, G_heap);
+  if(!G_base_heap.deallocate(ptr))
+    panick::invalid_free(ptr, G_base_heap);
 }
 
 void* operator new[](std::size_t size) noexcept
 {
-  auto ptr = G_heap.allocate(size);
+  auto ptr = G_base_heap.allocate(size);
   if (nullptr == ptr) 
-    panick::out_of_memory(size, G_heap);
+    panick::out_of_memory(size, G_base_heap);
   return ptr;
 }
 
 void* operator new(std::size_t size) noexcept
 {
-  auto ptr = G_heap.allocate(size);
+  auto ptr = G_base_heap.allocate(size);
   if (nullptr == ptr) 
-    panick::out_of_memory(size, G_heap);
+    panick::out_of_memory(size, G_base_heap);
   return ptr;
-}
-
-auto memory::is_valid(void* ptr) -> bool
-{
-  return G_heap.is_valid(ptr);
 }

@@ -8,7 +8,7 @@
 struct block_list
 {
 #ifdef _TESTING_
-	friend int main(int, char**);
+  friend int main(int, char**);
 #endif
 
   using range_type = std::span<std::byte>;
@@ -19,7 +19,7 @@ struct block_list
     block_available,
     block_allocated
   };
-		
+    
 #pragma pack(push, 1)
   struct block_type 
   {
@@ -32,13 +32,13 @@ struct block_list
   };
   static_assert(sizeof(block_type) == sizeof(void*)*4u);
 #pragma pack(pop)
-	
-	static inline constexpr const auto block_threshold = sizeof(block_type) * 2u;
+  
+  static inline constexpr const auto block_threshold = sizeof(block_type) * 2u;
 
   block_list();
   
   auto insert_range(range_type) noexcept -> bool;
-	
+  
   auto allocate(std::size_t) noexcept -> void*;
 
   auto deallocate(void*, std::size_t) noexcept -> bool;
@@ -51,19 +51,19 @@ struct block_list
   auto contains(void const* ptr) const noexcept -> bool;
   auto is_valid(void const* ptr) const noexcept -> bool;
 
-  template <std::output_iterator<char> O>		
+  template <std::output_iterator<char> O>   
   friend auto pretty_print(block_list const& blist, O oi) noexcept -> void;    
 
   ~block_list();
 
 protected:
-	auto defragmentate(block_type* node) -> void;
-	auto probe_available(block_type const* node) -> std::size_t;
-	static auto range_from_block(block_type& block) -> range_type;
-	static auto block_from_range(range_type range) -> block_type*;
-	static auto initialize_block(range_type range) -> block_type*;
-	static auto align_range(range_type) -> range_type;
-	static auto ranges_overlap(range_type a, range_type b) -> bool;
+  auto defragmentate(block_type* node) -> void;
+  auto probe_available(block_type const* node) -> std::size_t;
+  static auto range_from_block(block_type& block) -> range_type;
+  static auto block_from_range(range_type range) -> block_type*;
+  static auto initialize_block(range_type range) -> block_type*;
+  static auto align_range(range_type) -> range_type;
+  static auto ranges_overlap(range_type a, range_type b) -> bool;
 
   static auto block_from_pointer(void* pointer) -> block_type*;
   static auto block_from_pointer(void const* pointer) -> block_type const*;
@@ -81,7 +81,7 @@ protected:
   auto try_mege_blocks(block_type* lower, block_type* upper) -> block_type*;
   
 private:
-	
+  
   block_type*     m_head;
   block_type*     m_tail;
   range_type      m_bits;
