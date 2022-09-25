@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include <concepts>
+#include <type_traits>
 
 #include <textio/simple.hpp>
 
@@ -19,35 +20,32 @@ namespace textio::simple::fmt::detail
 		template <std::output_iterator<char> O>
 		inline auto write(O out_i) const noexcept -> O
 		{
-			static constexpr auto sz_K = 1024u;
-			static constexpr auto sz_M = 1024u * sz_K;
-			static constexpr auto sz_G = 1024u * sz_M;
-			static constexpr auto sz_T = 1024u * sz_M;
+			static constexpr auto sz_K = 1024ull;
+			static constexpr auto sz_M = 1024ull * sz_K;
+			static constexpr auto sz_G = 1024ull * sz_M;
+			static constexpr auto sz_T = 1024ull * sz_G;
+			static constexpr auto sz_P = 1024ull * sz_T;
+			static constexpr auto sz_E = 1024ull * sz_P;
+
+			static constexpr std::uint64_t sz[] = { sz_E, sz_P, sz_T, sz_G, sz_M, sz_K, 1u };
+			static constexpr char const* sx[] = { "E", "P", "T", "G", "M", "K", "" };
 			
-			auto temp_value = value;			
-			
-			if (temp_value >= sz_T) {
-				out_i = textio::simple::write((temp_value / sz_T), "T ");
-				temp_value %= sz_T;
-			}
-			
-			if (temp_value >= sz_G) {
-				out_i = textio::simple::write((temp_value / sz_G), "G ");
-				temp_value %= sz_G;
+			if (value == 0)
+			{
+				return ::textio::simple::write(out_i, '0');
 			}
 
-			if (temp_value >= sz_M) {
-				out_i = textio::simple::write((temp_value / sz_M), "M ");
-				temp_value %= sz_M;
-			}
-
-			if (temp_value >= sz_K) {
-				out_i = textio::simple::write((temp_value / sz_K), "K ");
-				temp_value %= sz_K;
-			}
-			
-			if (temp_value > 0 && value == 0) {
-				out_i = textio::simple::write(temp_value);
+			bool first = true;
+			for (auto i = 0u; i < std::size(sz); ++i)
+			{
+				const auto part_value = (value / sz[i]) % 1024u;
+				if (0 == part_value != 0)
+					continue;
+				if (!first)
+					out_i = ::textio::simple::write(out_i, ' ', part_value, sx[i]);
+				else
+					out_i = ::textio::simple::write(out_i, part_value, sx[i]);
+				first = false;
 			}
 			
 			return out_i;
@@ -58,7 +56,9 @@ namespace textio::simple::fmt::detail
 namespace textio::simple::fmt
 {
 	template <typename T, auto... Flags>
-	inline auto data_size(T const& value) -> detail::data_size_impl<T, Flags...>
+	requires (std::is_integral_v<T>)
+	inline auto data_size(T const& value) 
+		-> detail::data_size_impl<T, Flags...>
 	{
 		return detail::data_size_impl<T, Flags...>(value);
 	}
