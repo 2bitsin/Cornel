@@ -184,16 +184,21 @@ auto block_list::try_split_block(block_type* head, std::size_t size) -> bool
   if((head->size - size) < block_threshold)
     return false;
   
-  auto next = (block_type*)((std::byte*)head + size);
+  auto next = (block_type*)((std::byte*)head + size);	
+
+  next->size = head->size - size;
+  head->size = size;
   
-  next->size = head->size - size; 
+	next->next = head->next;
+  head->next = next;
+	
   next->prev = head;
+	if (nullptr != next->next) {
+		next->next->prev = next;
+	}
   
 	set_block_available(*next);
-    
-  head->next = next;
-  head->size = size;
-
+   
   if (head == m_tail)
     m_tail = next;
   
@@ -227,7 +232,7 @@ auto block_list::allocate(std::size_t size) noexcept -> void*
   {   
     if (is_block_allocated(*head))
       continue;
-    if (head->size - sizeof(block_type) < size)
+    if (head->size < size)
       continue;
     try_split_block(head, size);
     set_block_allocated(*head);   
@@ -295,37 +300,39 @@ auto block_list::probe_available(block_type const* node) -> std::size_t
 	return available;
 }
 
-auto block_list::reallocate(void* what, std::size_t size) noexcept -> void*
+auto block_list::reallocate(void* what, std::size_t a_size) noexcept -> void*
 {
+  static constexpr const auto Q = sizeof(block_type);
+  auto size = ((a_size + Q - 1) / Q) * Q + Q;
 	// If the pointer is null, then this is equivalent to a call to allocate(size).
 	if (nullptr == what)
-		return allocate(size);	
+		return allocate(a_size);	
 	// Get the block from pointer
 	auto curr = block_list::block_from_pointer(what);
 	// If it's an invalid block, we can't reallocate it
 	if (!block_list::is_block_allocated(*curr))
-		return nullptr;
-	// Get actual size of the block
-	auto curr_size = curr->size - sizeof(block_type);
+		return nullptr;	
+	// We need to adjust size for simplicity, see allocate
+	
 	// If requested size is same as current size, do nothing
-	if (size == curr_size)
+	if (size == curr->size)
 		return what;
 	// If requested less then current size, just split the block
-	if (size < curr_size) {
+	if (size < curr->size) {
 		// If we can split the block, do it
 		try_split_block(curr, size);
 		return what;
 	}				
 	// Check if we have enough headroom 
-	if (curr_size + probe_available(curr->next) >= size)
+	const auto size_ahead = probe_available(curr->next);
+	if (curr->size + size_ahead >= size)
 	{
 		// Try deallocate the node, and that should merge nodes ahead
 		// while not stomping on this node
 		deallocate(what);
-		// Let's double check our assumption
-		curr_size = curr->size - sizeof(block_type);		
+		// Let's double check our assumption		
 		// If we have enough room
-		if (size <= curr_size) {
+		if (size <= curr->size) {
 			// Allocate the same block again
 			set_block_allocated(*curr);
 			// Try spliting off the remainder
@@ -335,13 +342,13 @@ auto block_list::reallocate(void* what, std::size_t size) noexcept -> void*
 		}
 	}
 	// If all else fails, allocate a new block
-	auto new_block = allocate(size);	
+	auto new_block = allocate(a_size);	
 	// Did we get a new block ?
 	if (nullptr == new_block)
 		// No
 		return nullptr;
 	// Yes, Copy the data
-	std::memcpy(new_block, what, curr_size);
+	std::memcpy(new_block, what, curr->size);
 	// Deallocate the old block
 	deallocate(what);
 	// Return the new block

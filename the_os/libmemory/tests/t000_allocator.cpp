@@ -31,12 +31,12 @@ int main(int argc, char **grgv)
 
 	pretty_print(dut, std::back_inserter(output));	
 	
-	std::memset(a, 0, 128);
-	std::memset(b, 0, 64);
-	std::memset(c, 0, 48);
-	std::memset(d, 0, 64);
-	std::memset(e, 0, 128);
-	std::memset(f, 0, 64);
+	std::memset(a, 0xcc, 128);
+	std::memset(b, 0xcc, 64);
+	std::memset(c, 0xcc, 48);
+	std::memset(d, 0xcc, 64);
+	std::memset(e, 0xcc, 128);
+	std::memset(f, 0xcc, 64);
 
 	pretty_print(dut, std::back_inserter(output));	
 

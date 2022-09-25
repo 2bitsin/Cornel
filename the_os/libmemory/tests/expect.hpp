@@ -6,6 +6,7 @@
 static inline auto make_printable_string(auto&& value) -> std::string
 {
 	std::string result;
+	std::size_t current{ 0u };
 	for (auto chr : value)
 	{
 		if (chr >= ' ' && chr < 0x7f) 
