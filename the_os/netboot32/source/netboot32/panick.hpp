@@ -16,4 +16,6 @@ namespace panick
 
   [[noreturn]] void invalid_pxenvplus() noexcept;
   [[noreturn]] void invalid_bangpxe() noexcept;  
+
+  [[noreturn]] void pxe_failed(const char* what) noexcept;
 };

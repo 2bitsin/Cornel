@@ -14,6 +14,10 @@
 #include <netboot32/memory.hpp>
 #include <netboot32/panick.hpp>
 
+#include <textio/simple.hpp>
+#include <textio/simple_fmt_data_size.hpp>
+
+
 #include <cstdlib>
 #include <algorithm>
 
@@ -27,6 +31,7 @@ static block_list G_extended_heap;
 
 static void initialize_extended_heap() 
 {
+  using namespace textio::simple::fmt;
   // Initialize extended memory heap
   x86arch::bios_acpi_memory_map_entry_t entry;
   std::uint32_t i_offset = 0u, o_offset = 0u, length = 0u;
@@ -53,16 +58,17 @@ static void initialize_extended_heap()
     }
   } 
   while(o_offset != 0u);
-  console::writeln("  * ", heap_size, " bytes extended memory available.");  
+  console::writeln("  * ", data_size(heap_size), " Bytes extended memory available.");  
 }
 
 static void initialize_base_heap()
 {
+  using namespace textio::simple::fmt;
   const auto* top_of_heap = (std::byte const *)(bda::conventional_memory_size * 0x400u);
   std::span heap_bytes { G_heap_begin, top_of_heap };
   // Initialize heap
   G_base_heap.insert_range(heap_bytes);
-  console::writeln("  * ", heap_bytes.size(), " bytes base memory available."); 
+  console::writeln("  * ", data_size(heap_bytes.size()), " Bytes base memory available."); 
 }
 
 void memory::initialize(bool first_time)

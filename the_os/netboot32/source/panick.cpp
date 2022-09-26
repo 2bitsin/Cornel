@@ -99,3 +99,11 @@ void panick::invalid_bangpxe() noexcept
   console::writeln("#009 - Invalid !PXE structure");
   std::abort();
 }
+
+[[noreturn]]
+void panick::pxe_failed(const char* what) noexcept
+{
+  console::writeln("#010 - PXE api failure: ", what);
+  std::abort();
+}
+

@@ -9,8 +9,9 @@ add_executable(netboot32
   runtime.cpp
   memory.cpp
   panick.cpp
-  pxe_api.cpp
+  pxe_interface.cpp
   netboot32.cpp
+  dhcp.cpp
   )
 
 target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
+
+#include <hardware/x86real_addr.hpp>
 
 #pragma pack(push, 1)
 
@@ -10,15 +13,7 @@ struct segoff32
   std::uint16_t seg;
 };
 
-struct segoff
-{   
-  std::uint16_t off;  
-  std::uint16_t seg;
-   
-  template <typename T = void> 
-  constexpr auto ptr() const noexcept -> T* 
-  { return (T*)(seg*16ul + off); }
-};
+using segoff = x86arch::real_address;
 
 struct segdesc32
 {
@@ -65,7 +60,7 @@ struct bangPXE
   segdesc32 seg_desc[7+7];
 };
 
-struct s_PXENV_GET_CACHED_INFO
+struct pxenv_get_cached_info_type
 {
   uint16_t status;
   uint16_t packet_type;

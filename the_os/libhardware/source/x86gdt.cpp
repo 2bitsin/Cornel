@@ -55,10 +55,10 @@ auto x86arch::gdt_descriptor(gdt_descriptor_type params) -> std::uint64_t
 
 auto x86arch::gdt_table_resize(std::uint16_t new_size, std::uint64_t defval, std::uint32_t flags) -> std::span<std::uint64_t>
 {
-  using textio::simple::fmt::hex;
+  using namespace memory;
   x86arch::interrupt_guard cli;
   auto curr_gdt = x86arch::sgdt(); 
-  curr_gdt = reallocate_buffer(curr_gdt, new_size, defval, flags);
+  curr_gdt = reallocate_buffer(default_allocator(), curr_gdt, new_size, defval, flags);
   x86arch::lgdt(curr_gdt);
   return curr_gdt;
 }

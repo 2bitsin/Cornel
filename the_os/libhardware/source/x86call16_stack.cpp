@@ -1,9 +1,11 @@
+#include <utility>
+
 #include <hardware/x86call16_stack.hpp>
 #include <memory/allocate_buffer.hpp>
 
 x86arch::call16_stack::call16_stack(call16_context& context, std::size_t size) noexcept
 : m_context(context)
-, m_bytes(allocate_buffer_of<std::byte>(size))
+, m_bytes(allocate_buffer_of<std::byte>(memory::default_allocator(), size))
 {
   const auto stack_address = real_address::from_pointer(m_bytes.data());
   m_context.ss = stack_address.seg;
@@ -35,5 +37,5 @@ auto x86arch::call16_stack::operator = (call16_stack&& other) noexcept -> call16
 x86arch::call16_stack::~call16_stack() noexcept
 {
   if (!m_bytes.empty())
-  { deallocate_buffer(m_bytes); }      
+  { deallocate_buffer(memory::default_allocator(), m_bytes); }      
 }
