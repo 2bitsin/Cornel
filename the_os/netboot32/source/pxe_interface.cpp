@@ -92,14 +92,15 @@ void pxe_interface::initialize(bool first_time, PXENVplus& pxenvplus_s, bangPXE&
     return panick::invalid_pxenvplus();
 
   const auto [v_min, v_maj] = bits::unpack_as_tuple<8, 8>(pxenvplus_s.version);
-  console::writeln("Initializing PXE v", v_min, ".", v_maj, " ... ");
+  console::writeln("Initializing PXE v", v_maj, ".", v_min, " ... ");
+  console::writeln("  * PXENV+ entry point 16 : ", pxenvplus_s.entry_point_16);
 
   if (pxenvplus_s.version >= 0x201)
   {
     if (!validate_bangPXE(bangpxe_s)) {
       return panick::invalid_bangpxe();
     }
-
+  console::writeln("  * !PXE   entry point 16 : ", bangpxe_s.entry_point_16);  
     ::initialize(bangpxe_s);
   }
   else 
@@ -115,30 +116,39 @@ void pxe_interface::finalize(bool last_time)
     return;
 }
 
-auto pxe_interface::get_cached_info(std::uint16_t packet_type, std::span<const std::byte>& buffer, std::uint16_t& buffer_limit) -> std::uint16_t
+auto pxe_interface_call(void* params, std::uint16_t opcode) -> std::uint16_t
 {
   using namespace x86arch;
-  
-  alignas(16) pxenv_get_cached_info_type params;
+  auto address_of_params = real_address::from_pointer(params);
+  call16_context ctx;
+  std::memset(&ctx, 0, sizeof(ctx));
+  call16_stack stack{ ctx, 0x1000u };
+  stack.push<std::uint16_t>(address_of_params.seg);
+  stack.push<std::uint16_t>(address_of_params.off);
+  stack.push<std::uint16_t>(opcode);
+  ctx.flags |= flags::interrupt;
+  ctx.eax = ~0x0u;
+  ctx.ebx = opcode;
+  ctx.es  = address_of_params.seg;
+  ctx.ds  = address_of_params.seg;
+  ctx.edi = address_of_params.off;
+  call16_invoke(ctx, G_pxe_entry_point);
+  return ctx.ax;
+}
+
+auto pxe_interface::get_cached_info(std::uint16_t packet_type, std::span<const std::byte>& buffer, std::uint16_t& buffer_limit) -> std::uint16_t
+{
+  alignas(16) pxenv_get_cached_info_type params; 
   params.status = 0xffffu;
   params.packet_type = packet_type;
   params.buffer_limit = 0u;
   params.buffer_size = 0u;
   params.buffer = segoff{ 0, 0 };
-  auto address_of_params = real_address::from_pointer(&params);
-
-  call16_context ctx;
-  call16_stack stack{ ctx, 0x1000u };
-  stack.push<std::uint16_t>(address_of_params.seg);
-  stack.push<std::uint16_t>(address_of_params.off);
-  stack.push<std::uint16_t>(0x0071u);
-  ctx.flags |= flags::interrupt;
-  ctx.eax = ~0x0u;
-  call16_invoke(ctx, G_pxe_entry_point);
-  if (!ctx.ax && !params.status)  
+  auto status = pxe_interface_call(&params, 0x71);
+  if (!status && !params.status)  
   {
     buffer_limit = params.buffer_limit;
-    auto buff_ptr = real_address{ params.buffer.off, params.buffer.seg }.to_pointer<std::byte>();
+    auto buff_ptr = x86arch::real_address{ params.buffer.off, params.buffer.seg }.to_pointer<std::byte>();
     buffer = std::span{ buff_ptr, params.buffer_size };    
   } 
   return params.status;

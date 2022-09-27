@@ -28,9 +28,12 @@ namespace dhcp
     template <std::output_iterator<char> O>
     auto write(O out) -> O 
     {
-      out = textio::simple::write(out, value[0]);
+      using textio::simple::write;
+      using textio::simple::fmt::hex;
+
+      out = write(out, value[0]);
       for(auto&& sub_v : value.subspan(1))
-        out = textio::simple::write(out, ':', sub_v);      
+        out = write(out, ':', hex<'&'>(sub_v));      
       return out;
     }
 

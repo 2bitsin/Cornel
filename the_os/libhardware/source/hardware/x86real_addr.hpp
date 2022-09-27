@@ -30,6 +30,14 @@ namespace x86arch
       { return seg; } 
     }
 
+  #ifdef __LIBTEXTIO__
+    template <std::output_iterator<char> O>
+    inline auto write(O out_i) const noexcept -> O
+    {
+      using ::textio::simple::fmt::hex;
+      return ::textio::simple::write(out_i, hex<'&'>(seg), ':', hex<'&'>(off));
+    }
+  #endif
 
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wpedantic"

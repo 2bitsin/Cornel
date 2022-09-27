@@ -16,6 +16,8 @@
 #include "consts.hpp"
 #include "simple_fmt.hpp"
 
+#define __LIBTEXTIO__ 1
+
 namespace textio::simple
 {
   template <std::output_iterator<char> I, typename... Args>
@@ -54,9 +56,9 @@ namespace textio::simple
   requires (!std::is_same_v<T, char>)
   static inline auto write(I out_i, T const* const what) -> I;
 
-	template <std::output_iterator<char> I, ::textio::detail::is_writable<I> T>
-	static inline auto write(I out_i, T const& what)->I;
-	
+  template <std::output_iterator<char> I, ::textio::detail::is_writable<I> T>
+  static inline auto write(I out_i, T const& what)->I;
+  
 
   /************************************/
   /*                                  */  
@@ -196,11 +198,11 @@ namespace textio::simple
   /*                           */ 
   /*****************************/
 
-	template <std::output_iterator<char> I, ::textio::detail::is_writable<I> T>
-	static inline auto write(I out_i, T&& what)->I
-	{
-		return what.write(out_i);
-	}
+  template <std::output_iterator<char> I, ::textio::detail::is_writable<I> T>
+  static inline auto write(I out_i, T&& what)->I
+  {
+    return what.write(out_i);
+  }
 
   template <std::output_iterator<char> I, typename... Args>
   requires (sizeof...(Args) > 1)
