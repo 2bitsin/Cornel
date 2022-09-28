@@ -22,6 +22,7 @@ void tftp_session_v4::io_thread(tftp_server_v4& parent_v, address_v4 remote_clie
 	{
 
 		auto socket_v { m_address.make_udp() };
+		socket_v.timeout(1s);
 		validate_request(request_v, socket_v, remote_client_v);
 
 		auto file_path_v { m_base_dir / request_v.filename };
@@ -34,16 +35,15 @@ void tftp_session_v4::io_thread(tftp_server_v4& parent_v, address_v4 remote_clie
 			.tsize		= file_size(file_path_v)
 		};
 		
-		validate_options(options_v, request_v, socket_v, remote_client_v, token_v);
-		
-		tftp_reader reader_v (file_path_v, options_v.tsize, options_v.blksize, request_v.xfermode == "octet");
+		validate_options(options_v, request_v, socket_v, remote_client_v, token_v);		
 		socket_v.timeout(1s * options_v.timeout);
+		tftp_reader reader_v (file_path_v, options_v.tsize, options_v.blksize, request_v.xfermode == "octet");
 		
 		Glog.info("Starting transfer of {} to '{}' (file_size = {} bytes, blksize = {} bytes, timeout = {} sec)  ... "sv, 
 			request_v.filename, remote_client_v.to_string(), options_v.tsize, options_v.blksize, options_v.timeout);
 		
 		std::uint32_t retry_counter_v { MAX_RETRIES };		
-		while (!token_v.stop_requested() && retry_counter_v-- > 0u)
+		for (;!token_v.stop_requested() && retry_counter_v > 0u; --retry_counter_v)
 		try
 		{			
 			socket_v.send(reader_v.data(), remote_client_v, 0);
@@ -86,6 +86,9 @@ void tftp_session_v4::validate_source(address_v4 const& remote_client_v, address
 void tftp_session_v4::validate_ack(tftp_packet const& packet_v, socket_udp& socket_v, address_v4 const& remote_client_v, std::uintmax_t number_v)
 {
 	using namespace std::string_view_literals;
+	if (packet_v.is<tftp_packet::type_error>()) {
+		throw std::runtime_error(std::format("Connection terminated : {}"sv, packet_v.to_string()));
+	}
 
 	if (!packet_v.is<tftp_packet::type_ack>()) {
 		socket_v.send(tftp_packet::make_error(tftp_packet::illegal_operation), remote_client_v, 0);
@@ -111,7 +114,7 @@ void tftp_session_v4::validate_request(tftp_packet::type_rrq const& request, soc
 void tftp_session_v4::validate_options(options_type& options_v, tftp_packet::type_rrq const& request_v, socket_udp& socket_v, address_v4 const& remote_client_v, std::stop_token token_v)
 {
 	using namespace std::string_literals;
-
+	using namespace std::chrono_literals;
 	tftp_packet::dictionary_type oack_v;
 
 	const auto& dict_v = request_v.options;
@@ -132,11 +135,11 @@ void tftp_session_v4::validate_options(options_type& options_v, tftp_packet::typ
 	if (auto it = dict_v.find("tsize"s); it != dict_v.end()) {
 		oack_v.emplace("tsize"s, std::to_string(options_v.tsize));		
 	}
-
+	
 	std::uint32_t retry_counter_v { MAX_RETRIES };
-	while(!token_v.stop_requested() && retry_counter_v-- > 0u)
+	for(;!token_v.stop_requested() && retry_counter_v > 0u; --retry_counter_v)
 	try
-	{
+	{				
 		socket_v.send(tftp_packet::make_oack(oack_v), remote_client_v, 0);
 		auto [from_client_v, packet_bits_v] = socket_v.recv(0);
 		validate_source(remote_client_v, from_client_v, socket_v);
@@ -148,6 +151,8 @@ void tftp_session_v4::validate_options(options_type& options_v, tftp_packet::typ
 	{ continue; }
 	
 	if (!retry_counter_v) {
+		Glog.error("OACK has timed out."s);
+		socket_v.send(tftp_packet::make_error(tftp_packet::undefined, "TFTP operation timed out."), remote_client_v, 0);
 		throw std::runtime_error("Failed to send OACK packet, too many retries."s);
 	}
 }

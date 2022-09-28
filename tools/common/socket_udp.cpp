@@ -53,7 +53,7 @@ auto socket_udp::recv(std::span<std::byte>& buffer, address_v4& source, uint32_t
 }
 
 auto socket_udp::send(std::span<const std::byte>& buffer, const address_v4& target, uint32_t flags) const -> std::size_t
-{
+{	
 	return v4_socket_send(m_sock, buffer, target, flags);
 }
 

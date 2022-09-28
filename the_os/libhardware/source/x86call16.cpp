@@ -38,12 +38,12 @@ static inline std::uint32_t call16_invoke(x86arch::call16_context& ctx, Target c
   {  
     x86arch::interrupt_guard _;
     save_mask = pic8259::read_mask();    
-    pic8259::write_mask(0x8FB8u);
+    pic8259::write_mask(0x0000u /* 0x8FB8u / 0x15B8u */);
     pic8259::switch_to_real_mode();
     save_idtr = x86arch::sidt();
     x86arch::lidt (x86arch::Xdtr_t{ .limit = 0x400, .base = nullptr });
 
-    __debugbreak();
+//  __debugbreak();
     ((call16_function*)&call16_thunk.code[0])();
 
     x86arch::lidt (save_idtr);

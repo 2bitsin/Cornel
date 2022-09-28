@@ -87,6 +87,10 @@ void interrupts::initialize([[maybe_unused]] bool first_time)
   x86arch::lidt(G_idtr);  
   pic8259::switch_to_prot_mode();
   save_mask = pic8259::read_mask();
+#ifndef NO_DEBUG_LOG
+  using textio::simple::fmt::hex;
+  console::writeln("Interrupt mask : ", hex<'&'>(save_mask));
+#endif
   pic8259::write_mask(0);
   x86arch::sti();
 }
