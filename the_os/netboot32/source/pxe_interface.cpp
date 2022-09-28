@@ -140,6 +140,7 @@ auto pxe_interface_call(void* params, std::uint16_t opcode) -> pxenv_status
   stack.push<std::uint16_t>(address_of_params.seg);
   stack.push<std::uint16_t>(address_of_params.off);
   stack.push<std::uint16_t>(opcode);
+  ctx.irq_mask = 0u;
   ctx.flags |= flags::interrupt;
   ctx.eax = std::to_underlying (pxenv_status::invalid_status);
   ctx.ebx = opcode;
