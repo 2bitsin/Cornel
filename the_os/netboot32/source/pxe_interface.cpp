@@ -1,8 +1,10 @@
 #include <cstdint>
 #include <cstddef>
-
 #include <span>
 #include <string_view>
+#include <utility>
+#include <algorithm>
+#include <ranges>
 
 #include <hardware/console.hpp>
 #include <hardware/x86flags.hpp>
@@ -18,18 +20,10 @@
 #include <memory/allocate_buffer.hpp>
 
 #include <utils/bits.hpp>
+#include <utils/version.hpp>
 
 static x86arch::real_address G_pxe_entry_point = { 0u, 0u };
-
-static void initialize([[maybe_unused]] bangPXE& pxe_s)
-{
-  G_pxe_entry_point = pxe_s.entry_point_16;
-}
-
-static void initialize([[maybe_unused]] PXENVplus& pxe_s)
-{
-  G_pxe_entry_point = pxe_s.entry_point_16;
-}
+static dhcp::packet G_cached_dhcp_reply;
 
 static void initialize_ftp()
 {
@@ -37,20 +31,27 @@ static void initialize_ftp()
   using namespace pxe_interface;
   std::span<const std::byte> cached_reply_s;
   std::uint16_t limit { 0 };
-  if (get_cached_info(packet_type::cached_reply, cached_reply_s, limit))
+  if (!get_cached_info(packet_type::cached_reply, cached_reply_s, limit)) {
     return panick::pxe_failed("failed to get cached reply packet");
-  console::writeln("Cached reply packet : ");  
-  console::writeln("  * buffer.data() . : ", hex<'&'>(cached_reply_s.data()));
-  console::writeln("  * buffer.size() . : ", cached_reply_s.size());
+  }
 
-  dhcp::packet cached_reply_p { cached_reply_s };
-  if (!cached_reply_p.is_valid())
+#ifndef NO_DEBUG_LOG
+  console::writeln("Cached reply packet : ");
+  console::writeln("  * cached_reply_s.size : ", cached_reply_s.size());
+  console::writeln("  * cached_reply_s.data : ", hex<'&'>(cached_reply_s.data()));
+#endif  
+
+  std::construct_at(&G_cached_dhcp_reply, cached_reply_s);
+  if (!G_cached_dhcp_reply.is_valid())
     return panick::pxe_failed("Cached reply packet is invalid");
-  console::writeln("  * client IP ..... : ", cached_reply_p.client_ip());
-  console::writeln("  * your IP ....... : ", cached_reply_p.your_ip());
-  console::writeln("  * server IP ..... : ", cached_reply_p.server_ip());
-  console::writeln("  * gateway IP .... : ", cached_reply_p.gateway_ip());
-  console::writeln("  * client MAC .... : ", cached_reply_p.client_addr());
+
+#ifndef NO_DEBUG_LOG
+  console::writeln("  * client IP ..... : ", G_cached_dhcp_reply.client_ip());
+  console::writeln("  * your IP ....... : ", G_cached_dhcp_reply.your_ip());
+  console::writeln("  * server IP ..... : ", G_cached_dhcp_reply.server_ip());
+  console::writeln("  * gateway IP .... : ", G_cached_dhcp_reply.gateway_ip());
+  console::writeln("  * client MAC .... : ", G_cached_dhcp_reply.client_addr());
+#endif 
 }
 
 static auto validate_bangPXE(bangPXE const& pxe_s) -> bool
@@ -83,30 +84,43 @@ static auto validate_PXENVplus(PXENVplus const& pxe_s) -> bool
   return true;
 }
 
+static auto initialize_pxe(PXENVplus& pxenvplus_s, bangPXE& bangpxe_s) -> version<std::uint8_t, std::uint8_t>
+{
+  if (!validate_PXENVplus(pxenvplus_s)) {
+    panick::invalid_pxenvplus();
+  }
+  
+  if (pxenvplus_s.version >= 0x201u)
+  {
+  #ifndef NO_DEBUG_LOG
+    console::writeln("Using !PXE");
+  #endif
+    if (!validate_bangPXE(bangpxe_s))
+    {
+      panick::invalid_bangpxe();
+    }      
+    G_pxe_entry_point = bangpxe_s.entry_point_16;
+  }
+  else 
+  {
+  #ifndef NO_DEBUG_LOG
+    console::writeln("Using PXENV+");
+  #endif
+    G_pxe_entry_point = pxenvplus_s.entry_point_16;
+  }
+#ifndef NO_DEBUG_LOG
+  console::writeln("PXE entry point : ", G_pxe_entry_point);
+#endif
+  return version<>::from_word<8, 8>(pxenvplus_s.version);
+}
+
 void pxe_interface::initialize(bool first_time, PXENVplus& pxenvplus_s, bangPXE& bangpxe_s)
 {
   if (!first_time)
     return;
 
-  if (!validate_PXENVplus(pxenvplus_s))
-    return panick::invalid_pxenvplus();
-
-  const auto [v_min, v_maj] = bits::unpack_as_tuple<8, 8>(pxenvplus_s.version);
-  console::writeln("Initializing PXE v", v_maj, ".", v_min, " ... ");
-  console::writeln("  * PXENV+ entry point 16 : ", pxenvplus_s.entry_point_16);
-
-  if (pxenvplus_s.version >= 0x201)
-  {
-    if (!validate_bangPXE(bangpxe_s)) {
-      return panick::invalid_bangpxe();
-    }
-  console::writeln("  * !PXE   entry point 16 : ", bangpxe_s.entry_point_16);  
-    ::initialize(bangpxe_s);
-  }
-  else 
-  {
-    ::initialize(pxenvplus_s);     
-  }
+  const auto pxe_version = initialize_pxe(pxenvplus_s, bangpxe_s);  
+  console::writeln("Initialized PXE v", pxe_version, " ... ");
   initialize_ftp();
 }
 
@@ -116,7 +130,7 @@ void pxe_interface::finalize(bool last_time)
     return;
 }
 
-auto pxe_interface_call(void* params, std::uint16_t opcode) -> std::uint16_t
+auto pxe_interface_call(void* params, std::uint16_t opcode) -> pxenv_status
 {
   using namespace x86arch;
   auto address_of_params = real_address::from_pointer(params);
@@ -127,30 +141,66 @@ auto pxe_interface_call(void* params, std::uint16_t opcode) -> std::uint16_t
   stack.push<std::uint16_t>(address_of_params.off);
   stack.push<std::uint16_t>(opcode);
   ctx.flags |= flags::interrupt;
-  ctx.eax = ~0x0u;
+  ctx.eax = std::to_underlying (pxenv_status::invalid_status);
   ctx.ebx = opcode;
   ctx.es  = address_of_params.seg;
   ctx.ds  = address_of_params.seg;
   ctx.edi = address_of_params.off;
   call16_invoke(ctx, G_pxe_entry_point);
-  return ctx.ax;
+  return static_cast<pxenv_status>(ctx.ax);
 }
 
-auto pxe_interface::get_cached_info(std::uint16_t packet_type, std::span<const std::byte>& buffer, std::uint16_t& buffer_limit) -> std::uint16_t
+auto pxe_interface::get_cached_info(std::uint16_t packet_type, std::span<const std::byte>& buffer, std::uint16_t& buffer_limit) -> pxenv_status
 {
   alignas(16) pxenv_get_cached_info_type params; 
-  params.status = 0xffffu;
+  params.status = pxenv_status::invalid_status;
   params.packet_type = packet_type;
   params.buffer_limit = 0u;
   params.buffer_size = 0u;
   params.buffer = segoff{ 0, 0 };
-  auto status = pxe_interface_call(&params, 0x71);
-  if (!status && !params.status)  
-  {
-    buffer_limit = params.buffer_limit;
-    auto buff_ptr = x86arch::real_address{ params.buffer.off, params.buffer.seg }.to_pointer<std::byte>();
-    buffer = std::span{ buff_ptr, params.buffer_size };    
-  } 
+  const auto return_status = pxe_interface_call(&params, 0x71);
+  if (return_status != pxenv_status::success 
+    ||params.status != pxenv_status::success)
+    return params.status;
+  buffer_limit = params.buffer_limit;
+  auto buff_ptr = x86arch::real_address{ params.buffer.off, params.buffer.seg }.to_pointer<std::byte>();
+  buffer = std::span{ buff_ptr, params.buffer_size };    
   return params.status;
+}
+
+auto pxe_interface::tftp_get_fsize(std::string_view file_name, std::uint32_t& o_file_size, tftp_params const& options) -> pxenv_status
+{
+  alignas(16) pxenv_tftp_get_fsize_type params;
+
+  params.status     = pxenv_status::invalid_status;
+  params.server_ip  = options.server_ip;
+  params.gateway_ip = options.gateway_ip;
+
+  std::ranges::fill(params.file_name, 0u);
+  if (file_name.size() > std::size(params.file_name))
+    file_name = file_name.substr(0, std::size(params.file_name));
+  std::ranges::copy(file_name, params.file_name);
+
+  const auto return_status = pxe_interface_call(&params, 0x25u);
+
+  if (!!return_status && !!params.status)
+  {
+    o_file_size = params.file_size;
+  }
+
+  return params.status;
+}
+
+auto pxe_interface::tftp_get_fsize(std::string_view file_name, std::uint32_t& o_file_size) -> pxenv_status
+{
+  if (!G_cached_dhcp_reply.is_valid())
+    return pxenv_status::tftp_cannot_open_connection;
+  pxe_interface::tftp_params options { 
+    .server_ip = G_cached_dhcp_reply.server_ip().value(),     
+    .port = 69u,
+    .packet_size = 512u,
+    .gateway_ip = G_cached_dhcp_reply.gateway_ip().value()
+  };
+  return pxe_interface::tftp_get_fsize(file_name, o_file_size, options);
 }
 

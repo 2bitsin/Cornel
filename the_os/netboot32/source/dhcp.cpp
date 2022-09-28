@@ -27,8 +27,10 @@ namespace dhcp
   };
   #pragma pack(pop)
 
-  packet::packet(std::span<const std::byte> buffer) noexcept
-  : m_layout{ nullptr }
+  packet::packet() noexcept: m_layout{nullptr}  
+  {}
+
+  packet::packet(std::span<const std::byte> buffer) noexcept: packet()
   {    
     if (buffer.size() >= sizeof(dhcp_layout)) {
       m_layout = (dhcp_layout const*)buffer.data();

@@ -5,7 +5,11 @@
 
 #include <hardware/x86real_addr.hpp>
 
+#include "pxe_interface.hpp"
+
 #pragma pack(push, 1)
+
+using pxenv_status = pxe_interface::pxenv_status;
 
 struct segoff32
 {
@@ -60,17 +64,6 @@ struct bangPXE
   segdesc32 seg_desc[7+7];
 };
 
-struct pxenv_get_cached_info_type
-{
-  uint16_t status;
-  uint16_t packet_type;
-  uint16_t buffer_size;
-  segoff   buffer;
-  uint16_t buffer_limit;
-};  
-
-#pragma pack(pop)
-
 static_assert(sizeof(bangPXE) == 0x58 + sizeof(segdesc32)*7);
 static_assert(offsetof(bangPXE, signature         ) == 0x00);
 static_assert(offsetof(bangPXE, length            ) == 0x04);
@@ -112,5 +105,48 @@ static_assert(offsetof(PXENVplus, seg_desc[3].size      ) == 0x22);
 static_assert(offsetof(PXENVplus, seg_desc[4].real_seg  ) == 0x24);
 static_assert(offsetof(PXENVplus, seg_desc[4].size      ) == 0x26);
 static_assert(offsetof(PXENVplus, pxe_bang_ptr          ) == 0x28);
+
+struct pxenv_get_cached_info_type
+{
+  pxenv_status  status;
+  std::uint16_t packet_type;
+  std::uint16_t buffer_size;
+  segoff        buffer;
+  std::uint16_t buffer_limit;
+};  
+
+struct pxenv_tftp_open_type
+{
+  pxenv_status  status;
+  std::uint32_t server_ip;
+  std::uint32_t gateway_ip;
+  std::uint8_t  file_name[128];
+  std::uint16_t server_port;
+  std::uint16_t packet_size;
+} ;
+
+struct pxenv_tftp_get_fsize_type
+{
+  pxenv_status  status;
+  std::uint32_t server_ip;
+  std::uint32_t gateway_ip;
+  std::uint8_t  file_name[128];
+  std::uint32_t file_size;
+} ;
+
+struct pxenv_tftp_read_type
+{
+  pxenv_status  status;
+  std::uint16_t packet_number;
+  std::uint16_t buffer_size;
+  segoff        buffer;
+};
+
+struct pxenv_tftp_close_type
+{
+  pxenv_status  status;
+};
+
+#pragma pack(pop)
 
 

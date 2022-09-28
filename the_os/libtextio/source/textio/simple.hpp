@@ -57,7 +57,7 @@ namespace textio::simple
   static inline auto write(I out_i, T const* const what) -> I;
 
   template <std::output_iterator<char> I, ::textio::detail::is_writable<I> T>
-  static inline auto write(I out_i, T const& what)->I;
+  static inline auto write(I out_i, T&& what)->I;
   
 
   /************************************/
