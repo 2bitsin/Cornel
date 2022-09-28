@@ -130,7 +130,7 @@ void tftp_session_v4::validate_options(options_type& options_v, tftp_packet::typ
 	}
 
 	if (auto it = dict_v.find("tsize"s); it != dict_v.end()) {
-		oack_v.emplace("tisize"s, std::to_string(options_v.tsize));		
+		oack_v.emplace("tsize"s, std::to_string(options_v.tsize));		
 	}
 
 	std::uint32_t retry_counter_v { MAX_RETRIES };
