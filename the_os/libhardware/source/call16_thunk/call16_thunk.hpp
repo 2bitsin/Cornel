@@ -17,7 +17,9 @@ namespace x86arch::detail
   #pragma GCC diagnostic ignored "-Wpedantic"
   
   struct call16_context
-  {  
+  { 
+    std::uint16_t irq_mask;
+
     union { std::uint32_t eax; std::uint16_t ax; struct { std::uint8_t al, ah; }; }; 
     union { std::uint32_t ebx; std::uint16_t bx; struct { std::uint8_t bl, bh; }; }; 
     union { std::uint32_t ecx; std::uint16_t cx; struct { std::uint8_t cl, ch; }; }; 
@@ -34,7 +36,7 @@ namespace x86arch::detail
     union { std::uint32_t esp; std::uint16_t sp; };
 
     std::uint16_t ss;
-    std::uint16_t flags;
+    std::uint16_t flags;    
   };
 
   using call16_address = x86arch::real_address;
@@ -44,7 +46,7 @@ namespace x86arch::detail
     std::uint8_t code[512];
     struct
     {
-      std::byte jump[4];
+      std::byte jump[2];
       call16_context regs;
       call16_address addr;
     };

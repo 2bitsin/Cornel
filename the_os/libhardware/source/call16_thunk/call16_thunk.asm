@@ -2,8 +2,8 @@
    
     use32
     jmp   short call16_thunk
-
-    align 4
+  _irq_m_ : dw 0xcccc
+    
   _eax_   : dd 0xcccccccc
   _ebx_   : dd 0xcccccccc
   _ecx_   : dd 0xcccccccc
