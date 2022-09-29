@@ -16,6 +16,7 @@
 #include <netboot32/pxe_structs.hpp>
 #include <netboot32/panick.hpp>
 #include <netboot32/dhcp.hpp>
+#include <netboot32/memory.hpp>
 
 #include <memory/allocate_buffer.hpp>
 
@@ -183,9 +184,7 @@ auto pxe_interface::tftp_get_fsize(std::string_view file_name, std::uint32_t& o_
   std::ranges::copy(file_name, params.file_name);
 
   const auto return_status = pxe_interface_call(&params, 0x25u);
-
-  if (!!return_status && !!params.status)
-  {
+  if (!!return_status && !!params.status) {
     o_file_size = params.file_size;
   }
 
@@ -194,14 +193,116 @@ auto pxe_interface::tftp_get_fsize(std::string_view file_name, std::uint32_t& o_
 
 auto pxe_interface::tftp_get_fsize(std::string_view file_name, std::uint32_t& o_file_size) -> pxenv_status
 {
-  if (!G_cached_dhcp_reply.is_valid())
+  if (!G_cached_dhcp_reply.is_valid()) {
     return pxenv_status::tftp_cannot_open_connection;
-  pxe_interface::tftp_params options { 
-    .server_ip = G_cached_dhcp_reply.server_ip().value(),     
-    .port = 69u,
-    .packet_size = 512u,
-    .gateway_ip = G_cached_dhcp_reply.gateway_ip().value()
+  }
+
+  pxe_interface::tftp_params options 
+  { 
+    .server_ip    = G_cached_dhcp_reply.server_ip().value(),     
+    .port         = 69u,
+    .packet_size  = 512u,
+    .gateway_ip   = G_cached_dhcp_reply.gateway_ip().value()
   };
+
   return pxe_interface::tftp_get_fsize(file_name, o_file_size, options);
 }
 
+auto pxe_interface::tftp_open (std::string_view file_name, tftp_params const& options) -> pxenv_status
+{
+  alignas(16) pxenv_tftp_open_type params;  
+  params.status      = pxenv_status::invalid_status;
+  params.server_ip   = options.server_ip;
+  params.server_port = options.port;
+  params.packet_size = options.packet_size;
+  params.gateway_ip  = options.gateway_ip;
+
+  std::ranges::fill(params.file_name, 0u);
+  if (file_name.size() > std::size(params.file_name))
+    file_name = file_name.substr(0, std::size(params.file_name));
+  std::ranges::copy(file_name, params.file_name);  
+  pxe_interface_call(&params, 0x20u);
+  return params.status;
+}
+
+auto pxe_interface::tftp_open (std::string_view file_name) -> pxenv_status
+{
+  if (!G_cached_dhcp_reply.is_valid()) {
+    return pxenv_status::tftp_cannot_open_connection;
+  }
+
+  pxe_interface::tftp_params options 
+  { 
+    .server_ip    = G_cached_dhcp_reply.server_ip().value(),     
+    .port         = 69u,
+    .packet_size  = 512u,
+    .gateway_ip   = G_cached_dhcp_reply.gateway_ip().value()
+  };
+
+  return pxe_interface::tftp_open(file_name, options);
+}
+
+auto pxe_interface::tftp_close () -> pxenv_status
+{
+  alignas(16) pxenv_tftp_close_type params;
+  params.status = pxenv_status::invalid_status;
+  pxe_interface_call(&params, 0x21u);
+  return params.status;
+}
+
+auto pxe_interface::tftp_read (std::span<std::byte>& buffer, std::uint16_t& o_packet_number) -> pxenv_status
+{
+  alignas(16) pxenv_tftp_read_type params;
+  params.status = pxenv_status::invalid_status;
+  params.buffer = x86arch::real_address::from_pointer(buffer.data());
+  params.buffer_size = std::clamp(buffer.size(), 0u, 0xFFFFu);
+  const auto return_status = pxe_interface_call(&params, 0x22u);
+  if (!!return_status && !!params.status) {
+    o_packet_number = params.packet_number;
+    buffer = buffer.subspan(0, params.buffer_size);
+  }
+  return params.status;
+}
+
+auto pxe_interface::download_file (std::string_view file_name, std::span<std::byte>& buffer) -> pxenv_status
+{
+
+  pxenv_status  status      { pxenv_status::invalid_status };
+  std::uint32_t bytes_read  { 0u };
+  std::uint16_t last_packet { 0u };
+  std::uint32_t file_size   { 0u };
+  std::uint32_t buffer_size { 0u };
+
+
+  tftp_options options {
+    .server_ip    = G_cached_dhcp_reply.server_ip().value(),     
+    .port         = 69u,
+    .packet_size  = 512u,
+    .gateway_ip   = G_cached_dhcp_reply.gateway_ip().value()
+  };  
+
+  std::span<std::byte> buffer;
+
+  status = pxe_interface::tftp_get_fsize(file_name, file_size);
+  if (status != pxenv_status::success)
+    return status;
+
+  buffer_size = (file_size + options.packet_size - 1u) & ~(options.packet_size - 1u);
+  buffer = allocate_buffer_of<std::byte>(ext_allocator(), buffer_size);
+
+  status = pxe_interface::tftp_open(file_name);
+  if (status != pxenv_status::success)
+    return status;
+
+  while (bytes_read < file_size) {
+    status = pxe_interface::tftp_read(buffer, last_packet);
+    if (status != pxenv_status::success)
+      return status;
+    bytes_read += buffer.size();
+  }  
+
+  
+  
+  pxe_interface::tftp_close();
+  return status;
+}

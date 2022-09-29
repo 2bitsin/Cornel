@@ -37,15 +37,8 @@ auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) -> void
 {  
   initialize(true);
   pxe_interface::initialize(true, _PXENVplus, _bangPXE);
-    
-  std::uint32_t file_size { 0 };
-  if (pxe_interface::pxenv_status::success == pxe_interface::tftp_get_fsize("config.ini", file_size)) {
-    console::writeln("File size of config.ini : ", file_size);
-  }
-  else {
-    console::writeln("Failed to get file size of config.ini");
-  }
-
+  
+  
   for(;;) { x86arch::yield(); }
 
   pxe_interface::finalize(false);
