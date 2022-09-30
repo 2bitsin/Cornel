@@ -87,6 +87,23 @@ void memory::finalize(bool last_time)
     return;
 }
 
+auto memory::ext_allocate(std::size_t size) -> void*
+{
+  auto pointer = G_extended_heap.allocate(size);
+  if (pointer == nullptr)
+    panick::out_of_memory(size, G_extended_heap);
+  return pointer;
+}
+
+auto memory::ext_deallocate(void* pointer) -> void
+{
+  if (!G_extended_heap.deallocate(pointer))
+  {
+    panick::invalid_free(pointer, G_extended_heap);
+  }
+}
+
+
 using namespace std;
 
 CO_PUBLIC 

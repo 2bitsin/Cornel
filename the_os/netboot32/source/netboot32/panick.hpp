@@ -13,6 +13,8 @@ namespace panick
 
   [[noreturn]] void invalid_free(void* ptr, block_list const& blist) noexcept;
   [[noreturn]] void out_of_memory(std::size_t size, block_list const& blist) noexcept;
+  [[noreturn]] void invalid_free_ext(void* ptr, block_list const& blist) noexcept;
+  [[noreturn]] void out_of_memory_ext(std::size_t size, block_list const& blist) noexcept;
 
   [[noreturn]] void invalid_pxenvplus() noexcept;
   [[noreturn]] void invalid_bangpxe() noexcept;  

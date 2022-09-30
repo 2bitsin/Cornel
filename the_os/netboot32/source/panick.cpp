@@ -39,7 +39,7 @@ void panick::invalid_free(void* ptr) noexcept
 [[noreturn]] 
 void panick::out_of_memory(std::size_t size, struct ::block_list const& blist) noexcept
 {
-  console::writeln("#002 - Out of memory, unable to allocate ", size, " bytes");
+  console::writeln("#002.0 - Out of base memory, unable to allocate ", size, " bytes");
   pretty_print(blist, console::iterator{});
   std::abort();
 }
@@ -48,7 +48,24 @@ void panick::out_of_memory(std::size_t size, struct ::block_list const& blist) n
 void panick::invalid_free(void* ptr, struct ::block_list const& blist) noexcept
 {
   using namespace textio::simple::fmt;
-  console::writeln("#003 - Heap deallocation failed (", hex<'&'>(ptr), "), possible corruption.");
+  console::writeln("#003.0 - Base heap deallocation failed (", hex<'&'>(ptr), "), possible corruption.");
+  pretty_print(blist, console::iterator{});
+  std::abort();
+}
+
+[[noreturn]] 
+void panick::out_of_memory_ext(std::size_t size, struct ::block_list const& blist) noexcept
+{
+  console::writeln("#002.1 - Out of extended memory, unable to allocate ", size, " bytes");
+  pretty_print(blist, console::iterator{});
+  std::abort();
+}
+
+[[noreturn]] 
+void panick::invalid_free_ext(void* ptr, struct ::block_list const& blist) noexcept
+{
+  using namespace textio::simple::fmt;
+  console::writeln("#003.1 - Extended heap deallocation failed (", hex<'&'>(ptr), "), possible corruption.");
   pretty_print(blist, console::iterator{});
   std::abort();
 }

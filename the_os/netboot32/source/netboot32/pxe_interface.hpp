@@ -90,6 +90,8 @@ namespace pxe_interface
     loader_no_pxenv_struct            = 0xC9u,
     loader_undi_start                 = 0xCAu,
     loader_bc_start                   = 0xCBu,
+
+    tftp_invalid_packet_number        = 0xF000u,
     invalid_status                    = 0xFFFFu
   };
 
@@ -100,10 +102,9 @@ namespace pxe_interface
 
   struct tftp_params
   {
-    std::uint32_t server_ip   { 0u    };
-    std::uint16_t port        { 69u   };
-    std::uint16_t packet_size { 512u  };
-    std::uint32_t gateway_ip  { 0u    };
+    std::uint32_t server_ip   { 0u      };
+    std::uint16_t port        { 0x4500u };
+    std::uint32_t gateway_ip  { 0u      };
   };
 
   auto initialize       (bool first_time, ::PXENVplus&, ::bangPXE&) -> void;
@@ -114,12 +115,11 @@ namespace pxe_interface
   auto tftp_get_fsize   (std::string_view file_name, std::uint32_t& o_file_size, tftp_params const& options) -> pxenv_status;
   auto tftp_get_fsize   (std::string_view file_name, std::uint32_t& o_file_size) -> pxenv_status;
 
-  auto tftp_open        (std::string_view file_name, tftp_params const& options) -> pxenv_status;
-  auto tftp_open        (std::string_view file_name) -> pxenv_status;
+  auto tftp_open        (std::string_view file_name, std::uint16_t& o_packet_size, tftp_params const& options) -> pxenv_status;
+  auto tftp_open        (std::string_view file_name, std::uint16_t& o_packet_size) -> pxenv_status;
 
   auto tftp_read        (std::span<std::byte>& buffer, std::uint16_t& o_packet_number) -> pxenv_status;
   auto tftp_close       () -> pxenv_status;
-
 
   auto download_file    (std::string_view file_name, std::span<std::byte>& buffer) -> pxenv_status; 
 };

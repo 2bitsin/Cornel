@@ -21,7 +21,9 @@
 #include <memory/allocate_buffer.hpp>
 
 #include <utils/bits.hpp>
+#include <utils/int.hpp>
 #include <utils/version.hpp>
+#include <utils/defer.hpp>
 
 static x86arch::real_address G_pxe_entry_point = { 0u, 0u };
 static dhcp::packet G_cached_dhcp_reply;
@@ -90,7 +92,7 @@ static auto initialize_pxe(PXENVplus& pxenvplus_s, bangPXE& bangpxe_s) -> versio
   if (!validate_PXENVplus(pxenvplus_s)) {
     panick::invalid_pxenvplus();
   }
-  
+
   if (pxenvplus_s.version >= 0x201u)
   {
   #ifndef NO_DEBUG_LOG
@@ -155,7 +157,7 @@ auto pxe_interface_call(void* params, std::uint16_t opcode) -> pxenv_status
 auto pxe_interface::get_cached_info(std::uint16_t packet_type, std::span<const std::byte>& buffer, std::uint16_t& buffer_limit) -> pxenv_status
 {
   alignas(16) pxenv_get_cached_info_type params; 
-  params.status = pxenv_status::invalid_status;
+  params.status = pxenv_status::bad_func;
   params.packet_type = packet_type;
   params.buffer_limit = 0u;
   params.buffer_size = 0u;
@@ -174,7 +176,7 @@ auto pxe_interface::tftp_get_fsize(std::string_view file_name, std::uint32_t& o_
 {
   alignas(16) pxenv_tftp_get_fsize_type params;
 
-  params.status     = pxenv_status::invalid_status;
+  params.status     = pxenv_status::bad_func;
   params.server_ip  = options.server_ip;
   params.gateway_ip = options.gateway_ip;
 
@@ -199,110 +201,110 @@ auto pxe_interface::tftp_get_fsize(std::string_view file_name, std::uint32_t& o_
 
   pxe_interface::tftp_params options 
   { 
-    .server_ip    = G_cached_dhcp_reply.server_ip().value(),     
-    .port         = 69u,
-    .packet_size  = 512u,
-    .gateway_ip   = G_cached_dhcp_reply.gateway_ip().value()
+    .server_ip  = G_cached_dhcp_reply.server_ip().value(),     
+    .gateway_ip = G_cached_dhcp_reply.gateway_ip().value()
   };
 
   return pxe_interface::tftp_get_fsize(file_name, o_file_size, options);
 }
 
-auto pxe_interface::tftp_open (std::string_view file_name, tftp_params const& options) -> pxenv_status
+auto pxe_interface::tftp_open (std::string_view file_name, std::uint16_t& packet_size, tftp_params const& options) -> pxenv_status
 {
   alignas(16) pxenv_tftp_open_type params;  
-  params.status      = pxenv_status::invalid_status;
+  params.status      = pxenv_status::bad_func;
   params.server_ip   = options.server_ip;
   params.server_port = options.port;
-  params.packet_size = options.packet_size;
   params.gateway_ip  = options.gateway_ip;
+  params.packet_size = packet_size;
 
   std::ranges::fill(params.file_name, 0u);
   if (file_name.size() > std::size(params.file_name))
     file_name = file_name.substr(0, std::size(params.file_name));
   std::ranges::copy(file_name, params.file_name);  
-  pxe_interface_call(&params, 0x20u);
+  const auto status = pxe_interface_call(&params, 0x20u);
+  if (status == pxenv_status::success && params.status == pxenv_status::success) 
+    packet_size = params.packet_size;
   return params.status;
 }
 
-auto pxe_interface::tftp_open (std::string_view file_name) -> pxenv_status
+auto pxe_interface::tftp_open (std::string_view file_name, std::uint16_t& packet_size) -> pxenv_status
 {
   if (!G_cached_dhcp_reply.is_valid()) {
     return pxenv_status::tftp_cannot_open_connection;
   }
-
-  pxe_interface::tftp_params options 
-  { 
-    .server_ip    = G_cached_dhcp_reply.server_ip().value(),     
-    .port         = 69u,
-    .packet_size  = 512u,
-    .gateway_ip   = G_cached_dhcp_reply.gateway_ip().value()
+  pxe_interface::tftp_params options { 
+    .server_ip  = G_cached_dhcp_reply.server_ip().value(),     
+    .gateway_ip = G_cached_dhcp_reply.gateway_ip().value()
   };
-
-  return pxe_interface::tftp_open(file_name, options);
+  return pxe_interface::tftp_open(file_name, packet_size, options);
 }
 
 auto pxe_interface::tftp_close () -> pxenv_status
 {
   alignas(16) pxenv_tftp_close_type params;
-  params.status = pxenv_status::invalid_status;
+  params.status = pxenv_status::bad_func;
   pxe_interface_call(&params, 0x21u);
   return params.status;
 }
 
-auto pxe_interface::tftp_read (std::span<std::byte>& buffer, std::uint16_t& o_packet_number) -> pxenv_status
+auto pxe_interface::tftp_read (std::span<std::byte>& o_buffer, std::uint16_t& o_packet_number) -> pxenv_status
 {
   alignas(16) pxenv_tftp_read_type params;
-  params.status = pxenv_status::invalid_status;
-  params.buffer = x86arch::real_address::from_pointer(buffer.data());
-  params.buffer_size = std::clamp(buffer.size(), 0u, 0xFFFFu);
+  params.status = pxenv_status::bad_func;
+  params.buffer = x86arch::real_address::from_pointer(o_buffer.data());
+  params.buffer_size = std::clamp(o_buffer.size(), 0u, 0xFFFFu);
   const auto return_status = pxe_interface_call(&params, 0x22u);
   if (!!return_status && !!params.status) {
     o_packet_number = params.packet_number;
-    buffer = buffer.subspan(0, params.buffer_size);
+    o_buffer = o_buffer.subspan(0, params.buffer_size);
   }
   return params.status;
 }
 
-auto pxe_interface::download_file (std::string_view file_name, std::span<std::byte>& buffer) -> pxenv_status
+auto pxe_interface::download_file (std::string_view file_name, std::span<std::byte>& o_buffer) -> pxenv_status
 {
+  using namespace textio::simple::fmt;
 
   pxenv_status  status      { pxenv_status::invalid_status };
   std::uint32_t bytes_read  { 0u };
   std::uint16_t last_packet { 0u };
-  std::uint32_t file_size   { 0u };
-  std::uint32_t buffer_size { 0u };
+  std::uint16_t curr_packet { 1u };
+  std::uint32_t file_size   { 0u };  
+  std::uint16_t packet_size { 1024u };
 
-
-  tftp_options options {
-    .server_ip    = G_cached_dhcp_reply.server_ip().value(),     
-    .port         = 69u,
-    .packet_size  = 512u,
-    .gateway_ip   = G_cached_dhcp_reply.gateway_ip().value()
-  };  
-
-  std::span<std::byte> buffer;
+  std::span<std::byte> entire_buffer;
+  std::span<std::byte> packet_buffer;
 
   status = pxe_interface::tftp_get_fsize(file_name, file_size);
   if (status != pxenv_status::success)
     return status;
-
-  buffer_size = (file_size + options.packet_size - 1u) & ~(options.packet_size - 1u);
-  buffer = allocate_buffer_of<std::byte>(ext_allocator(), buffer_size);
-
-  status = pxe_interface::tftp_open(file_name);
+  status = pxe_interface::tftp_open(file_name, packet_size);
   if (status != pxenv_status::success)
     return status;
+ 
+  entire_buffer = memory::allocate_buffer_of<std::byte>(memory::ext_allocator(), quantize_to(file_size, packet_size));  
+  defer(memory::deallocate_buffer(memory::ext_allocator(), entire_buffer));
 
-  while (bytes_read < file_size) {
-    status = pxe_interface::tftp_read(buffer, last_packet);
+  packet_buffer = memory::allocate_buffer_of<std::byte>(memory::default_allocator(), packet_size);
+  defer(memory::deallocate_buffer(memory::default_allocator(), packet_buffer));
+
+  for (bytes_read = 0u; bytes_read < file_size; ) 
+  {
+    auto out_packet_buffer = packet_buffer;  
+    status = pxe_interface::tftp_read(out_packet_buffer, curr_packet);
     if (status != pxenv_status::success)
       return status;
-    bytes_read += buffer.size();
-  }  
+    if (curr_packet != last_packet + 1u) 
+      return pxenv_status::tftp_invalid_packet_number;
+    auto dest_buffer_range = entire_buffer.subspan(bytes_read, out_packet_buffer.size());
+    std::ranges::copy(out_packet_buffer, std::begin(dest_buffer_range));
+    last_packet = curr_packet;
+    bytes_read += out_packet_buffer.size();
+    if (out_packet_buffer.size () < packet_size)
+      break;
+  }
 
-  
-  
   pxe_interface::tftp_close();
+  o_buffer = entire_buffer.subspan(0, bytes_read);
   return status;
 }
