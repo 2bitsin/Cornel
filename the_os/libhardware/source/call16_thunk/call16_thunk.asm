@@ -50,6 +50,21 @@
     mov         cr0,        eax
     jmp         0x00:.real_mode    
   .real_mode:   
+    ; ---- enable nmi --------------
+    in          al,         0x70
+    and         al,         0x7f
+    out         0x70,       al
+    ; ---- indicate real mode -------
+    mov         dx,         0x03C8
+    xor         al,         al
+    out         dx,         al
+    inc         dx 
+    not         al
+    out         dx,         al
+    not         al
+    out         dx,         al
+    out         dx,         al
+    ; -------------------------------
     mov         eax,        [cs:_eax_]
     mov         ebx,        [cs:_ebx_]
     mov         ecx,        [cs:_ecx_]
@@ -68,7 +83,7 @@
     mov         ss,         [cs:_ss_]
     mov         esp,        [cs:_esp_]
     call        dword [cs:_cs_ip_]
-
+  
     mov         [cs:_esp_], esp
     mov         [cs:_ss_],  ss
     mov         sp,         cs
@@ -87,6 +102,13 @@
     mov         [cs:_ebx_], ebx
     mov         [cs:_eax_], eax
 
+    ; -- disable interrupts ----
+    cli    
+    ; ---- disable nmi ---------
+    in          al,         0x70
+    or          al,         0x80
+    out         0x70,       al
+    ; -------------------------
   .reentering_prot_mode:
     mov         eax,        cr0
     or          ax,         1
@@ -94,8 +116,17 @@
     jmp         0x08:.prot_mode
    
     use32
-
   .prot_mode:
+    ; ---- indicate prot mode -------
+    mov         dx,         0x03C8
+    xor         al,         al
+    out         dx,         al
+    inc         dx    
+    out         dx,         al
+    out         dx,         al
+    out         dx,         al
+    ; -------------------------------
+
     lss         esp,        [cs:_o_esp_]
     popfd
     pop         gs

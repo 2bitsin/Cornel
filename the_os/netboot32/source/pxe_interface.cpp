@@ -223,7 +223,7 @@ auto pxe_interface::tftp_open (std::string_view file_name, std::uint16_t& packet
   std::ranges::copy(file_name, params.file_name);  
   const auto status = pxe_interface_call(&params, 0x20u);
   if (status == pxenv_status::success && params.status == pxenv_status::success) 
-    packet_size = params.packet_size;
+    packet_size = params.packet_size;  
   return params.status;
 }
 
@@ -270,41 +270,48 @@ auto pxe_interface::download_file (std::string_view file_name, std::span<std::by
   std::uint16_t last_packet { 0u };
   std::uint16_t curr_packet { 1u };
   std::uint32_t file_size   { 0u };  
-  std::uint16_t packet_size { 1024u };
+  std::uint16_t packet_size { 512u };
 
   std::span<std::byte> entire_buffer;
   std::span<std::byte> packet_buffer;
 
+  console::writeln(__FUNCTION__, ":", __LINE__);
   status = pxe_interface::tftp_get_fsize(file_name, file_size);
   if (status != pxenv_status::success)
     return status;
+  console::writeln(__FUNCTION__, ":", __LINE__, " file size: ", file_size);
   status = pxe_interface::tftp_open(file_name, packet_size);
   if (status != pxenv_status::success)
     return status;
- 
+  console::writeln(__FUNCTION__, ":", __LINE__, " packet size: ", packet_size);
   entire_buffer = memory::allocate_buffer_of<std::byte>(memory::ext_allocator(), quantize_to(file_size, packet_size));  
   defer(memory::deallocate_buffer(memory::ext_allocator(), entire_buffer));
-
   packet_buffer = memory::allocate_buffer_of<std::byte>(memory::default_allocator(), packet_size);
   defer(memory::deallocate_buffer(memory::default_allocator(), packet_buffer));
 
   for (bytes_read = 0u; bytes_read < file_size; ) 
   {
     auto out_packet_buffer = packet_buffer;  
-    status = pxe_interface::tftp_read(out_packet_buffer, curr_packet);
+    console::writeln(__FUNCTION__, ":", __LINE__);
+    status = pxe_interface::tftp_read(out_packet_buffer, curr_packet);    
+    console::writeln(__FUNCTION__, ":", __LINE__, " packet: ", curr_packet, " status: ", (std::uint16_t)status, " bytes read: ", out_packet_buffer.size());
     if (status != pxenv_status::success)
       return status;
     if (curr_packet != last_packet + 1u) 
       return pxenv_status::tftp_invalid_packet_number;
+    console::writeln(__FUNCTION__, ":", __LINE__);
     auto dest_buffer_range = entire_buffer.subspan(bytes_read, out_packet_buffer.size());
     std::ranges::copy(out_packet_buffer, std::begin(dest_buffer_range));
+    console::writeln(__FUNCTION__, ":", __LINE__);
     last_packet = curr_packet;
     bytes_read += out_packet_buffer.size();
     if (out_packet_buffer.size () < packet_size)
       break;
+    console::writeln(__FUNCTION__, ":", __LINE__);
   }
-
+  console::writeln(__FUNCTION__, ":", __LINE__);
   pxe_interface::tftp_close();
+  console::writeln(__FUNCTION__, ":", __LINE__);
   o_buffer = entire_buffer.subspan(0, bytes_read);
   return status;
 }
