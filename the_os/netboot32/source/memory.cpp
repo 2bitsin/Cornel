@@ -38,9 +38,8 @@ static void initialize_extended_heap()
   std::uint64_t heap_size = 0u;
 
   // Must enable A20 line to access extended memory
-  if (!atwenty::try_enable()) {
-    panick::cant_enable_atwenty();
-  }
+  if (!atwenty::try_enable()) 
+  { panick::cant_enable_atwenty(); }
 
   do
   {
@@ -71,38 +70,6 @@ static void initialize_base_heap()
   console::writeln("  * ", data_size(heap_bytes.size()), " Bytes base memory available."); 
 }
 
-void memory::initialize(bool first_time)
-{
-  using namespace textio::simple::fmt;
-  if (!first_time)
-    return;
-  console::writeln("Initializing heap ...");  
-  initialize_base_heap();
-  initialize_extended_heap();
-}
-
-void memory::finalize(bool last_time)
-{
-  if (!last_time)
-    return;
-}
-
-auto memory::ext_allocate(std::size_t size) -> void*
-{
-  auto pointer = G_extended_heap.allocate(size);
-  if (pointer == nullptr)
-    panick::out_of_memory(size, G_extended_heap);
-  return pointer;
-}
-
-auto memory::ext_deallocate(void* pointer) -> void
-{
-  if (!G_extended_heap.deallocate(pointer))
-  {
-    panick::invalid_free(pointer, G_extended_heap);
-  }
-}
-
 
 using namespace std;
 
@@ -111,9 +78,7 @@ void* malloc(std::size_t size)
 {
   auto ptr = G_base_heap.allocate(size);
   if (nullptr == ptr)
-  {
-    panick::out_of_memory(size, G_base_heap);
-  }
+  { panick::out_of_memory(size, G_base_heap); }
   return ptr;
 }
 
@@ -126,14 +91,9 @@ void* calloc(std::size_t nelem, std::size_t size)
   auto ptr = G_base_heap.allocate(size);
   // If successful, fill with zeros
   if (nullptr != ptr) 
-  {
-    // Zero out new block
-    __builtin_memset(ptr, 0, size);
-  }
+  { __builtin_memset(ptr, 0, size); }
   else 
-  {
-    panick::out_of_memory(size, G_base_heap);
-  }
+  { panick::out_of_memory(size, G_base_heap); }
   return ptr;
 }
 
@@ -141,7 +101,7 @@ CO_PUBLIC
 void free(void* ptr)
 {
   if(!G_base_heap.deallocate(ptr))
-    panick::invalid_free(ptr, G_base_heap);
+  { panick::invalid_free(ptr, G_base_heap); }
 }
 
 CO_PUBLIC 
@@ -178,32 +138,32 @@ void* realloc(void* old_ptr, std::size_t new_size)
 void operator delete(void* ptr) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
-    panick::invalid_free(ptr, G_base_heap);
+  { panick::invalid_free(ptr, G_base_heap); }
 }
 
 void operator delete[](void* ptr) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
-    panick::invalid_free(ptr, G_base_heap);
+  { panick::invalid_free(ptr, G_base_heap); }
 }
 
 void operator delete(void* ptr, [[maybe_unused]] std::size_t size) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
-    panick::invalid_free(ptr, G_base_heap);
+  { panick::invalid_free(ptr, G_base_heap); }
 }
 
 void operator delete[](void* ptr, [[maybe_unused]] std::size_t size) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
-    panick::invalid_free(ptr, G_base_heap);
+  { panick::invalid_free(ptr, G_base_heap); }
 }
 
 void* operator new[](std::size_t size) noexcept
 {
   auto ptr = G_base_heap.allocate(size);
   if (nullptr == ptr) 
-    panick::out_of_memory(size, G_base_heap);
+  { panick::out_of_memory(size, G_base_heap); }
   return ptr;
 }
 
@@ -211,6 +171,110 @@ void* operator new(std::size_t size) noexcept
 {
   auto ptr = G_base_heap.allocate(size);
   if (nullptr == ptr) 
-    panick::out_of_memory(size, G_base_heap);
+  { panick::out_of_memory(size, G_base_heap); }
   return ptr;
+}
+
+
+namespace memory
+{
+  void initialize(bool first_time)
+  {
+    using namespace textio::simple::fmt;
+    if (!first_time)
+      return;
+    console::writeln("Initializing heap ...");  
+    initialize_base_heap();
+    initialize_extended_heap();
+
+    std::pmr::set_default_resource(&::memory::get_base_heap());
+  }
+
+  void finalize(bool last_time)
+  {
+    if (!last_time)
+      return;
+  }
+
+  auto ext_allocate(std::size_t size) -> void*
+  {
+    auto pointer = G_extended_heap.allocate(size);
+    if (nullptr == pointer)
+    { panick::out_of_memory(size, G_extended_heap); }
+    return pointer;
+  }
+
+  auto ext_deallocate(void* pointer) -> void
+  {
+    if (!G_extended_heap.deallocate(pointer))
+    { panick::invalid_free(pointer, G_extended_heap); }
+  }
+
+  static constexpr const char aligment_error [] = "unable to satisfy alignment of more then 16bytes";
+  auto get_base_heap() noexcept -> std::pmr::memory_resource&
+  {    
+    class resource_impl
+    : public std::pmr::memory_resource
+    {
+    private:
+      void* do_allocate(std::size_t size, std::size_t alignment) override {
+        if (alignment > 16)
+          __throw_invalid_argument(aligment_error);
+        return std::malloc(size);
+      }
+
+      void do_deallocate(void* ptr, std::size_t, std::size_t alignment) override {
+        if (alignment > 16)        
+          __throw_invalid_argument(aligment_error);
+        std::free(ptr);
+      }
+
+      bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override 
+      { return this == &other; }
+    };
+    static resource_impl resource;
+    return resource;
+  }
+
+  auto get_extended_heap() noexcept -> std::pmr::memory_resource&
+  {
+    class resource_impl
+    : public std::pmr::memory_resource
+    {
+    private:
+      void* do_allocate(std::size_t size, std::size_t alignment) override {
+        if (alignment > 16)
+          __throw_invalid_argument(aligment_error);
+        return ext_allocate(size);
+      }
+
+      void do_deallocate(void* ptr, std::size_t, std::size_t alignment) override {
+        if (alignment > 16)        
+          __throw_invalid_argument(aligment_error);
+        ext_deallocate(ptr);
+      }
+
+      bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override 
+      { return this == &other; }
+    };
+    static resource_impl resource;
+    return resource;
+  }
+}
+
+static std::pmr::memory_resource* G_default_resource = nullptr;
+
+namespace std::pmr
+{
+  memory_resource::~memory_resource() {}
+
+  auto set_default_resource(memory_resource* resource) noexcept -> memory_resource*
+  {
+    return std::exchange(G_default_resource, resource);
+  }
+
+  auto get_default_resource() noexcept -> memory_resource*
+  {
+    return G_default_resource;
+  }
 }

@@ -3,6 +3,7 @@
 #include <span>
 #include <hardware/x86asm.hpp>
 #include <utils/macros.hpp>
+#include <memory_resource>
 
 namespace x86arch
 {
@@ -83,7 +84,7 @@ namespace x86arch
   };
 
   auto gdt_descriptor(gdt_descriptor_type params) -> std::uint64_t;  
-  auto gdt_table_resize(std::uint16_t new_size, std::uint64_t defval = 0u, std::uint32_t flags = 0u) -> std::span<std::uint64_t>;
+  auto gdt_table_resize(std::pmr::memory_resource& allocator, std::uint16_t new_size, std::uint64_t defval = 0u, std::uint32_t flags = 0u) -> std::span<std::uint64_t>;
   auto gdt_table_size() -> std::uint16_t;
   auto gdt_descriptor_set(std::uint16_t index, std::uint64_t descriptor) -> std::uint64_t;
   auto gdt_descriptor_get(std::uint16_t index) -> std::uint64_t;

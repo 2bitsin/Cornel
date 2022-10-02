@@ -40,7 +40,7 @@ namespace memory
   static inline auto deallocate_buffer(A&& a, std::span<T> const& buffer) -> void
   {
     std::destroy(buffer.begin(), buffer.end());
-    a.deallocate(buffer.data());
+    a.deallocate(buffer.data(), buffer.size()*sizeof(T));
   }
 
   static constexpr auto reallocate_force_copy_flag = 0x1u;

@@ -1,23 +1,23 @@
 #pragma once
 
+#include <memory_resource>
+
 namespace memory
 {
   auto initialize(bool first_time) -> void;
   auto finalize(bool last_time) -> void;
-  
-  auto ext_allocate(std::size_t size) -> void*;
-  auto ext_deallocate(void* pointer) -> void;
 
-  auto allocate(std::size_t size) -> void*;
-  auto deallocate(void* pointer) -> void;
+  auto get_base_heap() noexcept -> std::pmr::memory_resource&;
+  auto get_extended_heap() noexcept -> std::pmr::memory_resource&;
 
+  template <typename T>
+  static inline auto get_base_allocator() noexcept 
+    -> std::pmr::polymorphic_allocator<T>
+  { return { &get_base_heap() }; }
 
-  struct ext_allocator_type
-  {
-    static inline void* allocate(std::size_t size) noexcept { return ext_allocate(size); }
-    static inline void deallocate(void* ptr) noexcept { ext_deallocate(ptr); }
-  };
-
-  static inline auto ext_allocator() noexcept -> ext_allocator_type { return {}; }
-
+  template <typename T>
+  static inline auto get_extended_allocator() noexcept 
+    -> std::pmr::polymorphic_allocator<T>
+  { return { &get_extended_heap() }; }
+   
 };

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <type_traits>
 #include <cstring>
+#include <memory_resource>
 
 #include <hardware/x86call16.hpp>
 #include <hardware/x86real_addr.hpp>
@@ -13,7 +14,7 @@ namespace x86arch
 {
   struct call16_stack
   {
-    call16_stack (call16_context& context, std::size_t size) noexcept;
+    call16_stack (std::pmr::memory_resource& allocator, call16_context& context, std::size_t size) noexcept;
     call16_stack (call16_stack&& other) noexcept;
     ~call16_stack() noexcept;
     auto operator = (call16_stack&& other) noexcept -> call16_stack&;
@@ -29,7 +30,7 @@ namespace x86arch
       { return false; }
       m_context.esp -= sizeof(T);
       std::memcpy(m_bytes.data() + m_context.esp, &value, sizeof(T));
-      return true;
+      return true; 
     }
 
     template <typename... T>
@@ -45,6 +46,7 @@ namespace x86arch
     { return m_bytes; }
 
   private:
+    std::pmr::memory_resource& m_allocator;
     call16_context& m_context;
     std::span<std::byte> m_bytes;
   };

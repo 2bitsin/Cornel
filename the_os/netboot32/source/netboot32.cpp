@@ -40,7 +40,7 @@ auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) -> void
   
   std::span<std::byte> buffer;
   console::writeln("downloading config.ini ...");
-  const auto result = pxe_interface::download_file("config.ini", buffer);
+  [[maybe_unused]] const auto result = pxe_interface::download_file("config.ini", buffer);
 
 
   for(;;) { x86arch::yield(); }
