@@ -54,16 +54,6 @@
     in          al,         0x70
     and         al,         0x7f
     out         0x70,       al
-    ; ---- indicate real mode -------
-    mov         dx,         0x03C8
-    xor         al,         al
-    out         dx,         al
-    inc         dx 
-    not         al
-    out         dx,         al
-    not         al
-    out         dx,         al
-    out         dx,         al
     ; -------------------------------
     mov         eax,        [cs:_eax_]
     mov         ebx,        [cs:_ebx_]
@@ -117,16 +107,6 @@
    
     use32
   .prot_mode:
-    ; ---- indicate prot mode -------
-    mov         dx,         0x03C8
-    xor         al,         al
-    out         dx,         al
-    inc         dx    
-    out         dx,         al
-    out         dx,         al
-    out         dx,         al
-    ; -------------------------------
-
     lss         esp,        [cs:_o_esp_]
     popfd
     pop         gs

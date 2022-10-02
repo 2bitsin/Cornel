@@ -40,14 +40,7 @@ auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) -> void
   
   std::span<std::byte> buffer;
   console::writeln("downloading config.ini ...");
-  const auto download_result = pxe_interface::download_file("config.ini", buffer);
-  if (download_result != pxe_interface::pxenv_status::success)
-  {
-    using namespace textio::simple::fmt;
-    console::writeln("failed to download config.ini : ", hex<'&'>(std::to_underlying (download_result)));    
-  }
-  console::writeln("config.ini downloaded, size = ", buffer.size_bytes(), " bytes");
-  //console::writeln(std::string_view{reinterpret_cast<char*>(buffer.data()), buffer.size()});
+  const auto result = pxe_interface::download_file("config.ini", buffer);
 
 
   for(;;) { x86arch::yield(); }
