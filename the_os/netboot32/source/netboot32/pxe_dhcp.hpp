@@ -4,7 +4,9 @@
 #include <textio/simple.hpp>
 #include <textio/simple_fmt.hpp>
 
-namespace dhcp
+#include <netboot32/pxe_interface.hpp>
+
+namespace pxe_interface::dhcp
 {
   struct dhcp_layout;
 
@@ -59,6 +61,8 @@ namespace dhcp
     auto  gateway_ip() const noexcept -> ip_address_v4;
 
     auto client_addr() const noexcept -> client_address;
+
+    auto tftp_server() const noexcept -> pxe_interface::tftp_params;
     
   private:
      dhcp_layout const* m_layout; 

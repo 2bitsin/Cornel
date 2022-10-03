@@ -92,6 +92,7 @@ namespace pxe_interface
     loader_bc_start                   = 0xCBu,
 
     tftp_invalid_packet_number        = 0xF000u,
+    invalid_cached_dhcp_replay        = 0xF001u,
     invalid_status                    = 0xFFFFu
   };
 

@@ -42,6 +42,7 @@ auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) -> void
   console::writeln("downloading config.ini ...");
   [[maybe_unused]] const auto result = pxe_interface::download_file("config.ini", buffer);
 
+  console::writeln(std::string_view{ (char const*)buffer.data(), buffer.size() });
 
   for(;;) { x86arch::yield(); }
 

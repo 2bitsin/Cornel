@@ -1,6 +1,6 @@
-#include <netboot32/dhcp.hpp>
+#include <netboot32/pxe_dhcp.hpp>
 
-namespace dhcp
+namespace pxe_interface::dhcp
 {
   #pragma pack(push, 1)
   struct dhcp_layout
@@ -26,6 +26,8 @@ namespace dhcp
     std::uint32_t magic_cookie;    
   };
   #pragma pack(pop)
+
+
 
   packet::packet() noexcept: m_layout{nullptr}  
   {}
@@ -66,6 +68,15 @@ namespace dhcp
   auto packet::client_addr() const noexcept -> client_address
   {
     return client_address({&m_layout->chaddr[0], m_layout->hlen});
+  }
+
+  auto packet::tftp_server() const noexcept -> ::pxe_interface::tftp_params
+  {
+    return ::pxe_interface::tftp_params {
+      .server_ip  = server_ip().value(),
+      .port       = 0x4500u,
+      .gateway_ip = gateway_ip().value()
+    };
   }
 
 }

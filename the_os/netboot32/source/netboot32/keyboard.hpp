@@ -26,9 +26,9 @@ namespace keyboard
 
   namespace scancode
   {
-    inline static const constexpr std::uint16_t shift = 0x100u;
-    inline static const constexpr std::uint16_t ctrl = 0x101u;
-    inline static const constexpr std::uint16_t alt = 0x102u;
+    inline static const constexpr std::uint16_t shift      = 0x100u;
+    inline static const constexpr std::uint16_t ctrl       = 0x101u;
+    inline static const constexpr std::uint16_t alt        = 0x102u;
 
     inline static const constexpr std::uint8_t left_ctrl   = 0x00u + 0x1Du;
     inline static const constexpr std::uint8_t right_ctrl  = 0x80u + 0x1Du;
