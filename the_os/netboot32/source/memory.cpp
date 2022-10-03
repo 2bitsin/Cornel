@@ -277,4 +277,9 @@ namespace std::pmr
   {
     return G_default_resource;
   }
+
+  auto new_delete_resource() noexcept -> memory_resource*
+  {
+    return &memory::get_base_heap();
+  }
 }

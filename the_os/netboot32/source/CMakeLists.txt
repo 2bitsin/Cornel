@@ -11,6 +11,7 @@ add_executable(netboot32
   panick.cpp
   pxe_interface.cpp
   netboot32.cpp
+  keyboard.cpp
   dhcp.cpp
   )
 

@@ -283,9 +283,9 @@ auto pxe_interface::download_file (std::string_view file_name, std::span<std::by
     return status;
 
   entire_buffer = memory::allocate_buffer_of<std::byte>(memory::get_extended_heap(), quantize_to(file_size, packet_size));  
-  defer(memory::deallocate_buffer(memory::ext_allocator(), entire_buffer));
+  defer(memory::deallocate_buffer(memory::get_extended_heap(), entire_buffer));
   packet_buffer = memory::allocate_buffer_of<std::byte>(memory::get_base_heap(), packet_size);
-  defer(memory::deallocate_buffer(memory::default_allocator(), packet_buffer));
+  defer(memory::deallocate_buffer(memory::get_base_heap(), packet_buffer));
 
   for (bytes_read = 0u; bytes_read < file_size; ) 
   {

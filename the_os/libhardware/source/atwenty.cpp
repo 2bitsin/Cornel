@@ -36,7 +36,7 @@ static inline void atwenty_kbdctl_enable()
   std::uint8_t status; 
   kbdctrl::disable_keyboard();
   status = kbdctrl::read_output_port();
-  status |= kbdctrl::OUTPUT_PORT_A20_ENABLE_BIT;
+  status |= kbdctrl::output_port_a20_enable_bit;
   kbdctrl::send_output_port(status); 
   kbdctrl::enable_keyboard();
   pic8259::write_mask(save_mask);

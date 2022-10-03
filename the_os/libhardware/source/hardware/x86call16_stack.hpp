@@ -15,6 +15,7 @@ namespace x86arch
   struct call16_stack
   {
     call16_stack (std::pmr::memory_resource& allocator, call16_context& context, std::size_t size) noexcept;
+    call16_stack (call16_context& context, std::size_t size) noexcept;
     call16_stack (call16_stack&& other) noexcept;
     ~call16_stack() noexcept;
     auto operator = (call16_stack&& other) noexcept -> call16_stack&;

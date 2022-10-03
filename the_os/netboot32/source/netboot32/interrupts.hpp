@@ -46,6 +46,7 @@ namespace interrupts
 #undef A1
 #undef A4
 
-  void initialize(bool first_time);
-  void finalize(bool last_time);
+  auto initialize(bool first_time) -> void;
+  auto finalize(bool last_time) -> void;
+  auto default_interrupt_mask() -> std::uint16_t;
 };
