@@ -8,8 +8,9 @@
 
 #include <hardware/x86call16.hpp>
 #include <hardware/x86real_addr.hpp>
-#include <memory/allocate_buffer.hpp>
-  
+
+#include <memory/buffer.hpp>  
+
 namespace x86arch
 {
   struct call16_stack
@@ -30,7 +31,7 @@ namespace x86arch
       if (m_context.esp < sizeof(T))
       { return false; }
       m_context.esp -= sizeof(T);
-      std::memcpy(m_bytes.data() + m_context.esp, &value, sizeof(T));
+      std::memcpy(m_buffer.data() + m_context.esp, &value, sizeof(T));
       return true; 
     }
 
@@ -42,13 +43,12 @@ namespace x86arch
     }
 
     auto&& bytes() const noexcept
-    { return m_bytes; }
+    { return m_buffer; }
     auto&& bytes() noexcept
-    { return m_bytes; }
+    { return m_buffer; }
 
   private:
-    std::pmr::memory_resource& m_allocator;
     call16_context& m_context;
-    std::span<std::byte> m_bytes;
+    memory::buffer<std::byte> m_buffer;
   };
 }

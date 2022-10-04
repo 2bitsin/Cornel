@@ -4,76 +4,173 @@
 #include <cstdint>
 #include <span>
 #include <concepts>
+#include <memory>
 #include <memory_resource>
 #include <algorithm>
+#include <utility>
 
-#include <memory/allocate_buffer.hpp>
+#include <memory/detail.hpp>
 
 namespace memory
 {
+  template <typename T, detail::memory_resource_like A>
+  static inline auto allocate_buffer_of(A&& a, std::size_t size) -> std::span<T>
+  {
+    return std::span<T>{ (T*)a.allocate(size*sizeof(T)), size };
+  }   
+
+  template <typename T, detail::memory_resource_like A>
+  static inline auto allocate_buffer_of(A&& a, std::size_t size, T const& value) -> std::span<T>
+  {
+    auto buffer = allocate_buffer_of<T>(a, size);
+    for (auto&& single_element : buffer)
+      std::construct_at(&single_element, value);
+    return buffer;
+  }
+
+  template <typename T, typename F, detail::memory_resource_like A>
+  requires (std::is_invocable_v<F, std::size_t>)
+  static inline auto allocate_buffer_of(A&& a, std::size_t size, F&& fill) -> std::span<T>
+  {
+    auto buffer = allocate_buffer_of<T>(a, size);
+    for (std::size_t i = 0u; i < size; ++i)
+      std::construct_at(&buffer[i], fill(i));
+    return buffer;
+  }
+
+  template <typename T, detail::memory_resource_like A>
+  static inline auto deallocate_buffer(A&& a, std::span<T> const& buffer) -> void
+  {
+    std::destroy(buffer.begin(), buffer.end());
+    a.deallocate(buffer.data(), buffer.size()*sizeof(T));
+  }
+
+  static constexpr auto reallocate_force_copy_flag = 0x1u;
+  static constexpr auto reallocate_dont_release_prev_flag = 0x2u;
+
+  template <typename T, detail::memory_resource_like A>
+  static inline auto reallocate_buffer(A&& a, std::span<T> buffer, std::size_t new_size, T const& defval = T(), std::uint32_t flags = 0u) -> std::span<T>
+  {    
+    if (new_size <= buffer.size() && !(flags & reallocate_force_copy_flag))
+      return buffer.subspan(0, new_size);
+    auto new_buffer = allocate_buffer_of<T>(a, new_size, defval);
+    const auto min_size = std::min(buffer.size(), new_size);
+    std::copy_n(buffer.begin(), min_size, new_buffer.begin());
+    if(!(flags & reallocate_dont_release_prev_flag))
+      deallocate_buffer(a, buffer);
+    return new_buffer;
+  }
   
-  template <typename T, allocator_like Allocator = std::pmr::memory_resource>
+  template <typename T, ::memory::detail::memory_resource_like Allocator = std::pmr::memory_resource>
   struct buffer
   {
     using allocator_type = Allocator;
     using value_type = T;
 
-    buffer(std::size_t size, allocator_type& allocator)
-    : m_allocator { allocator }
-    , m_buffer_sp { allocate_buffer_of<T>(m_allocator, size) }
+    inline buffer() noexcept 
+    : m_allocator { nullptr }
+    , m_buffer_sp { }
     {}
 
-    buffer(const buffer& prev)
-    : buffer(prev.size(), prev.m_allocator)
+    inline buffer(allocator_type& allocator, std::size_t size)
+    : m_allocator { &allocator }
+    , m_buffer_sp { allocate_buffer_of<T>(*m_allocator, size) }
+    {}
+
+    inline buffer(const buffer& prev)
+    : buffer(*prev.m_allocator, prev.size())
     {
       std::copy(prev.begin(), prev.end(), begin());
     }
 
-    buffer(buffer&& prev) noexcept
-    : m_allocator { prev.m_allocator }
-    , m_buffer_sp { std::exchance (prev.m_buffer_sp, std::span<T>{ }) }
-    {}
+    inline buffer(buffer&& prev) noexcept
+		: m_allocator { std::exchange (prev.m_allocator, nullptr) }
+    , m_buffer_sp { std::exchange (prev.m_buffer_sp, std::span<T>{ }) }
+    {
+		
+		}
 
-    auto operator = (buffer&& prev) -> buffer& 
+    inline auto operator = (buffer&& prev) -> buffer& 
     {
       if (this != &prev)
       {
         buffer tmp { std::move (prev) };
-        std::swap(*this, tmp);
+        swap(tmp);
       }
       return *this;
     }
 
-    auto operator = (const buffer& prev) -> buffer& 
-    {
-      std::destroy_at(this);
-      std::construct_at(this, prev);
+    inline auto operator = (const buffer& prev) -> buffer& 
+    { 
+      if (this != &prev)
+      {
+        std::destroy_at(this);
+        std::construct_at(this, prev);
+      }
       return *this;
     }
 
-    auto size () const noexcept -> std::size_t { return m_buffer_sp.size(); }
+    inline void swap(buffer& other) noexcept
+    {
+      std::swap(m_allocator, other.m_allocator);
+      std::swap(m_buffer_sp, other.m_buffer_sp);
+    }
+
+    inline ~buffer()
+    {
+      if (nullptr != m_allocator && nullptr != m_buffer_sp.data() && !m_buffer_sp.empty())
+      {
+        ::memory::deallocate_buffer(*m_allocator, m_buffer_sp);
+        m_buffer_sp = std::span<T>{ };
+				m_allocator = nullptr;
+      }
+    }
+
+    inline auto allocate(allocator_type& allocator, std::size_t size) -> void
+    {
+      std::destroy_at(this);
+      std::construct_at(this, allocator, size);
+    }
+
+    inline auto size () const noexcept -> std::size_t { return m_buffer_sp.size(); }  
+    inline auto empty() const noexcept -> bool { return m_buffer_sp.empty(); }
     
-    auto data () const noexcept -> const T* { return m_buffer_sp.data(); }
-    auto begin() const noexcept -> const T* { return m_buffer_sp.begin(); }
-    auto end  () const noexcept -> const T* { return m_buffer_sp.end(); }
+    inline auto data () const noexcept { return m_buffer_sp.data(); }
+    inline auto begin() const noexcept { return m_buffer_sp.begin(); }
+    inline auto end  () const noexcept { return m_buffer_sp.end(); }
 
-    auto data () noexcept -> T* { return m_buffer_sp.data(); }
-    auto begin() noexcept -> T* { return m_buffer_sp.begin(); }
-    auto end  () noexcept -> T* { return m_buffer_sp.end(); }
+    inline auto data () noexcept { return m_buffer_sp.data(); }
+    inline auto begin() noexcept { return m_buffer_sp.begin(); }
+    inline auto end  () noexcept { return m_buffer_sp.end(); }
 
-    operator std::span<const value_type> () const noexcept
-    {
-      return m_buffer_sp;
-    }
+    template <typename... Args>
+    inline auto subspan(Args&&... args) const noexcept -> std::span<const T>
+    { return m_buffer_sp.subspan(std::forward<Args>(args)...); }
 
-    operator std::span<value_type> () noexcept
-    {
-      return m_buffer_sp;
-    }
+    template <typename... Args>
+    inline auto subspan(Args&&... args) noexcept -> std::span<T>
+    { return m_buffer_sp.subspan(std::forward<Args>(args)...); }
+
+    inline operator std::span<const value_type> () const noexcept
+    { return m_buffer_sp; }
+
+    inline operator std::span<value_type> () noexcept
+    { return m_buffer_sp; }
+
+    template <typename Q>
+    requires (sizeof(Q) == sizeof(value_type))  
+    inline operator std::basic_string_view<Q> () const noexcept
+    { return std::basic_string_view<Q> { (Q const*)m_buffer_sp.data(), m_buffer_sp.size() }; }
+
+    inline auto operator [] (std::size_t index) const noexcept -> const value_type&
+    { return m_buffer_sp[index]; }
+
+    inline auto operator [] (std::size_t index) noexcept -> value_type&
+    { return m_buffer_sp[index]; }
 
   private:
+    allocator_type*         m_allocator;
     std::span<value_type>   m_buffer_sp;
-    allocator_type&         m_allocator;
   }; 
 
 }

@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <span>
 
+#include <memory/buffer.hpp>
+
 struct PXENVplus;
 struct bangPXE;
 
@@ -122,9 +124,8 @@ namespace pxe_interface
   auto tftp_read        (std::span<std::byte>& buffer, std::uint16_t& o_packet_number) -> pxenv_status;
   auto tftp_close       () -> pxenv_status;
 
+  // --------------------------------------- utility functions --------------------------------------
 
-  auto download_file    (std::string_view file_name, std::span<std::byte>& buffer, tftp_params const& options) -> pxenv_status; 
-  auto download_file    (std::string_view file_name, std::span<std::byte>& buffer) -> pxenv_status; 
-
-  auto release_buffer   (std::span<std::byte> buffer) -> void;
+  auto download_file    (std::string_view file_name, ::memory::buffer<std::byte>& buffer, tftp_params const& options) -> pxenv_status; 
+  auto download_file    (std::string_view file_name, ::memory::buffer<std::byte>& buffer) -> pxenv_status; 
 };

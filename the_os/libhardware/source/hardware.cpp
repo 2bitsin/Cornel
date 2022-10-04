@@ -1,8 +1,8 @@
-#include <hardware/x86asm.hpp>
-#include <hardware/x86gdt.hpp>
+#include <hardware/x86assembly.hpp>
 #include <hardware/x86call16.hpp>
 #include <hardware/x86call16_stack.hpp>
 #include <hardware/x86bios.hpp>
+#include <hardware/x86flags.hpp>
 #include <hardware/bios_data_area.hpp>
 #include <hardware/pic8259.hpp>
 #include <hardware/rtccmos.hpp>

@@ -2,11 +2,10 @@
 #include <utils/debug.hpp>
 
 #include <memory/block_list.hpp>
-#include <memory/allocate_buffer.hpp>
+#include <memory/buffer.hpp>
 
 #include <hardware/console.hpp>
 #include <hardware/atwenty.hpp>
-#include <hardware/x86gdt.hpp>
 #include <hardware/x86flags.hpp>
 #include <hardware/x86real_addr.hpp>
 #include <hardware/x86bios.hpp>

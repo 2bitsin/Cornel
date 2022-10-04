@@ -4,13 +4,22 @@
 #include <cstdint>
 #include <tuple>
 #include <new>
+#include <concepts>
+
 
 namespace x86arch
 {
   #pragma pack(push, 1)
   struct real_address
   {
-    static auto from_pointer(void const* value) noexcept -> x86arch::real_address;
+    static auto from (void const* value) noexcept -> x86arch::real_address;
+
+    template <typename T>
+    requires requires (T&& what) { { what.data() } -> std::convertible_to<void const*>; } 
+    static auto from (T&& what) noexcept -> x86arch::real_address
+    {
+      return from(what.data());
+    }
 
     auto to_pointer() const noexcept -> void*;
 

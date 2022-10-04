@@ -18,7 +18,7 @@
 #include <netboot32/panick.hpp>
 #include <netboot32/memory.hpp>
 
-#include <memory/allocate_buffer.hpp>
+#include <memory/buffer.hpp>
 
 #include <utils/bits.hpp>
 #include <utils/int.hpp>
@@ -135,7 +135,7 @@ void pxe_interface::finalize(bool last_time)
 auto pxe_interface_call(void* params, std::uint16_t opcode) -> pxenv_status
 {
   using namespace x86arch;
-  auto address_of_params = real_address::from_pointer(params);
+  auto address_of_params = real_address::from(params);
   call16_context ctx;
   std::memset(&ctx, 0, sizeof(ctx));
   call16_stack stack{ ctx, 0x1000u };
@@ -238,7 +238,7 @@ auto pxe_interface::tftp_read (std::span<std::byte>& o_buffer, std::uint16_t& o_
 {
   alignas(16) pxenv_tftp_read_type params;
   params.status = pxenv_status::bad_func;
-  params.buffer = x86arch::real_address::from_pointer(o_buffer.data());
+  params.buffer = x86arch::real_address::from(o_buffer);
   params.buffer_size = std::clamp(o_buffer.size(), 0u, 0xFFFFu);
   const auto return_status = pxe_interface_call(&params, 0x22u);
   if (!!return_status && !!params.status) {
@@ -248,14 +248,14 @@ auto pxe_interface::tftp_read (std::span<std::byte>& o_buffer, std::uint16_t& o_
   return params.status;
 }
 
-auto pxe_interface::download_file (std::string_view file_name, std::span<std::byte>& o_buffer) -> pxenv_status
+auto pxe_interface::download_file (std::string_view file_name, ::memory::buffer<std::byte>& o_buffer) -> pxenv_status
 {
   if (!G_cached_dhcp_reply.is_valid()) 
   { return pxenv_status::invalid_cached_dhcp_replay; }  
   return pxe_interface::download_file(file_name, o_buffer, G_cached_dhcp_reply.tftp_server());
 }
 
-auto pxe_interface::download_file (std::string_view file_name, std::span<std::byte>& o_buffer, pxe_interface::tftp_params const& options) -> pxenv_status
+auto pxe_interface::download_file (std::string_view file_name, ::memory::buffer<std::byte>& o_buffer, pxe_interface::tftp_params const& options) -> pxenv_status
 {
   using namespace textio::simple::fmt;
 
@@ -266,8 +266,8 @@ auto pxe_interface::download_file (std::string_view file_name, std::span<std::by
   std::uint32_t file_size   { 0u };  
   std::uint16_t packet_size { 4096u };
 
-  std::span<std::byte> entire_buffer;
-  std::span<std::byte> packet_buffer;
+  memory::buffer<std::byte> entire_buffer {};
+  memory::buffer<std::byte> packet_buffer {};
 
   status = pxe_interface::tftp_get_fsize(file_name, file_size, options);
   if (status != pxenv_status::success)
@@ -276,14 +276,12 @@ auto pxe_interface::download_file (std::string_view file_name, std::span<std::by
   if (status != pxenv_status::success)
     return status;
 
-  entire_buffer = memory::allocate_buffer_of<std::byte>(memory::get_extended_heap(), quantize_to(file_size, packet_size));  
-  defer(memory::deallocate_buffer(memory::get_extended_heap(), entire_buffer));
-  packet_buffer = memory::allocate_buffer_of<std::byte>(memory::get_base_heap(), packet_size);
-  defer(memory::deallocate_buffer(memory::get_base_heap(), packet_buffer));
+  entire_buffer.allocate(memory::get_extended_heap(), file_size);    
+  packet_buffer.allocate(memory::get_base_heap(), packet_size);  
 
   for (bytes_read = 0u; bytes_read < file_size; ) 
   {
-    auto out_packet_buffer = packet_buffer;  
+    std::span<std::byte> out_packet_buffer = packet_buffer;  
     status = pxe_interface::tftp_read(out_packet_buffer, curr_packet);    
     if (status != pxenv_status::success)
       return status;
@@ -297,6 +295,6 @@ auto pxe_interface::download_file (std::string_view file_name, std::span<std::by
       break;    
   }
   pxe_interface::tftp_close();
-  o_buffer = entire_buffer.subspan(0, bytes_read);
+  o_buffer = std::move(entire_buffer);  
   return status;
 }

@@ -2,7 +2,7 @@
 
 #include <utils/macros.hpp>
 #include <utils/debug.hpp>
-#include <hardware/x86asm.hpp>
+#include <hardware/x86assembly.hpp>
 #include <hardware/pic8259.hpp>
 #include <hardware/console.hpp>
 #include <hardware/rtccmos.hpp>

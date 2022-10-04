@@ -5,7 +5,6 @@ add_library(hardware
   console.cpp 
   kbdctrl.cpp 
   atwenty.cpp 
-  x86gdt.cpp 
   x86call16.cpp
   x86call16_stack.cpp
   x86bios.cpp

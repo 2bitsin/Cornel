@@ -8,7 +8,7 @@
 #include <utils/macros.hpp>
 #include <utils/debug.hpp>
 
-#include <hardware/x86asm.hpp>
+#include <hardware/x86assembly.hpp>
 #include <hardware/console.hpp>
 #include <hardware/bios_data_area.hpp>
 

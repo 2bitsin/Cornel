@@ -9,6 +9,27 @@
 
 namespace x86arch
 {
+  namespace flags
+  {
+    static inline const constexpr std::uint16_t carry      = 0b0000'0000'0000'0000'0000'0000'0000'0001u;
+    static inline const constexpr std::uint16_t parity     = 0b0000'0000'0000'0000'0000'0000'0000'0100u;
+    static inline const constexpr std::uint16_t adjust     = 0b0000'0000'0000'0000'0000'0000'0001'0000u;
+    static inline const constexpr std::uint16_t zero       = 0b0000'0000'0000'0000'0000'0000'0100'0000u;
+    static inline const constexpr std::uint16_t sign       = 0b0000'0000'0000'0000'0000'0000'1000'0000u;
+    static inline const constexpr std::uint16_t trap       = 0b0000'0000'0000'0000'0000'0001'0000'0000u;
+    static inline const constexpr std::uint16_t interrupt  = 0b0000'0000'0000'0000'0000'0010'0000'0000u;
+    static inline const constexpr std::uint16_t direction  = 0b0000'0000'0000'0000'0000'0100'0000'0000u;
+    static inline const constexpr std::uint16_t overflow   = 0b0000'0000'0000'0000'0000'1000'0000'0000u;
+    static inline const constexpr std::uint16_t iopl       = 0b0000'0000'0000'0000'0011'0000'0000'0000u;
+    static inline const constexpr std::uint16_t nestedtask = 0b0000'0000'0000'0000'0100'0000'0000'0000u;
+    static inline const constexpr std::uint32_t resume     = 0b0000'0000'0000'0001'0000'0000'0000'0000u;
+    static inline const constexpr std::uint32_t virtual_86 = 0b0000'0000'0000'0010'0000'0000'0000'0000u;
+    static inline const constexpr std::uint32_t alignment  = 0b0000'0000'0000'0100'0000'0000'0000'0000u;
+    static inline const constexpr std::uint32_t virtual_if = 0b0000'0000'0000'1000'0000'0000'0000'0000u;
+    static inline const constexpr std::uint32_t virtual_ip = 0b0000'0000'0001'0000'0000'0000'0000'0000u;
+    static inline const constexpr std::uint32_t cpuid      = 0b0000'0000'0010'0000'0000'0000'0000'0000u;
+  } // namespace name  
+
   CO_INLINE
   static inline void outb (std::uint16_t port, std::uint8_t value)
   { __asm__ volatile ("outb %0, %1" : : "a" (value), "Nd" (port)); }
@@ -166,5 +187,68 @@ namespace x86arch
     return value;
   }
 
+#ifdef __cpp_lib_span
+  template <typename T>
+  requires (sizeof (T) == 8)
+  CO_INLINE
+  static inline void lgdt (std::span<T> table)
+  {
+    const auto limit = table.size()*sizeof(T);
+    __debug_assert(limit < 0x10000u);
+    lgdt (Xdtr_t{ (std::uint16_t)limit, table.data() });
+  }
+
+  template <typename T>
+  requires (sizeof (T) == 8)
+  CO_INLINE
+  static inline void lidt (std::span<T> table)
+  {
+    const auto limit = table.size()*sizeof(T);
+    __debug_assert(limit < 0x10000u);
+    lidt (Xdtr_t{ (std::uint16_t)limit, table.data() });
+  }
+
+  /// -----------------------------------------------------------------------
+
+  template <typename T = std::uint64_t>
+  CO_INLINE
+  static inline auto sgdt () -> std::span<T>
+  {
+    Xdtr_t tr;
+    sgdt (tr);
+    return std::span<T> { (T*)tr.base, tr.limit / sizeof(T) };
+  }
+
+  template <typename T = std::uint64_t>
+  CO_INLINE
+  static inline auto sidt () -> std::span<T>
+  {
+    Xdtr_t tr;
+    sidt (tr);
+    return std::span<T> { (T*)tr.base, tr.limit / sizeof(T) };
+  }
+#endif // __cpp_lib_span
+
+  struct disable_interrupts
+  {
+    disable_interrupts() 
+    {
+      x86arch::store_flags(m_flags);
+      x86arch::cli();
+    }
+
+   ~disable_interrupts() 
+    {
+      if (m_flags & flags::interrupt)
+      { x86arch::sti(); }      
+    }
+
+    disable_interrupts(disable_interrupts const&) = delete;
+    disable_interrupts& operator=(disable_interrupts const&) = delete;
+    disable_interrupts(disable_interrupts&&) = delete;
+    disable_interrupts& operator=(disable_interrupts&&) = delete;  
+  private:
+    std::uint16_t m_flags;
+  };
 }
 

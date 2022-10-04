@@ -79,10 +79,19 @@ namespace std
     std::abort();
   }
 
+  [[noreturn]]
+  void __throw_bad_cast()
+  {
+    console::writeln("#005 - Bad cast error");
+    std::abort();
+  }
+
+  [[noreturn]]
+
   [[noreturn]] 
   void __throw_length_error(char const* err)
   {
-    console::writeln("#005 - Length error (", err, ")");
+    console::writeln("#006 - Length error (", err, ")");
     std::abort();
   }
 
@@ -90,14 +99,14 @@ namespace std
   [[noreturn]] 
   void __throw_invalid_argument(char const* err)
   {    
-    console::writeln("#006 - Invalid argument (", err, ")");
+    console::writeln("#007 - Invalid argument (", err, ")");
     std::abort();
   }
 
   [[noreturn]] 
   void __throw_runtime_error(char const* err) 
   {
-    console::writeln("#007 - Runtime error (", err, ")");
+    console::writeln("#008 - Runtime error (", err, ")");
     std::abort();
   }
 }
@@ -106,21 +115,21 @@ namespace std
 [[noreturn]] 
 void panick::invalid_pxenvplus() noexcept
 {
-  console::writeln("#008 - Invalid PXENV+ structure");
+  console::writeln("#009 - Invalid PXENV+ structure");
   std::abort();
 }
 
 [[noreturn]]
 void panick::invalid_bangpxe() noexcept
 {
-  console::writeln("#009 - Invalid !PXE structure");
+  console::writeln("#010 - Invalid !PXE structure");
   std::abort();
 }
 
 [[noreturn]]
 void panick::pxe_failed(const char* what) noexcept
 {
-  console::writeln("#010 - PXE api failure: ", what);
+  console::writeln("#011 - PXE api failure: ", what);
   std::abort();
 }
 

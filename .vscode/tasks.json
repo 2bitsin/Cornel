@@ -65,7 +65,7 @@
 
     {
       "type":"shell",
-      "label":"Test On Bochs",
+      "label":"Test On BOCHS",
       "command":"${workspaceFolder}/test-bochs.sh",
       "group":
       {
@@ -89,7 +89,7 @@
 
     {
       "type":"shell",
-      "label":"Test On Machine",
+      "label":"Test On MACHINE",
       "command":"${workspaceFolder}/test-machine.sh",
       "group":
       {

@@ -3,8 +3,7 @@
 
 #include <hardware/x86real_addr.hpp>
 
-
-auto x86arch::real_address::from_pointer(void const* value) noexcept -> x86arch::real_address
+auto x86arch::real_address::from(void const* value) noexcept -> x86arch::real_address
 { 
   using namespace std;
 

@@ -38,11 +38,11 @@ auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) -> void
   initialize(true);
   pxe_interface::initialize(true, _PXENVplus, _bangPXE);
   
-  std::span<std::byte> buffer;
+  ::memory::buffer<std::byte> config_ini_buffer;
   console::writeln("downloading config.ini ...");
-  [[maybe_unused]] const auto result = pxe_interface::download_file("config.ini", buffer);
+  [[maybe_unused]] const auto result = pxe_interface::download_file("config.ini", config_ini_buffer);
 
-  console::writeln(std::string_view{ (char const*)buffer.data(), buffer.size() });
+  console::writeln(std::string_view{ config_ini_buffer });
 
   for(;;) { x86arch::yield(); }
 

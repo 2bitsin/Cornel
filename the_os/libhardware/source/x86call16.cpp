@@ -4,10 +4,10 @@
 #include <new>
 
 #include <utils/debug.hpp>
-#include <memory/allocate_buffer.hpp>
+#include <memory/buffer.hpp>
 #include <call16_thunk/call16_thunk.hpp>
-#include <hardware/x86gdt.hpp>
 #include <hardware/x86call16.hpp>
+#include <hardware/x86assembly.hpp>
 #include <hardware/pic8259.hpp>
 
 using call16_function = void __attribute__((cdecl)) ();
@@ -36,7 +36,7 @@ static inline std::uint32_t call16_invoke(x86arch::call16_context& ctx, Target c
   { std::construct_at(&call16_thunk.addr, std::move (target)); }
 
   {  
-    x86arch::interrupt_guard _;
+    x86arch::disable_interrupts _;
     save_mask = pic8259::read_mask();    
     pic8259::write_mask(ctx.irq_mask);
     pic8259::switch_to_real_mode();

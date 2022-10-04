@@ -19,7 +19,7 @@ auto x86arch::bios_acpi_memory_map_read(bios_acpi_memory_map_entry_t& entry, std
 {
   x86arch::call16_context ctx;
   x86arch::call16_stack stack{ ctx, 0x400u };    
-  auto [off, seg] = real_address::from_pointer(&entry);
+  auto [off, seg] = real_address::from(&entry);
   ctx.eax = 0x0000e820;
   ctx.edx = 0x534d4150;
   ctx.ecx = sizeof(bios_acpi_memory_map_entry_t);

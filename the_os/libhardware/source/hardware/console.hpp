@@ -8,7 +8,7 @@
 #include <iterator>
 
 #include <hardware/bios_data_area.hpp>
-#include <hardware/x86asm.hpp>
+#include <hardware/x86assembly.hpp>
 #include <utils/debug.hpp>
 #include <textio/simple.hpp>
 

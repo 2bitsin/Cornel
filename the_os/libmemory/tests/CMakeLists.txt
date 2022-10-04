@@ -5,6 +5,7 @@ set (TEST_SOURCES
 	t003_insert_range.cpp
 	t004_realloc.cpp
 	t005_realloc_stomp.cpp
+	t006_buffer.cpp
 )
 
 set (TEST_PREFIX memory)
