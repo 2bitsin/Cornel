@@ -6,8 +6,7 @@
 
 #include <hardware/console.hpp>
 #include <hardware/atwenty.hpp>
-#include <hardware/x86flags.hpp>
-#include <hardware/x86real_addr.hpp>
+#include <hardware/real_address.hpp>
 #include <hardware/x86bios.hpp>
 
 #include <netboot32/memory.hpp>

@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <hardware/x86real_addr.hpp>
+#include <hardware/real_address.hpp>
 
 #include "pxe_interface.hpp"
 

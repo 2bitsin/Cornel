@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <hardware/x86real_addr.hpp>
+#include <hardware/real_address.hpp>
 
 namespace x86arch::detail
 {
