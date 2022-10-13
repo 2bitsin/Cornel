@@ -91,7 +91,7 @@ constexpr auto format_static()
 template <meta::string String>
 constexpr auto format_encode()
 {
-  return format_static<String>();
+  return format_static<meta::string_truncate_v<String>>();
 }
 
 template <typename Collect, typename ArgsTuple, typename... NodeN>
@@ -115,7 +115,12 @@ int main(int, char**)
 
   const auto s = format<"Hello {{o{{ {0:x}">();
 
-	std::cout << s ;
-  
+	static constexpr auto s1 = meta::string_truncate_v<"Hello ">;
+	static constexpr auto s2 = meta::string_truncate_v<"World!">;
+
+	static constexpr meta::string s3 { s1, s2 };
+	
+	std::cout << s3.as_string_view() << "\n";
+	std::cout << typeid(decltype(s3)).name() << "\n";
   return 0;
 }
