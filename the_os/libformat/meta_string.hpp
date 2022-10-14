@@ -16,31 +16,31 @@ namespace meta
     { *std::begin(t) } -> std::convertible_to<V>;
   };
 
-	template <size_t Count, typename CharT = char>
-	struct string;
-	
+  template <size_t Count, typename CharT = char>
+  struct string;
+  
 
-	template <meta::string Input>
-	struct string_truncate_impl
-	{
-		static constexpr auto actual_length = ([]() constexpr {
-			size_t index{ 0 };
-			for(;index < Input.size(); ++index)
-				if (Input[index] == '\0')
-					return index;
-			return index;
-		}) ();
+  template <meta::string Input>
+  struct string_truncate_impl
+  {
+    static constexpr auto actual_length = ([]() constexpr {
+      size_t index{ 0 };
+      for(;index < Input.size(); ++index)
+        if (Input[index] == '\0')
+          return index;
+      return index;
+    }) ();
 
-		using type = meta::string<actual_length, typename decltype(Input)::char_type>;
-		static inline constexpr auto value = Input.template substr<0, actual_length>();
-	};	
-	
-	template <string Input>
-	using string_truncate_t = typename string_truncate_impl<Input>::type;
-	
-	template <string Input>
-	static inline constexpr auto string_truncate_v = string_truncate_impl<Input>::value;
-	
+    using type = meta::string<actual_length, typename decltype(Input)::char_type>;
+    static inline constexpr auto value = Input.template substr<0, actual_length>();
+  };  
+  
+  template <string Input>
+  using string_truncate_t = typename string_truncate_impl<Input>::type;
+  
+  template <string Input>
+  static inline constexpr auto string_truncate_v = string_truncate_impl<Input>::value;
+  
 
   template <size_t Count, typename CharT>
   struct string
@@ -156,11 +156,13 @@ namespace meta
     }   
   };
   
-  template <typename CharT, size_t Count> string(CharT const (&data)[Count]) -> string<Count, CharT>;
+  template <typename CharT, size_t Count>
+  string(CharT const (&data)[Count]) -> string<Count, CharT>;
   
-  template <typename...CharTs> string(CharTs...chars) -> string<sizeof...(CharTs), std::common_type_t<CharTs...>>;
+  template <typename...CharTs>
+  string(CharTs...chars) -> string<sizeof...(CharTs), std::common_type_t<CharTs...>>;
 
-  template <typename CharT, size_t... SizeN>    
+  template <typename CharT, size_t... SizeN>
   string(string<SizeN, CharT> const& ... parts) -> string<(parts.size() + ...), CharT>;
 
   

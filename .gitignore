@@ -7,3 +7,5 @@ build
 bx_enh_dbg.ini
 *.err
 *.log
+/the_os/libformat/outl
+/the_os/libformat/out
