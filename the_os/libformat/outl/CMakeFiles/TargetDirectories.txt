@@ -1,0 +1,3 @@
+/mnt/c/Users/alex/Desktop/projects/leisure/Cornel/the_os/libformat/outl/CMakeFiles/format.dir
+/mnt/c/Users/alex/Desktop/projects/leisure/Cornel/the_os/libformat/outl/CMakeFiles/edit_cache.dir
+/mnt/c/Users/alex/Desktop/projects/leisure/Cornel/the_os/libformat/outl/CMakeFiles/rebuild_cache.dir
