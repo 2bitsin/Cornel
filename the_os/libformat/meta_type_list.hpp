@@ -6,7 +6,15 @@
 
 namespace meta
 {
-	template <typename... Item> struct type_list {};
+	// --------------------------
+	// Type list
+	// --------------------------
+	
+	template <typename... Item> 
+	struct type_list 
+	{
+		static inline constexpr size_t size () { return sizeof...(Item); }
+	};
 	
 	template <typename Item0, typename List>
 	struct list_prepend_impl;

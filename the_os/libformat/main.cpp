@@ -2,154 +2,81 @@
 #include <iostream>
 #include <string_view>
 #include <string>
-#include <tuple>
-#include <functional>
+
+#include <concepts>
 
 #include "meta_string.hpp"
-#include "meta_list.hpp"
+#include "meta_type_list.hpp"
+#include "meta_value_list.hpp"
+#include "format_string.hpp"
 
-
-template <meta::string String>
-struct format_node_static 
+template <typename T, auto Value>
+struct digit_to_integer
 {
-  static inline constexpr auto value = String;
-  
-  template <typename Collect, typename... Args>
-  static void print(Collect& collect, std::tuple<Args...> const& args)
-  {
-		collect.append("S[");
-		collect.append(value.as_string_view());
-		collect.append("]\n");		
-  }
+	static inline constexpr auto value = ([] (auto v) constexpr 
+	{
+		     if (v >= '0' && v <= '9') return T(v - '0');
+		else if (v >= 'a' && v <= 'z') return T(v - 'a' + 10);
+		else if (v >= 'A' && v <= 'Z') return T(v - 'A' + 10);
+		else throw std::invalid_argument("Not a valid digit");
+	})(Value);
 };
 
-template <meta::string String>              
-struct format_node_insert
-{		
-  static inline constexpr auto value = String;
-  
-  template <typename Collect, typename... Args>
-  static void print(Collect& collect, std::tuple<Args...> const& args)
-  {
-		collect.append("I[");
-		collect.append(value.as_string_view());
-		collect.append("]\n");		
-  }
+template <typename T, auto Value>
+inline constexpr auto digit_to_integer_v = digit_to_integer<T, Value>::value;
+
+template <typename T>
+struct digit_to_integer_bind
+{
+	template <auto Value>
+	struct type
+	{
+		static inline constexpr auto value = digit_to_integer_v<T, Value>;
+	};
 };
 
-template <typename Entity> struct format_is_static_impl: std::integral_constant<bool, false> {};
-template <auto Value> struct format_is_static_impl<format_node_static<Value>>: std::integral_constant<bool, true> {};
-template <typename Entity> concept format_is_static = format_is_static_impl<Entity>::value;
+template <typename T>
+using digit_to_integer_bind_t = typename digit_to_integer_bind<T>::template type;
 
-template <typename Node0>
-constexpr auto format_optimize(meta::type_list<Node0> const&)
+template <typename T, typename DigitList, auto Base = 10>
+struct digit_convert_base_impl;
+
+
+template <typename T, auto Base, auto Digit0>
+struct digit_convert_base_impl<T, meta::value_list<Digit0>, Base>
 {
-	return meta::type_list<Node0>{};
-}
+	static_assert(Digit0 < Base, "Digit is out of range");
+	static inline constexpr T value = T(Digit0);
+};
 
-template <typename Node0, typename Node1, typename... NodeN>
-requires (!format_is_static<Node0> || !format_is_static<Node1>)
-constexpr auto format_optimize(meta::type_list<Node0, Node1, NodeN...> const&)
+template <typename T, auto Base, auto Digit0, auto... DigitN>
+struct digit_convert_base_impl<T, meta::value_list<Digit0, DigitN...>, Base>
 {
-	return meta::list_prepend<Node0, decltype(format_optimize(meta::type_list<Node1, NodeN...>{}))>{};
-}
+	static_assert(Digit0 < Base, "Digit is out of range");
+	static inline constexpr T value = Base * digit_convert_base_impl<T, meta::value_list<DigitN...>, Base>::value + Digit0;
+};
 
-template <typename Node0, typename Node1, typename... NodeN>
-requires (format_is_static<Node0> && format_is_static<Node1>)
-constexpr auto format_optimize(meta::type_list<Node0, Node1, NodeN...> const&)
-{
-	return format_optimize(meta::type_list<format_node_static<meta::string(Node0::value, Node1::value)>, NodeN...>{});		
-}
+template <typename T, typename CharList, auto Base = 10>
+static inline constexpr T base_convert_v = digit_convert_base_impl<T, meta::value_list_map<CharList, digit_to_integer_bind_t<T>, Base>>::value;
 
 
-template <meta::string String>
-constexpr auto format_static();
+template <typename T, meta::string String, auto Base = 10>
+static inline constexpr T string_base_convert_v = digit_convert_base_impl<T, meta::value_list_map<meta::value_list_from_array<meta::string_truncate_v<String>>, digit_to_integer_bind_t<T>>, Base>::value;
 
-template <meta::string String>
-constexpr auto format_insert()
-{
-  constexpr auto index = String.template find<'}'>();
-  if constexpr (index != String.npos)
-	{
-    constexpr auto prev_string = String.template substr<0, index>();
-    constexpr auto next_string = String.template substr<index + 1u, String.size() - (index + 1u)>();
-		
-		if constexpr (!next_string.empty())
-		{ return meta::list_prepend<format_node_insert<prev_string>, decltype (format_static<next_string>())> {}; }
-		else 
-		{ return meta::type_list<format_node_insert<prev_string>> {}; }
-  }
-  else
-  { return meta::type_list<format_node_insert<String>> {}; }
-}
 
-template <meta::string String>
-constexpr auto format_static() 
-{
-  constexpr auto index = String.template find<'{'>();
-	if constexpr (index == String.npos)
-  {
-    return meta::type_list<format_node_static<String>> { };
-  }   
-	else 
-	{
-		constexpr auto esc = !(String[index + 1u] != '{');
-		constexpr auto prev_string = String.template substr<0, index + esc>();
-		constexpr auto next_string = String.template substr<index + 1u + esc, String.size() - (index + 1u + esc)>();
-		if constexpr (!next_string.empty()) 
-		{
-			using next_type = std::conditional_t<!esc, 
-				decltype (format_insert<next_string>()), 
-				decltype (format_static<next_string>())>;
-			return meta::list_prepend<format_node_static<prev_string>, next_type> {};
-		}
-		else 
-		{		
-			return meta::type_list<format_node_static<prev_string>> {};
-		}
-	}
-}
 
-template <meta::string String>
-constexpr auto format_encode()
-{
-  return format_optimize(format_static<meta::string_truncate_v<String>>());
-}
-
-template <typename Collect, typename ArgsTuple, typename... NodeN>
-auto format_impl(Collect& collect, meta::type_list<NodeN...>, ArgsTuple args)
-{
-  ((NodeN::print(collect, args)), ...);  
-}
-
-template <meta::string Format_string, typename... ArgN>
-auto format(ArgN&&... args) -> std::string
-{
-  std::string collect;
-  format_impl(collect, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
-  return collect;
-}
 
 int main(int, char**)
 {
   using namespace std::string_view_literals;
   using namespace std::string_literals; 
 
-  const auto s = format<"Hello {{o{{ {0:x}">();
-	std::cout << s << std::endl;
+  //const auto s = ::textio::fmt::format<"Hello {{o{{ {1:x} {0:x}">();
+	//std::cout << s << std::endl;
 
-	//using ni = format_node_insert<"Hello">;
-	//using ns = format_node_static<"Hello">;
-	//
-	//static_assert(format_is_static<ni> == false);
-	//static_assert(format_is_static<ns> == true);
+	constexpr auto v = string_base_convert_v<int, "1234">;
 
-	//static constexpr auto s1 = meta::string_truncate_v<"Hello ">;
-	//static constexpr auto s2 = meta::string_truncate_v<"World!">;
-	//
-	//static constexpr meta::string s3 { s1, s2 };
-	//
-	//std::cout << s3.as_string_view() << "\n";
-	//std::cout << typeid(decltype(s3)).name() << "\n";
+	std::cout << v << "\n";
+
   return 0;
 }
