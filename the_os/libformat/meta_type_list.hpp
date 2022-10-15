@@ -25,6 +25,6 @@ namespace meta
 		using type = type_list<Item0, ItemN...>;
 	};
 	
-	template <typename Item0, typename List>
+	template <typename Item0, typename List = type_list<>>
 	using list_prepend = typename list_prepend_impl<Item0, List>::type;	
 }

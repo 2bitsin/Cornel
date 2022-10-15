@@ -98,7 +98,7 @@ namespace meta
       return { (m_data[Offset + Index]) ... };
     }
 
-    template <size_t Offset, size_t NewCount = m_size - Offset>
+    template <size_t Offset, size_t NewCount = m_size >= Offset ? m_size - Offset : 0>		
     constexpr auto substr() const
     {
       return substr<Offset>(std::make_index_sequence<NewCount>{});

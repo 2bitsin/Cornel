@@ -2,7 +2,6 @@
 
 #include "meta_type_list.hpp"
 #include "meta_string.hpp"
-#include "format_variable.hpp"
 
 namespace textio::fmt::detail
 {
@@ -18,23 +17,18 @@ namespace textio::fmt::detail
     {
       constexpr auto prev_string = String.template substr<0, index>();
       constexpr auto next_string = String.template substr<index + 1u, String.size() - (index + 1u)>();
-            
-      //using variable_info = format_variable_parse<prev_string, DefaultIndex>;
-      using node_type = format_node_insert<prev_string, void>;
+                  
+      using node_type = format_node_insert<prev_string, DefaultIndex>;      
       
-      //static constexpr auto next_index = variable_info::uses_default ? DefaultIndex + 1u : DefaultIndex;      
-      constexpr auto next_index = DefaultIndex;
+      constexpr auto next_index = node_type::next_default_index;
       
       if constexpr (!next_string.empty())
       { return meta::list_prepend<node_type, decltype (format_static<next_string, next_index>())> {}; }
       else 
-      { return meta::type_list<node_type> {}; }
+      { return meta::list_prepend<node_type> {}; }
     }
     else
-    { 
-      using variable_info = format_variable_parse<String, DefaultIndex>;
-      return meta::type_list<format_node_insert<String, variable_info>> {}; 
-    }
+    { return meta::list_prepend<format_node_insert<String, DefaultIndex>> {}; }
   }
   
   template <meta::string String, size_t DefaultIndex>
@@ -45,18 +39,17 @@ namespace textio::fmt::detail
     { return meta::type_list<format_node_static<String>> {}; }   
     else 
     {
-      constexpr auto esc = !(String[index + 1u] != '{');
-      constexpr auto prev_string = String.template substr<0, index + esc>();
-      constexpr auto next_string = String.template substr<index + 1u + esc, String.size() - (index + 1u + esc)>();
-      
-      if constexpr (!next_string.empty()) 
-      {       
-        using next_type = std::conditional_t<!esc, decltype (format_insert<next_string, DefaultIndex>()), 
-                                                   decltype (format_static<next_string, DefaultIndex>())>;
-        return meta::list_prepend<format_node_static<prev_string>, next_type> {};
-      }
-      else 
-      { return meta::type_list<format_node_static<prev_string>> {}; }
+      constexpr auto is_escape_sequence = !(String[index + 1u] != '{');
+      constexpr auto prev_string = String.template substr<0, index + is_escape_sequence>();
+      constexpr auto next_string = String.template substr<index + 1u + is_escape_sequence, String.size() - (index + 1u + is_escape_sequence)>();
+
+			
+			if constexpr (next_string.empty()) 
+			{ return meta::list_prepend<format_node_static<prev_string>> {}; }
+			else if constexpr (is_escape_sequence)					
+			{ return meta::list_prepend<format_node_static<prev_string>, decltype(format_static<next_string, DefaultIndex>())>{}; }
+			else
+			{	return meta::list_prepend<format_node_static<prev_string>, decltype(format_insert<next_string, DefaultIndex>())>{}; }
     }
   }
 }

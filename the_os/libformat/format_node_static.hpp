@@ -12,7 +12,7 @@ namespace textio::fmt::detail
 	  template <typename Collect, typename... Args>
 	  inline static void print(Collect& collect, std::tuple<Args...> const& args)
 	  {
-			collect.append("\u001b[41m").append(value.as_string_view()).append("\u001b[0m");
+			collect.append("(\u001b[41m").append(value.as_string_view()).append("\u001b[0m)");
 	  }
 	};
 }

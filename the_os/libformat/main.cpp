@@ -12,7 +12,6 @@
 #include "format_base_convert.hpp"
 #include "format_variable.hpp"
 
-
 int main(int, char**)
 {
   using namespace std::string_view_literals;
@@ -26,7 +25,7 @@ int main(int, char**)
 	//std::cout << typeid(variable_info::argument_index).name() << "\n";
 	//std::cout << variable_info::argument_index << "\n";
 
-  const auto s = ::textio::fmt::format<"Hello {{o{{ {1:x} {0:x}">();
+  const auto s = ::textio::fmt::format<"Hello {{o{{ {:x} {5} {:x}">();
 	std::cout << s << std::endl;
 
 	//constexpr auto v_u = string_convert_base_v<unsigned, "1234ABCD", 16>;
