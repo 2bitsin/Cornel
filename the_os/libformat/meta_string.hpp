@@ -94,7 +94,7 @@ namespace meta
       return { (m_data[Offset + Index]) ... };
     }
 
-    template <size_t Offset, size_t NewCount>
+    template <size_t Offset, size_t NewCount = m_size - Offset>
     constexpr auto substr() const
     {
       return substr<Offset>(std::make_index_sequence<NewCount>{});
@@ -130,6 +130,16 @@ namespace meta
     {
       return { m_data, m_size };
     }
+
+		constexpr auto front() const -> char_type
+		{
+			return m_data[0];
+		}
+
+		constexpr auto back() const -> char_type
+		{
+			return m_data[m_size - 1u];
+		}
         
     static inline constexpr auto npos = size_t(-1);
   };    
@@ -153,7 +163,7 @@ namespace meta
     constexpr auto as_string_view() const -> std::basic_string_view<char_type>
     {
       return { "" };
-    }   
+    }				
   };
   
   template <typename CharT, size_t Count>
@@ -166,4 +176,7 @@ namespace meta
   string(string<SizeN, CharT> const& ... parts) -> string<(parts.size() + ...), CharT>;
 
   
+	template <meta::string String, std::size_t Offset, std::size_t Count = String.size() - Offset>
+	static inline constexpr auto string_substr = String.template substr<Offset, Count>();
+
 }
