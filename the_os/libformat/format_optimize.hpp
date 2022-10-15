@@ -3,7 +3,8 @@
 #include <type_traits>
 #include "meta_type_list.hpp"
 #include "meta_string.hpp"
-#include "format_nodes.hpp"
+#include "format_node_static.hpp"
+#include "format_node_insert.hpp"
 
 namespace textio::fmt::detail
 {

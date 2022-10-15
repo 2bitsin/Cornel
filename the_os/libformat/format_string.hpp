@@ -6,20 +6,21 @@
 #include "meta_type_list.hpp"
 #include "meta_string.hpp"
 
-#include "format_nodes.hpp"
+#include "format_node_static.hpp"
+#include "format_node_insert.hpp"
 #include "format_optimize.hpp"
 #include "format_parse.hpp"
 
 namespace textio::fmt::detail
 {
 	template <meta::string String>
-	constexpr auto format_encode()
+	inline constexpr auto format_encode()
 	{
-	  return format_optimize_empty(format_optimize_merge(format_static<meta::string_truncate_v<String>>()));
+	  return format_optimize_empty(format_optimize_merge(format_static<meta::string_truncate_v<String>, 0u>()));
 	}
 	
 	template <typename Collect, typename ArgsTuple, typename... NodeN>
-	auto format_impl(Collect& collect, meta::type_list<NodeN...>, ArgsTuple args)
+	inline auto format_impl(Collect& collect, meta::type_list<NodeN...>, ArgsTuple args)
 	{
 	  ((NodeN::print(collect, args)), ...);  
 	}

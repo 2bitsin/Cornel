@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <concepts>
+#include <utility>
 
 namespace meta
 {
@@ -55,7 +56,10 @@ namespace meta
         m_data [index] = data [index];      
     }   
 
-    constexpr string(auto... chars)
+   
+    template <typename... T>
+    requires (sizeof...(T) == m_size && (std::is_same_v<T, char_type> && ...))
+    constexpr string(T... chars)
     : m_data{ chars... }
     {}
 
@@ -131,15 +135,15 @@ namespace meta
       return { m_data, m_size };
     }
 
-		constexpr auto front() const -> char_type
-		{
-			return m_data[0];
-		}
+    constexpr auto front() const -> char_type
+    {
+      return m_data[0];
+    }
 
-		constexpr auto back() const -> char_type
-		{
-			return m_data[m_size - 1u];
-		}
+    constexpr auto back() const -> char_type
+    {
+      return m_data[m_size - 1u];
+    }
         
     static inline constexpr auto npos = size_t(-1);
   };    
@@ -163,7 +167,7 @@ namespace meta
     constexpr auto as_string_view() const -> std::basic_string_view<char_type>
     {
       return { "" };
-    }				
+    }       
   };
   
   template <typename CharT, size_t Count>
@@ -173,10 +177,10 @@ namespace meta
   string(CharTs...chars) -> string<sizeof...(CharTs), std::common_type_t<CharTs...>>;
 
   template <typename CharT, size_t... SizeN>
-  string(string<SizeN, CharT> const& ... parts) -> string<(parts.size() + ...), CharT>;
+  string(string<SizeN, CharT> const& ... parts) -> string<(SizeN + ...), CharT>;
 
   
-	template <meta::string String, std::size_t Offset, std::size_t Count = String.size() - Offset>
-	static inline constexpr auto string_substr = String.template substr<Offset, Count>();
+  template <meta::string String, std::size_t Offset, std::size_t Count = String.size() - Offset>
+  static inline constexpr auto string_substr = String.template substr<Offset, Count>();
 
 }
