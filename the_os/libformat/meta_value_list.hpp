@@ -57,6 +57,22 @@ namespace meta
 
 	template <typename ValueList>
 	static inline constexpr auto value_list_front = value_list_front_impl<ValueList>::value;
+
+	// --------------------------------
+	// Value list : algorithms : contains
+	// --------------------------------
+
+	template <typename ValueList, auto Item>
+	struct value_list_contains_impl;
+	
+	template <auto Item, auto... Value>
+	struct value_list_contains_impl<value_list<Value...>, Item>
+	{
+		static inline constexpr bool value = ((Item == Value) || ...);
+	};
+
+	template <typename ValueList, auto Item>
+	static inline constexpr bool value_list_contains_v = value_list_contains_impl<ValueList, Item>::value;
 	
 	// -----------------------------------
 	// Value list : algorithms : pop_front

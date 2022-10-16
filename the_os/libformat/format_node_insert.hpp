@@ -4,6 +4,7 @@
 #include "meta_string.hpp"
 #include "format_base_convert.hpp"
 #include "format_variable.hpp"
+#include "format_value_convert.hpp"
 
 namespace textio::fmt::detail
 {	
@@ -19,15 +20,11 @@ namespace textio::fmt::detail
 		using variable::uses_default;
 				  
 	  template <typename Collect, typename... Args>
-	  static void print(Collect& collect, std::tuple<Args...> const& args)
+	  inline static auto apply(Collect&& collect, std::tuple<Args...> const& args)
 	  {
-			collect.append("(\u001b[43m");
-
-			collect.append(std::to_string(argument_index));
-			collect.append("\u001b[42m:\u001b[45m");
-			collect.append(options_string.as_string_view());
-			
-			collect.append("\u001b[0m)");		
-	  }
+			using value_type_dry = std::remove_const_t<std::remove_reference_t<std::tuple_element_t<argument_index, std::tuple<Args...>>>>;
+			using converter = format_value_convert<value_type_dry, options_string>;
+			return converter::apply(std::forward<Collect>(collect), std::get<argument_index>(args));
+		}	  
 	};
 }
