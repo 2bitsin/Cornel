@@ -183,4 +183,13 @@ namespace meta
   template <meta::string String, std::size_t Offset, std::size_t Count = String.size() - Offset>
   static inline constexpr auto string_substr = String.template substr<Offset, Count>();
 
+
+	namespace literals
+	{
+		template <meta::string String>
+		constexpr auto operator "" _Ts()
+		{
+			return String;
+		}
+	}
 }

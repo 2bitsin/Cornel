@@ -4,16 +4,22 @@
 #include <string>
 
 #include "format_as.hpp"
-
+#include "format_options.hpp"
 
 int main(int, char**)
 {
   using namespace textio::fmt;
+	using namespace textio::fmt::detail;
 
-  constexpr meta::string fmt_s { "Hello {{o} {:#X} {2} {:#X} {0} {:#X} {1} {:#X}" };
-  
-  const auto s = format_as<fmt_s, std::string>(0x12345678u, 0x87654321, 0x0BADC0DE, 0xDEADBEEF);
-  std::cout << s << std::endl;
+  //constexpr meta::string fmt_s { "Hello {{o} {:#X} {2} {:#X} {0} {:#X} {1} {:#X}" };
+  //
+  //const auto s = format_as<fmt_s, std::string>(0x12345678u, 0x87654321, 0x0BADC0DE, 0xDEADBEEF);
+  //std::cout << s << std::endl;
+
+	constexpr format_options<int, char> o {meta::string{"x"}};
+
+	if constexpr (o.prefix_base)
+	{ }
 
   return 0;
 }
