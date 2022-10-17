@@ -144,6 +144,23 @@ namespace meta
     {
       return m_data[m_size - 1u];
     }
+		
+		template <char_type Value>
+		constexpr auto contains() const -> bool
+		{
+			for (auto ch : m_data)
+				if (ch == Value)
+					return true;
+			return false;
+		}
+		
+		constexpr auto contains(char_type value) const -> bool
+		{
+			for (auto ch : m_data)
+				if (ch == value)
+					return true;
+			return false;
+		}
         
     static inline constexpr auto npos = size_t(-1);
   };    
@@ -168,6 +185,12 @@ namespace meta
     {
       return { "" };
     }       
+		
+		constexpr auto contains(char_type value) const -> bool
+		{
+			return false;
+		}
+
   };
   
   template <typename CharT, size_t Count>
@@ -178,11 +201,9 @@ namespace meta
 
   template <typename CharT, size_t... SizeN>
   string(string<SizeN, CharT> const& ... parts) -> string<(SizeN + ...), CharT>;
-
   
   template <meta::string String, std::size_t Offset, std::size_t Count = String.size() - Offset>
   static inline constexpr auto string_substr = String.template substr<Offset, Count>();
-
 
 	namespace literals
 	{

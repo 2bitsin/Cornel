@@ -17,23 +17,67 @@ namespace textio::fmt::detail
 			binary,
 			octal,
 			decimal,
-			lower_hex, 
-			upper_hex,
+			lower_hexadecimal, 
+			upper_hexadecimal,
 			character,
 			string,
-			pointer,
-			boolean,
-			floating			
+			lower_pointer,
+			upper_pointer,			
+			lower_float_hexadecimal,
+			upper_float_hexadecimal,
+			lower_float_scientific,
+			upper_float_scientific,
+			lower_float_fixed,
+			upper_float_fixed,
+			lower_float_geneneral,
+			upper_float_geneneral
 		};
 
+		static constexpr inline auto fmt_type_from_char (char_type char_v)
+		{
+			switch (char_v)
+			{
+			case 'b': return fmt_type::binary;
+			case 'o': return fmt_type::octal;
+			case 'd': return fmt_type::decimal;
+			case 'x': return fmt_type::lower_hexadecimal;
+			case 'X': return fmt_type::upper_hexadecimal;
+			case 'c': return fmt_type::character;
+			case 's': return fmt_type::string;
+			case 'p': return fmt_type::lower_pointer;
+			case 'P': return fmt_type::upper_pointer;
+			case 'a': return fmt_type::lower_float_hexadecimal;
+			case 'A': return fmt_type::upper_float_hexadecimal;
+			case 'e': return fmt_type::lower_float_scientific;
+			case 'E': return fmt_type::upper_float_scientific;
+			case 'f': return fmt_type::lower_float_fixed;
+			case 'F': return fmt_type::upper_float_fixed;
+			case 'g': return fmt_type::lower_float_geneneral;
+			case 'G': return fmt_type::upper_float_geneneral;
+			default: return fmt_type::none;
+			}
+		}
+		
 		enum class fmt_align
 		{
+			none,
 			left,
 			right,
 			center
 		};
 		
-		fmt_type		format_type { fmt_type::none	};
+		static constexpr fmt_align fmt_align_from_char(char_type ch)
+		{
+			switch (ch)
+			{
+			case '>': return fmt_align::right;
+			case '^': return fmt_align::center;
+			case '<': return fmt_align::left;
+			default: break;
+			}
+			return fmt_align::none;
+		}
+		
 		fmt_align		direction		{ fmt_align::left };
 		char_type		fill_char		{ ' '							};		
 		int32_t			width				{ 0								};
@@ -41,21 +85,119 @@ namespace textio::fmt::detail
 		bool				prefix_base	{ false						};
 		bool				pad_zeros		{ false						};
 		bool				plus_sign		{ false						};
+		fmt_type		format_type { fmt_type::none	};
+		
+		static constexpr inline bool is_digit(char_type char_v)
+		{
+			return char_v >= '0' && char_v <= '9';
+		}
+
+		static constexpr inline bool is_direction(char_type char_v)
+		{
+			return fmt_align_from_char(char_v) != fmt_align::none;
+		}
+
+		static constexpr inline bool is_sign(char_type char_v)
+		{
+			return meta::string("+-").contains(char_v);
+		}
+
+		static constexpr inline bool is_format_char(char_type char_v)
+		{
+			return format_type_from_char(char_v) != fmt_type::none;
+		}
 		
 		template <size_t Size>
 		constexpr format_options(meta::string<Size, char_type> const& value)
 		{
 			using namespace meta::literals;
 			size_t index = 0;
-			if (value.size() > 1)
+			
+			////////////////////////////////////////////////////////////////////////
+			// This is going to be all one long constructor, I apologize,
+			// but I'm too tired to fight the compiler right now.
+			///////////////////////////////////////////////////////////////////////
+
+			//////////////////////////
+			// Parse algiment and fill
+			//////////////////////////
+			if (index + 1u < value.size() && is_direction(value[index + 1u]))
 			{
-				if (is_any_of<"<^>"_Ts>(value[0]))
-				{
-					
-				}
-				
-					
+				fill_char = value[index];
+				index += 1u;
+				direction = fmt_align_from_char(value[index]);
+				index += 1u;
+			}				
+			//////////////////////
+			// Parse just algiment
+			//////////////////////
+			else if (index < value.size() && is_direction(value[index]))
+			{
+				direction = fmt_align_from_char(value[index]);
+				index += 1u;
 			}
+			
+			/////////////
+			// Parse sign
+			/////////////
+			if (index < value.size() && is_sign(value[index])) 
+			{ 
+				plus_sign = (value[index] == '+'); 
+				index += 1u; 
+			}
+			
+			////////////////////////////
+			// Parse prefix (pound sign)
+			////////////////////////////
+						if (index < value.size() && value[index] == '#') 
+			{
+				index += 1u; 
+				prefix_base = true; 
+			}
+			
+			/////////////////
+			// Parse zero pad
+			/////////////////
+			if (index < value.size() && value[index] == '0') 
+			{ 
+				index += 1u; 
+				pad_zeros = true; 
+			}
+			
+			////////////////////////////
+			// Parse width of align/pad
+			////////////////////////////
+			if (index < value.size() && is_digit(value[index]))
+			{
+				size_t index0 = index;
+				while (index < value.size() && is_digit(value[index])) index += 1u;
+				if (index - index0) std::from_chars(value.begin() + index0, value.begin() + index, width);
+			}
+				
+			//////////////////////////
+			// Parse dot and precision
+			//////////////////////////
+			if (index + 1u < value.size() && value[index] == '.' && is_digit(value[index + 1u])) 
+			{
+				index += 1u; 
+				size_t index0 = index;
+				while (index < value.size() && is_digit(value[index])) index += 1u;
+				if (index - index0) std::from_chars(value.begin() + index0, value.begin() + index, precision);				
+			}
+
+			////////////////////
+			// Parse format type
+			////////////////////
+			if (index < value.size() && is_format_char(value[index]))
+			{
+				format_type = format_type_from_char(value[index]);
+				index += 1u;
+			}
+
+			/////////////////////////////
+			// Shouldn't be anything left
+			/////////////////////////////
+			
 		}		
 	};
 	
