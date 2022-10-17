@@ -12,6 +12,8 @@ namespace textio::fmt::detail
 	struct format_node_insert
 	: public format_variable<String, DefaultIndex>
 	{	
+		using char_type = typename decltype(String)::char_type;
+
 		using variable = format_variable<String, DefaultIndex>;
 		
 		using variable::argument_index;
@@ -23,7 +25,7 @@ namespace textio::fmt::detail
 	  inline static auto apply(Collect&& collect, std::tuple<Args...> const& args)
 	  {
 			using value_type_dry = std::remove_const_t<std::remove_reference_t<std::tuple_element_t<argument_index, std::tuple<Args...>>>>;
-			using converter = format_value_convert<value_type_dry, options_string>;
+			using converter = format_value_convert<value_type_dry, char_type, options_string>;
 			return converter::apply(std::forward<Collect>(collect), std::get<argument_index>(args));
 		}	  
 	};

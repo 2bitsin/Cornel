@@ -3,35 +3,46 @@
 #include "meta_string.hpp"
 #include "format_helper.hpp"
 
+#include <charconv>
+
 namespace textio::fmt::detail
 {
+		
+	enum class fmt_align
+	{
+		none,
+		left,
+		right,
+		center
+	};
+	
+	enum class fmt_type
+	{
+		none,
+		binary,
+		octal,
+		decimal,
+		lower_hexadecimal, 
+		upper_hexadecimal,
+		character,
+		string,
+		lower_pointer,
+		upper_pointer,			
+		lower_float_hexadecimal,
+		upper_float_hexadecimal,
+		lower_float_scientific,
+		upper_float_scientific,
+		lower_float_fixed,
+		upper_float_fixed,
+		lower_float_geneneral,
+		upper_float_geneneral
+	};
+
 	template <typename ValueT, typename CharT>
 	struct format_options
 	{
 		using value_type	= ValueT;
 		using char_type		= CharT;
-
-		enum class fmt_type
-		{
-			none,
-			binary,
-			octal,
-			decimal,
-			lower_hexadecimal, 
-			upper_hexadecimal,
-			character,
-			string,
-			lower_pointer,
-			upper_pointer,			
-			lower_float_hexadecimal,
-			upper_float_hexadecimal,
-			lower_float_scientific,
-			upper_float_scientific,
-			lower_float_fixed,
-			upper_float_fixed,
-			lower_float_geneneral,
-			upper_float_geneneral
-		};
 
 		static constexpr inline auto fmt_type_from_char (char_type char_v)
 		{
@@ -57,14 +68,6 @@ namespace textio::fmt::detail
 			default: return fmt_type::none;
 			}
 		}
-		
-		enum class fmt_align
-		{
-			none,
-			left,
-			right,
-			center
-		};
 		
 		static constexpr fmt_align fmt_align_from_char(char_type ch)
 		{
@@ -104,8 +107,13 @@ namespace textio::fmt::detail
 
 		static constexpr inline bool is_format_char(char_type char_v)
 		{
-			return format_type_from_char(char_v) != fmt_type::none;
+			return fmt_type_from_char(char_v) != fmt_type::none;
 		}
+
+		template <size_t Size>
+		constexpr format_options(char_type const (&value)[Size])
+		: format_options(meta::string(value))
+		{}
 		
 		template <size_t Size>
 		constexpr format_options(meta::string<Size, char_type> const& value)
@@ -149,7 +157,7 @@ namespace textio::fmt::detail
 			////////////////////////////
 			// Parse prefix (pound sign)
 			////////////////////////////
-						if (index < value.size() && value[index] == '#') 
+			if (index < value.size() && value[index] == '#') 
 			{
 				index += 1u; 
 				prefix_base = true; 
@@ -171,7 +179,13 @@ namespace textio::fmt::detail
 			{
 				size_t index0 = index;
 				while (index < value.size() && is_digit(value[index])) index += 1u;
-				if (index - index0) std::from_chars(value.begin() + index0, value.begin() + index, width);
+				size_t numeric_value = 0;
+				if (index - index0) {
+					for(auto i = index0; i < index; ++i) {
+						numeric_value = numeric_value * 10u + (value[i] - '0');
+					}					
+				}
+				width = numeric_value;
 			}
 				
 			//////////////////////////
@@ -190,14 +204,16 @@ namespace textio::fmt::detail
 			////////////////////
 			if (index < value.size() && is_format_char(value[index]))
 			{
-				format_type = format_type_from_char(value[index]);
+				format_type = fmt_type_from_char(value[index]);
 				index += 1u;
 			}
 
 			/////////////////////////////
 			// Shouldn't be anything left
 			/////////////////////////////
-			
+			if (index < value.size() && value[index] != 0) {
+				throw std::invalid_argument("Invalid format string: garbage at the end of options string");
+			}
 		}		
 	};
 	

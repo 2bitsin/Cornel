@@ -7,7 +7,7 @@
 namespace textio::fmt::detail
 {
 
-  template <typename Value_type, meta::string Options>
+  template <typename Value_type, typename CharT, meta::string Options>
   struct format_value_convert   
   {
     static_assert(sizeof(Value_type*) == 0, "format_value_convert: Unsupported type");
@@ -20,10 +20,11 @@ namespace textio::fmt::detail
     }
   };
 
-  template <std::integral Value, meta::string Options>
-  struct format_value_convert<Value, Options>
+  template <std::integral Value, typename CharT, meta::string Options>
+  struct format_value_convert<Value, CharT, Options>
   {
     using char_type = char;
+		/*
     using flag_list = meta::value_list_from_array<Options>;
     
     static inline constexpr auto is_lower_bin = meta::value_list_contains_v<flag_list, 'b'>;
@@ -47,10 +48,11 @@ namespace textio::fmt::detail
     static inline constexpr auto is_upper = is_upper_bin || is_upper_oct || is_upper_hex;
 
     static inline constexpr auto is_prefix = meta::value_list_contains_v<flag_list, '#'>;
-
+		*/
     template <std::output_iterator<char_type> OIterator, typename ValueAux>
     inline static auto apply(OIterator out_iterator, ValueAux&& value) -> OIterator   
     {
+			/*
       char_type buffer [128];
       const auto result_v = std::to_chars(std::begin(buffer), std::end(buffer), std::forward<Value>(value), base_value);
       if (result_v.ec != std::errc())
@@ -73,11 +75,12 @@ namespace textio::fmt::detail
         { *out_iterator++ = '0'; *out_iterator++ = 'd'; }
       }
       return std::copy(std::begin(buffer), result_v.ptr, out_iterator);
+			*/
     }
   };
 
-  template <meta::string Options>
-  struct format_value_convert<bool, Options>
+  template <typename CharT, meta::string Options>
+  struct format_value_convert<bool, CharT, Options>
   {
     using char_type = char;
     //using flags = format_flags_parse<bool, Options>;
