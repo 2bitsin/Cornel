@@ -11,9 +11,9 @@ int main(int, char**)
   using namespace textio::fmt;
 	using namespace textio::fmt::detail;
 
-  constexpr meta::string fmt_s { "Hello {{o} {:#X} {2} {:#X} {0} {:#X} {1} {:#X}" };
+  constexpr meta::string fmt_s { "Hello {{o} {:#X} {0:#x} {0:#08x} {0:08x}" };
   
-  const auto s = format_as<fmt_s, std::string>(0x12345678u, 0x87654321, 0x0BADC0DE, 0xDEADBEEF);
+  const auto s = format_as<fmt_s, std::string>(0x12345678u);
   std::cout << s << std::endl;
 
 	
