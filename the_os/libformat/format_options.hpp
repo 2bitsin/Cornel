@@ -114,7 +114,10 @@ namespace textio::fmt::detail
 		constexpr format_options(char_type const (&value)[Size])
 		: format_options(meta::string(value))
 		{}
-		
+
+		constexpr format_options(meta::string<0, char_type> const& value)
+		{}
+
 		template <size_t Size>
 		constexpr format_options(meta::string<Size, char_type> const& value)
 		{
@@ -215,6 +218,39 @@ namespace textio::fmt::detail
 				throw std::invalid_argument("Invalid format string: garbage at the end of options string");
 			}
 		}		
+		inline constexpr auto base() const noexcept 
+			-> std::size_t
+		{ 
+			switch (format_type)
+			{
+			case fmt_type::lower_pointer: return 16u;
+			case fmt_type::upper_pointer: return 16u;
+			case fmt_type::lower_hexadecimal: return 16u;
+			case fmt_type::upper_hexadecimal: return 16u;
+			case fmt_type::decimal: return 10u;
+			case fmt_type::none: return 10u;
+			case fmt_type::octal: return 8u;
+			case fmt_type::binary: return 2u;
+			default: return 10u;
+			}
+		}
+
+		inline constexpr auto prefix_string() const noexcept 
+			-> std::basic_string_view<char_type>
+		{
+			switch (format_type)
+			{
+			case fmt_type::lower_pointer: return "0x";
+			case fmt_type::upper_pointer: return "0x";
+			case fmt_type::lower_hexadecimal: return "0x";
+			case fmt_type::upper_hexadecimal: return "0x";
+			case fmt_type::decimal: return "0d";
+			case fmt_type::none: return "0d";
+			case fmt_type::octal: return "0o";
+			case fmt_type::binary: return "0b";
+			default: return "0d";
+			}			
+		}
 	};
 	
 }

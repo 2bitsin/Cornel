@@ -3,99 +3,94 @@
 #include <concepts>
 #include <algorithm>
 #include <charconv>
+#include <string>
+#include <string_view>
+
+#include "format_options.hpp"
 
 namespace textio::fmt::detail
 {
 
-  template <typename Value_type, typename CharT, meta::string Options>
-  struct format_value_convert   
-  {
-    static_assert(sizeof(Value_type*) == 0, "format_value_convert: Unsupported type");
-    using char_type = char;
+	template <typename Value_type, typename Char_type, meta::string Options>
+	struct format_value_convert
+	{
+		static_assert(sizeof(Value_type*) == 0, "Unimplemented");
+	}; 
 
-    template <std::output_iterator<char_type> OIterator, typename Value>
-    inline static auto apply(OIterator out_iterator, Value&& value) -> OIterator    
-    {
-      return out_iterator;
-    }
-  };
+	template <typename Value_type, typename Char_type, meta::string Options>
+	requires (std::is_integral_v<Value_type>)
+	struct format_value_convert<Value_type, Char_type, Options>
+	{		
+		using value_type	= Value_type;
+		using char_type		= Char_type;
+		
+		static inline constexpr auto options = format_options<value_type, char_type>{ Options };				
+		static inline constexpr auto minimum_buffer_size = std::max(options.pad_zeros * options.width + options.prefix_base * 2u + 1u, 0x80u);
 
-  template <std::integral Value, typename CharT, meta::string Options>
-  struct format_value_convert<Value, CharT, Options>
-  {
-    using char_type = char;
-		/*
-    using flag_list = meta::value_list_from_array<Options>;
-    
-    static inline constexpr auto is_lower_bin = meta::value_list_contains_v<flag_list, 'b'>;
-    static inline constexpr auto is_upper_bin = meta::value_list_contains_v<flag_list, 'B'>;
-    
-    static inline constexpr auto is_lower_oct = meta::value_list_contains_v<flag_list, 'o'>;
-    static inline constexpr auto is_upper_oct = meta::value_list_contains_v<flag_list, 'O'>;
-    
-    static inline constexpr auto is_lower_hex = meta::value_list_contains_v<flag_list, 'x'>;
-    static inline constexpr auto is_upper_hex = meta::value_list_contains_v<flag_list, 'X'>;
-    
-    static inline constexpr auto is_any_bin = is_lower_bin || is_upper_bin;
-    static inline constexpr auto is_any_oct = is_lower_oct || is_upper_oct;
-    static inline constexpr auto is_any_hex = is_lower_hex || is_upper_hex;         
+		template <std::output_iterator<char> OIterator>
+		static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
+		{		
+			using format_sv = format_value_convert<std::basic_string_view<char_type>, char_type, Options>;
+			
+			char_type buffer[minimum_buffer_size];
+			constexpr auto prefix = options.prefix_string();
+			
+			auto buff_i = std::begin(buffer);						
 
-    static_assert(is_upper_bin + is_lower_bin + is_upper_oct + is_lower_oct + is_upper_hex + is_lower_hex <= 1, "format_value_convert: Only one of b, B, o, O, x, or X can be specified");
+			if constexpr (options.prefix_base) {
+				
+				buff_i = std::copy_n(prefix.begin(), prefix.size(), buff_i);
+			}
 
-    static inline constexpr auto base_value = is_any_bin ? 2 : (is_any_oct ? 8 : (is_any_hex ? 16 : 10));
+			if constexpr (options.pad_zeros) {
+				buff_i = std::fill_n(buff_i, options.width - prefix.size(), char_type('0'));
+			}
 
-    static inline constexpr auto is_lower = is_lower_bin || is_lower_oct || is_lower_hex;
-    static inline constexpr auto is_upper = is_upper_bin || is_upper_oct || is_upper_hex;
+			auto [end, errc] = std::to_chars(buffer, buffer + minimum_buffer_size, value, options.base());
+			
+			
 
-    static inline constexpr auto is_prefix = meta::value_list_contains_v<flag_list, '#'>;
-		*/
-    template <std::output_iterator<char_type> OIterator, typename ValueAux>
-    inline static auto apply(OIterator out_iterator, ValueAux&& value) -> OIterator   
-    {
-			/*
-      char_type buffer [128];
-      const auto result_v = std::to_chars(std::begin(buffer), std::end(buffer), std::forward<Value>(value), base_value);
-      if (result_v.ec != std::errc())
-      { return out_iterator; }
-      
-      if constexpr (is_lower)
-      { std::transform(std::begin(buffer), result_v.ptr, std::begin(buffer), [](char_type c) { return std::tolower(c); }); }
-      else if constexpr (is_upper)
-      { std::transform(std::begin(buffer), result_v.ptr, std::begin(buffer), [](char_type c) { return std::toupper(c); }); }
-      
-      if constexpr (is_prefix)
-      {
-        if constexpr (is_any_bin)
-        { *out_iterator++ = '0'; *out_iterator++ = 'b'; }
-        else if constexpr (is_any_oct)
-        { *out_iterator++ = '0'; *out_iterator++ = 'o'; }
-        else if constexpr (is_any_hex)
-        { *out_iterator++ = '0'; *out_iterator++ = 'x'; }
-        else 
-        { *out_iterator++ = '0'; *out_iterator++ = 'd'; }
-      }
-      return std::copy(std::begin(buffer), result_v.ptr, out_iterator);
-			*/
-    }
-  };
+			return o_iterator;
+		}
+	}; 
+	
 
-  template <typename CharT, meta::string Options>
-  struct format_value_convert<bool, CharT, Options>
-  {
-    using char_type = char;
-    //using flags = format_flags_parse<bool, Options>;
+	template <typename Char_type, meta::string Options, typename... Q>	
+	struct format_value_convert<std::basic_string_view<Char_type, Q...>, Char_type, Options>
+	{		
+		using char_type		= Char_type;
+		using value_type	= std::basic_string_view<char_type, Q...>;
+				
+		static inline constexpr auto options = format_options<value_type, char_type>{ Options };
+		
+		template <std::output_iterator<char> OIterator>
+		static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
+		{
+			if (options.width < value.size()) {
+				return std::copy(value.begin(), value.end(), o_iterator);
+			}
 
-    static inline constexpr meta::string value_true  { "true"  };
-    static inline constexpr meta::string value_false { "false" };
-
-    template <std::output_iterator<char_type> OIterator, typename Value>
-    inline static auto apply(OIterator out_iterator, Value&& value) -> OIterator    
-    {
-      if (value == true) 
-      { return std::copy(value_true.begin(), value_true.end(), out_iterator); }
-      else
-      { return std::copy(value_false.begin(), value_false.end(), out_iterator); }
-    }
-  };
-  
+			const auto total_padding = options.width - value.size();
+			switch (options.direction)
+			{
+			case fmt_align::left:
+				o_iterator = std::copy(value.begin(), value.end(), o_iterator);
+				return std::fill_n(o_iterator, total_padding, options.fill_char);
+			case fmt_align::right:
+				o_iterator = std::fill_n(o_iterator, total_padding, options.fill_char);
+				return std::copy(value.begin(), value.end(), o_iterator);
+			case fmt_align::center:
+				{
+					const auto left_padding = total_padding / 2;
+					const auto right_padding = total_padding - left_padding;
+					o_iterator = std::fill_n(o_iterator, left_padding, options.fill_char);
+					o_iterator = std::copy(value.begin(), value.end(), o_iterator);
+					return std::fill_n(o_iterator, right_padding, options.fill_char);
+				}
+			case fmt_align::none:
+				return std::copy(value.begin(), value.end(), o_iterator);
+			}
+		}
+			
+	}; 
 }

@@ -16,6 +16,7 @@ int main(int, char**)
   const auto s = format_as<fmt_s, std::string>(0x12345678u, 0x87654321, 0x0BADC0DE, 0xDEADBEEF);
   std::cout << s << std::endl;
 
+	
 
   return 0;
 }
