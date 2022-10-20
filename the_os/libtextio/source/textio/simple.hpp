@@ -12,6 +12,7 @@
 #include <cctype>
 #include <tuple>
 
+#include "format/cstdio_iterator.hpp"
 #include "detail.hpp"
 #include "consts.hpp"
 #include "simple_fmt.hpp"
@@ -218,4 +219,19 @@ namespace textio::simple
     return write(out_i, std::forward<Args>(args)..., consts::crlf_s);
   }
 
+	template <typename... Args>
+	static inline auto writeln_to(std::FILE* o_file, Args&&... args) -> int
+	{
+		using cstdio_iterator_t = ::textio::fmt::detail::cstdio_iterator;
+		auto cstdio_i = writeln(cstdio_iterator_t{ o_file }, std::forward<Args>(args)...);
+		return cstdio_i.status();
+	}
+
+	template <typename... Args>
+	static inline auto write_to(std::FILE* o_file, Args&&... args) -> int
+	{
+		using cstdio_iterator_t = ::textio::fmt::detail::cstdio_iterator;
+		auto cstdio_i = write(cstdio_iterator_t{ o_file }, std::forward<Args>(args)...);
+		return cstdio_i.status();
+	}
 }

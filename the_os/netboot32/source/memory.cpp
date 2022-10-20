@@ -29,6 +29,7 @@ static block_list G_extended_heap;
 
 static void initialize_extended_heap() 
 {
+  using namespace textio::simple;
   using namespace textio::simple::fmt;
   // Initialize extended memory heap
   x86arch::bios_acpi_memory_map_entry_t entry;
@@ -55,17 +56,19 @@ static void initialize_extended_heap()
     }
   } 
   while(o_offset != 0u);
-  console::writeln("  * ", data_size(heap_size), " Bytes extended memory available.");  
+  writeln_to(stdout, "  * ", data_size(heap_size), " Bytes extended memory available.");  
 }
 
 static void initialize_base_heap()
 {
+  using namespace textio::simple;
   using namespace textio::simple::fmt;
+
   const auto* top_of_heap = (std::byte const *)(bda::conventional_memory_size * 0x400u);
   std::span heap_bytes { G_heap_begin, top_of_heap };
   // Initialize heap
   G_base_heap.insert_range(heap_bytes);
-  console::writeln("  * ", data_size(heap_bytes.size()), " Bytes base memory available."); 
+  writeln_to(stdout, "  * ", data_size(heap_bytes.size()), " Bytes base memory available."); 
 }
 
 
@@ -178,10 +181,11 @@ namespace memory
 {
   void initialize(bool first_time)
   {
+    using namespace textio::simple;
     using namespace textio::simple::fmt;
     if (!first_time)
       return;
-    console::writeln("Initializing heap ...");  
+    writeln_to(stdout, "Initializing heap ...");  
     initialize_base_heap();
     initialize_extended_heap();
 

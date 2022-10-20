@@ -13,6 +13,7 @@ add_executable(netboot32
   pxe_dhcp.cpp
   netboot32.cpp
   keyboard.cpp
+  cstdio_impl.cpp
   )
 
 target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

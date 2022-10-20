@@ -11,6 +11,7 @@
 #include "format/node_insert.hpp"
 #include "format/optimize.hpp"
 #include "format/parse.hpp"
+#include "format/cstdio_iterator.hpp"
 
 namespace textio::fmt::detail
 {
@@ -25,8 +26,7 @@ namespace textio::fmt::detail
 	{
 		((out_iterator = NodeN::apply(out_iterator, args)), ...);
 		return out_iterator;
-	}
-	
+	}	
 }
 
 namespace textio::fmt
@@ -43,7 +43,15 @@ namespace textio::fmt
 	auto format_to(OIterator o_iterator, ArgN&&... args) -> OIterator
 	{
 		return detail::format_to_impl(o_iterator, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
+	}	
+
+	template <meta::string Format_string, typename... ArgN>
+	auto format_to(std::FILE* file, ArgN&&... args) -> int
+	{
+		auto cstdio_i = detail::format_to_impl(detail::cstdio_iterator{ file }, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
+		return cstdio_i.status();
 	}
+
 
 	template <meta::string Format_string>
 	struct format_statement
@@ -53,39 +61,50 @@ namespace textio::fmt
 
 		static inline constexpr auto format_string_encoded = detail::format_encode<Format_string>();
 
-		template <typename... ArgN>
-		static inline auto format(std::output_iterator<char> auto o_iterator, ArgN&& ... args)
+		template <std::output_iterator<char> OIterator, typename... ArgN>
+		static inline auto to(OIterator o_iterator, ArgN&& ... args) -> OIterator
 		{
 			return detail::format_to_impl(o_iterator, format_string_encoded, std::forward_as_tuple(std::forward<ArgN>(args)...));
 		}		
 
 		template <typename... ArgN>
-		static inline auto format(std::basic_string<char_type>& o_string, ArgN&& ... args)
+		static inline auto to(std::basic_string<char_type>& o_string, ArgN&& ... args) -> std::basic_string<char_type>
 		{
 			detail::format_to_impl(std::back_inserter(o_string), format_string_encoded, std::forward_as_tuple(std::forward<ArgN>(args)...));
 			return o_string;
 		}		
 
+		template <typename... ArgN>
+		static inline auto to(FILE* o_file, ArgN&& ... args) -> int
+		{
+			auto cstdio_i = detail::format_to_impl(detail::cstdio_iterator{ o_file }, format_string_encoded, std::forward_as_tuple(std::forward<ArgN>(args)...));
+			return cstdio_i.status();
+		}		
+
 		template <typename As_type, typename... ArgN>
-		static inline auto format_as(ArgN&& ... args)
+		static inline auto as(ArgN&& ... args)
 		{
 			As_type collect;			
-			return format(collect, std::forward<ArgN>(args)...);
+			return to(collect, std::forward<ArgN>(args)...);
 		}		
 
-		template <typename... ArgN>
-		inline auto operator () (std::output_iterator<char> auto o_iterator, ArgN&& ... args) const
+		template <std::output_iterator<char> OIterator, typename... ArgN>
+		inline auto operator () (std::output_iterator<char> auto o_iterator, ArgN&& ... args) const -> OIterator
 		{
-			return format(o_iterator, std::forward<ArgN>(args)...);
+			return to(o_iterator, std::forward<ArgN>(args)...);
 		}		
 
 		template <typename... ArgN>
-		inline auto operator () (std::basic_string<char_type>& o_string, ArgN&& ... args) const
+		inline auto operator () (std::basic_string<char_type>& o_string, ArgN&& ... args) const -> std::basic_string<char_type>
 		{			
-			
-			return format(o_string, std::forward<ArgN>(args)...);
-		}		
-
+			return to(o_string, std::forward<ArgN>(args)...);
+		}
+		
+		template <typename... ArgN>
+		inline auto operator () (std::FILE* o_file, ArgN&& ... args) const -> int
+		{			
+			return to(o_file, std::forward<ArgN>(args)...);
+		}
 	};
 
 	namespace literals

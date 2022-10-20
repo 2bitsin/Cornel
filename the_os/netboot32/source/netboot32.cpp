@@ -37,18 +37,19 @@ CO_PUBLIC
 auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) -> void
 {  
   using namespace std::string_view_literals;
+  using namespace textio::fmt;
+  using namespace textio::fmt::literals;
+
   initialize(true);
   pxe_interface::initialize(true, _PXENVplus, _bangPXE);
   
   ::memory::buffer<std::byte> config_ini_buffer;
-
-  //console::writeln("downloading config.ini ...");
-
-  textio::fmt::format_to<"Loading {} ...">(console::out(), "config.ini"sv);
+  
+  "Loading {} ...\n"_fmt.to(stdout, "config.ini");
 
   [[maybe_unused]] const auto result = pxe_interface::download_file("config.ini", config_ini_buffer);
 
-  //console::writeln(std::string_view{ config_ini_buffer });
+  
 
   for(;;) { x86arch::yield(); }
 

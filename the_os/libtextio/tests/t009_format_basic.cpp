@@ -18,7 +18,7 @@ int main(int,char** const)
 	
 	static constexpr auto fmt_s0 = "Hello {{WORLD}} {0:!^#32b} {0:*<#32o} {0:->c} {0:#016x}"_fmt; 
 	
-	const auto buffer = fmt_s0.format_as<std::string>(0x55);
+	const auto buffer = fmt_s0.as<std::string>(0x55);
 	
 	// TODO : WRITE MORE TESTS
   expect_eq(buffer, expected);

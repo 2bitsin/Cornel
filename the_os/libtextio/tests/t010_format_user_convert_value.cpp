@@ -39,11 +39,13 @@ int main(int,char** const)
 	using namespace textio::fmt;
 	using namespace textio::fmt::literals;
 
+
 	auto const expected = "vec3i(1, 2, 3)\nbox2u[(1, 2), (3, 4)]\n"s;
 			
 	constexpr auto fmt_s0 = "{}\n{}\n"_fmt;
 	
-	const auto buffer = fmt_s0.format_as<std::string>(vec3i{1,2,3}, box2u{1,2,3,4});
+	fmt_s0.to(stderr, vec3i{1,2,3}, box2u{1,2,3,4});
+	const auto buffer = fmt_s0.as<std::string>(vec3i{1,2,3}, box2u{1,2,3,4});
 	
 	// TODO : WRITE MORE TESTS
   expect_eq(buffer, expected);

@@ -51,8 +51,8 @@ struct block_list
   auto contains(void const* ptr) const noexcept -> bool;
   auto is_valid(void const* ptr) const noexcept -> bool;
 
-  template <std::output_iterator<char> O>   
-  friend auto pretty_print(block_list const& blist, O oi) noexcept -> void;    
+  template <typename Anything>   
+  friend auto pretty_print(block_list const& blist, Anything&& oi) noexcept -> void;    
 
   ~block_list();
 
@@ -88,8 +88,8 @@ private:
 };
 
 
-template <std::output_iterator<char> O>
-auto pretty_print(block_list const& blist, O oss) noexcept -> void
+template <typename Anything>
+auto pretty_print(block_list const& blist, Anything&& oss) noexcept -> void
 {
   auto status = [](block_list::block_type const& head) -> std::string_view    
   {
@@ -113,19 +113,19 @@ auto pretty_print(block_list const& blist, O oss) noexcept -> void
   using namespace textio::simple;
   using namespace textio::simple::fmt;
 
-  writeln(oss, ">>> head = 00000000, tail = ", hex<'&'>(byte_diff(blist.m_head, blist.m_tail)));
+  writeln_to(oss, ">>> head = 00000000, tail = ", hex<'&'>(byte_diff(blist.m_head, blist.m_tail)));
 
 
   std::uintptr_t total_size{ 0 }, allocated{ 0 }, available{ 0 }; 
   for (auto head = blist.m_head; head; head = head->next)
   {
 
-    write(oss, hex<'&'>(byte_diff(head, blist.m_head)), ": ");
+    write_to(oss, hex<'&'>(byte_diff(head, blist.m_head)), ": ");
 
-    if (head->next) write(oss, "next=", hex<'&'>(byte_diff(head->next, blist.m_head)), ", "); else write(oss, "next=( null ), ");
-    if (head->prev) write(oss, "prev=", hex<'&'>(byte_diff(head->prev, blist.m_head)), ", "); else write(oss, "prev=( null ), ");
+    if (head->next) write_to(oss, "next=", hex<'&'>(byte_diff(head->next, blist.m_head)), ", "); else write_to(oss, "next=( null ), ");
+    if (head->prev) write_to(oss, "prev=", hex<'&'>(byte_diff(head->prev, blist.m_head)), ", "); else write_to(oss, "prev=( null ), ");
 
-    writeln(oss, "size=", hex<'&'>(head->size), " status=", status(*head));
+    writeln_to(oss, "size=", hex<'&'>(head->size), " status=", status(*head));
      
     total_size += head->size;   
     if (block_list::is_block_available(*head))

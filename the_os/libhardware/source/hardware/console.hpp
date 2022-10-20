@@ -19,25 +19,8 @@ struct console
 
   void set_attribute(std::uint8_t value);
   void write_char(char value);
-
-  struct iterator
-  {
-    using iterator_category = std::output_iterator_tag;
-    using value_type        = void;
-    using pointer           = void;
-    using reference         = void;
-    using difference_type   = ptrdiff_t;
-    iterator& operator = (const char& val) { console::instance().write_char(val); return *this; }
-    iterator& operator = (char&& val) { console::instance().write_char(val); return *this; }
-    iterator& operator * () noexcept { return *this; }
-    iterator& operator ++ () noexcept { return *this; }
-    iterator operator ++ (int) noexcept { return *this; }
-  }; 
-
-  static auto out() -> iterator { return iterator{}; }
-
-  template <typename... T> static inline auto write   (T&&... args) { return textio::simple::write   (iterator{}, std::forward<T>(args)...); }
-  template <typename... T> static inline auto writeln (T&&... args) { return textio::simple::writeln (iterator{}, std::forward<T>(args)...); }
+  
+  static auto instance() -> console&;
 
 protected:
   void scroll_down();
@@ -48,10 +31,6 @@ protected:
   void advance_normal();
   void advance_cursor(char value);
   void update_hardware_cursor();
-
-  static auto instance() -> console&;
-
-  friend struct iterator;  
 
 private:
   std::uint16_t tab_size;

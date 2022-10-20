@@ -93,8 +93,7 @@ namespace textio::fmt::detail
     {     
       return value.format(o_iterator, Options);
     }       
-  };
-  
+  };   
 
   template <typename Char_type, meta::string Options, typename... Q>  
   struct format_value_convert<std::basic_string_view<Char_type, Q...>, Char_type, Options>
@@ -139,7 +138,7 @@ namespace textio::fmt::detail
         return std::copy(value.begin(), value.end(), o_iterator);
       }
     }     
-  }; 
+  };   
 
   template <typename Char_type, meta::string Options, typename... Q>  
   struct format_value_convert<std::basic_string<Char_type, Q...>, Char_type, Options>
@@ -154,6 +153,21 @@ namespace textio::fmt::detail
       return format_sv::apply(o_iterator, value);
     }     
   }; 
+
+  template <typename Char_type, meta::string Options, size_t N>  
+  struct format_value_convert<Char_type[N], Char_type, Options>
+  {   
+    using char_type   = Char_type;
+    using value_type  = Char_type[N];
+        
+    template <std::output_iterator<char> OIterator>
+    static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
+    {
+      using format_sv = format_value_convert<std::basic_string_view<char_type>, char_type, Options>;
+      return format_sv::apply(o_iterator, value);
+    }     
+  }; 
+
   
   template <typename Value_type, typename Char_type, meta::string Options>
   requires (std::is_integral_v<Value_type>)

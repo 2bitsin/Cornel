@@ -1,10 +1,10 @@
 #include <string_view>
+#include <cstdio>
 
 #include <utils/macros.hpp>
 #include <utils/debug.hpp>
 #include <hardware/x86assembly.hpp>
 #include <hardware/pic8259.hpp>
-#include <hardware/console.hpp>
 #include <hardware/rtccmos.hpp>
 
 #include <netboot32/keyboard.hpp>
@@ -61,18 +61,16 @@ int ISR_handler(interrupts::stack_frame& state)
 
   if (state.which < 32) 
   {
-    console::writeln(repeat<79>('-'));
-    console::writeln("Exception #", hex<'p'>((uint8_t)state.which), " - ", G_exception_string[state.which], " has occured.");
-    console::writeln(repeat<79>('-'));
-
-    console::writeln("cs:eip=" , hex<'p'>(state.cs ), ":", hex<'p'>(state.eip), " fs=", hex<'p'>(state.fs), " gs=", hex<'p'>(state.gs));
-    console::writeln("ss:esp=" , hex<'p'>(state.ss ), ":", hex<'p'>(state.esp), " ebp=", hex<'p'>(state.ebp), " (esp + ", (state.ebp - state.esp), ")");
-    console::writeln("ds:esi=" , hex<'p'>(state.ds ), ":", hex<'p'>(state.esi), " es:edi=", hex<'p'>(state.ds), ":", hex<'p'>(state.edi));
-    console::writeln("edx:eax=", hex<'p'>(state.edx), ":", hex<'p'>(state.eax), " = ", dec<'p'>(state.edx*0x100000000ull + state.eax), ", ", dec<'p'>(state.edx), ":", dec<'p'>(state.eax));
-    console::writeln("ecx:ebx=", hex<'p'>(state.ecx), ":", hex<'p'>(state.ebx), " = ", dec<'p'>(state.ecx*0x100000000ull + state.ebx), ", ", dec<'p'>(state.ecx), ":", dec<'p'>(state.ebx));
-
-    console::writeln("eflags=", bin<'p'>(state.eflags));
-    console::writeln(repeat<79>('-'));    
+    writeln_to(stdout, repeat<79>('-'));
+    writeln_to(stdout, "Exception #", hex<'p'>((uint8_t)state.which), " - ", G_exception_string[state.which], " has occured.");
+    writeln_to(stdout, repeat<79>('-'));
+    writeln_to(stdout, "cs:eip=" , hex<'p'>(state.cs ), ":", hex<'p'>(state.eip), " fs=", hex<'p'>(state.fs), " gs=", hex<'p'>(state.gs));
+    writeln_to(stdout, "ss:esp=" , hex<'p'>(state.ss ), ":", hex<'p'>(state.esp), " ebp=", hex<'p'>(state.ebp), " (esp + ", (state.ebp - state.esp), ")");
+    writeln_to(stdout, "ds:esi=" , hex<'p'>(state.ds ), ":", hex<'p'>(state.esi), " es:edi=", hex<'p'>(state.ds), ":", hex<'p'>(state.edi));
+    writeln_to(stdout, "edx:eax=", hex<'p'>(state.edx), ":", hex<'p'>(state.eax), " = ", dec<'p'>(state.edx*0x100000000ull + state.eax), ", ", dec<'p'>(state.edx), ":", dec<'p'>(state.eax));
+    writeln_to(stdout, "ecx:ebx=", hex<'p'>(state.ecx), ":", hex<'p'>(state.ebx), " = ", dec<'p'>(state.ecx*0x100000000ull + state.ebx), ", ", dec<'p'>(state.ecx), ":", dec<'p'>(state.ebx));
+    writeln_to(stdout, "eflags=", bin<'p'>(state.eflags));
+    writeln_to(stdout, repeat<79>('-'));    
     
     __debugbreak();
     std::abort();
