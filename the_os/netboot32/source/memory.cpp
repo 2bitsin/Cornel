@@ -13,7 +13,7 @@
 #include <netboot32/panick.hpp>
 
 #include <textio/simple.hpp>
-#include <textio/simple_fmt_data_size.hpp>
+#include <textio/simple/fmt_data_size.hpp>
 
 
 #include <cstdlib>
@@ -182,13 +182,12 @@ namespace memory
   void initialize(bool first_time)
   {
     using namespace textio::simple;
-    using namespace textio::simple::fmt;
+    using namespace textio::simple::fmt;    
     if (!first_time)
       return;
-    writeln_to(stdout, "Initializing heap ...");  
+    writeln_to(stdout, "Initializing heap ...");   
     initialize_base_heap();
     initialize_extended_heap();
-
     std::pmr::set_default_resource(&::memory::get_base_heap());
   }
 

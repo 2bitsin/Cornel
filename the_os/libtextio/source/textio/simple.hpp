@@ -12,10 +12,11 @@
 #include <cctype>
 #include <tuple>
 
-#include "format/cstdio_iterator.hpp"
-#include "detail.hpp"
-#include "consts.hpp"
-#include "simple_fmt.hpp"
+#include "general/cstdio_iterator.hpp"
+#include "general/error.hpp"
+#include "general/helpers.hpp"
+#include "general/consts.hpp"
+#include "simple/fmt.hpp"
 
 #define __LIBTEXTIO__ 1
 
@@ -108,7 +109,11 @@ namespace textio::simple
       static_assert(length > 1);
       std::to_chars_result result;
       result = std::to_chars(std::begin(buffer), std::end(buffer), arg0);
-//      co_assert(result.ec == std::errc());
+      if (result.ec != std::errc()) 
+      {
+        using ::textio::detail::throw_conversion_error;
+        throw_conversion_error("std::to_chars failed to convert integral type to string");
+      }
       return write(out_i, std::string_view(buffer, result.ptr));
     }   
   } 
@@ -141,7 +146,11 @@ namespace textio::simple
     {
       auto const& value = (std::make_signed_t<T> const&)what.value;
       result = std::to_chars(std::begin(buffer), std::end(buffer), std::abs(value), what.base);
-//      co_assert(result.ec == std::errc());
+      if (result.ec != std::errc()) 
+      {
+        using ::textio::detail::throw_conversion_error;
+        throw_conversion_error("std::to_chars failed to convert integral type to string");
+      }     
       if (value < 0) 
         out_i = write(out_i, '-');
     }
@@ -149,7 +158,11 @@ namespace textio::simple
     {
       auto const& value = (std::make_unsigned_t<T> const&)what.value;
       result = std::to_chars(std::begin(buffer), std::end(buffer), value, what.base);
-//      co_assert(result.ec == std::errc());
+      if (result.ec != std::errc()) 
+      {
+        using ::textio::detail::throw_conversion_error;
+        throw_conversion_error("std::to_chars failed to convert integral type to string");
+      }
     }
     std::string_view value_s{ std::begin(buffer), result.ptr };
     if (what.upperc_flag) std::ranges::transform(buffer, std::begin(buffer), [] (auto c) { return std::toupper(c); });
@@ -219,19 +232,19 @@ namespace textio::simple
     return write(out_i, std::forward<Args>(args)..., consts::crlf_s);
   }
 
-	template <typename... Args>
-	static inline auto writeln_to(std::FILE* o_file, Args&&... args) -> int
-	{
-		using cstdio_iterator_t = ::textio::fmt::detail::cstdio_iterator;
-		auto cstdio_i = writeln(cstdio_iterator_t{ o_file }, std::forward<Args>(args)...);
-		return cstdio_i.status();
-	}
+  template <typename... Args>
+  static inline auto writeln_to(std::FILE* o_file, Args&&... args) -> int
+  {
+    using ::textio::detail::cstdio_iterator;
+    auto cstdio_i = writeln(cstdio_iterator{ o_file }, std::forward<Args>(args)...);
+    return cstdio_i.status();
+  }
 
-	template <typename... Args>
-	static inline auto write_to(std::FILE* o_file, Args&&... args) -> int
-	{
-		using cstdio_iterator_t = ::textio::fmt::detail::cstdio_iterator;
-		auto cstdio_i = write(cstdio_iterator_t{ o_file }, std::forward<Args>(args)...);
-		return cstdio_i.status();
-	}
+  template <typename... Args>
+  static inline auto write_to(std::FILE* o_file, Args&&... args) -> int
+  {
+    using ::textio::detail::cstdio_iterator;
+    auto cstdio_i = write(cstdio_iterator{ o_file }, std::forward<Args>(args)...);
+    return cstdio_i.status();
+  }
 }

@@ -23,7 +23,7 @@ struct box2u
 };
 
 template <typename Char_type, meta::string Options>
-struct textio::fmt::user_convert_value<box2u, Char_type, Options>
+struct textio::fmt::user_convert<box2u, Char_type, Options>
 {	
 	static inline auto apply(std::output_iterator<char> auto o_iterator, box2u const& value)
 	{

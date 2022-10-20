@@ -2,7 +2,7 @@
 
 #include <span>
 #include <textio/simple.hpp>
-#include <textio/simple_fmt.hpp>
+#include <textio/simple/fmt.hpp>
 
 #include <netboot32/pxe_interface.hpp>
 

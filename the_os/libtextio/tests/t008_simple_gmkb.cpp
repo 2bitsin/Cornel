@@ -1,6 +1,6 @@
 #include <iterator>
-#include <textio/simple.hpp>
-#include <textio/simple_fmt_data_size.hpp>
+#include "textio/simple.hpp"
+#include "textio/simple/fmt_data_size.hpp"
 #include "expect.hpp"
 
 #ifdef TESTING

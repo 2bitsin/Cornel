@@ -4,7 +4,7 @@
 #include "../meta/string.hpp"
 #include "base_convert.hpp"
 #include "variable.hpp"
-#include "value_convert.hpp"
+#include "convert.hpp"
 
 namespace textio::fmt::detail
 { 
@@ -25,7 +25,7 @@ namespace textio::fmt::detail
     inline static auto apply(Collect&& collect, std::tuple<Args...> const& args)
     {
       using value_type_dry = std::remove_const_t<std::remove_reference_t<std::tuple_element_t<argument_index, std::tuple<Args...>>>>;
-      using converter = format_value_convert<value_type_dry, char_type, options_string>;
+      using converter = format_convert<value_type_dry, char_type, options_string>;
       return converter::apply(std::forward<Collect>(collect), std::get<argument_index>(args));
     }   
   };

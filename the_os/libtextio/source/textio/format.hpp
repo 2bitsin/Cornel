@@ -11,7 +11,7 @@
 #include "format/node_insert.hpp"
 #include "format/optimize.hpp"
 #include "format/parse.hpp"
-#include "format/cstdio_iterator.hpp"
+#include "general/cstdio_iterator.hpp"
 
 namespace textio::fmt::detail
 {
@@ -48,7 +48,8 @@ namespace textio::fmt
 	template <meta::string Format_string, typename... ArgN>
 	auto format_to(std::FILE* file, ArgN&&... args) -> int
 	{
-		auto cstdio_i = detail::format_to_impl(detail::cstdio_iterator{ file }, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
+		using textio::detail::cstdio_iterator;
+		auto cstdio_i = detail::format_to_impl(cstdio_iterator{ file }, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
 		return cstdio_i.status();
 	}
 
@@ -77,7 +78,8 @@ namespace textio::fmt
 		template <typename... ArgN>
 		static inline auto to(FILE* o_file, ArgN&& ... args) -> int
 		{
-			auto cstdio_i = detail::format_to_impl(detail::cstdio_iterator{ o_file }, format_string_encoded, std::forward_as_tuple(std::forward<ArgN>(args)...));
+			using ::textio::detail::cstdio_iterator;
+			auto cstdio_i = detail::format_to_impl(cstdio_iterator{ o_file }, format_string_encoded, std::forward_as_tuple(std::forward<ArgN>(args)...));
 			return cstdio_i.status();
 		}		
 

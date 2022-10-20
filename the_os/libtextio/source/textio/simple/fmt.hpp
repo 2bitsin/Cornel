@@ -7,7 +7,7 @@
 #include <limits>
 #include <bit>
 
-#include "detail.hpp"
+#include "../general/helpers.hpp"
 
 namespace textio::simple::fmt
 {

@@ -8,7 +8,7 @@
 #endif
 
 
-namespace textio::fmt::detail
+namespace textio::detail
 {
   [[noreturn]] 
   static inline auto throw_conversion_error(std::string_view error) -> void

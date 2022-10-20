@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include <textio/simple.hpp>
-#include <textio/simple_fmt.hpp>
+#include <textio/simple/fmt.hpp>
 
 #include <netboot32/keyboard.hpp>
 #include <hardware/kbdctrl.hpp>

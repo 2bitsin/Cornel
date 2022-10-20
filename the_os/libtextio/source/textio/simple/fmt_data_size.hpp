@@ -6,7 +6,7 @@
 #include <concepts>
 #include <type_traits>
 
-#include <textio/simple.hpp>
+#include "../simple.hpp"
 
 namespace textio::simple::fmt::detail
 {

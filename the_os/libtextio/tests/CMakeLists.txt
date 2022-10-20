@@ -9,7 +9,8 @@ set (TEST_SOURCES
   t007_simple_random0.cpp
 	t008_simple_gmkb.cpp
 	t009_format_basic.cpp
-	t010_format_user_convert_value.cpp
+	t010_format_user_convert.cpp
+	t011_format_helpers_repeat.cpp
 )
 
 set (TEST_PREFIX textio)
@@ -23,6 +24,7 @@ foreach (test_item ${TEST_SOURCES})
   add_test(NAME ${test_name} COMMAND $<TARGET_FILE:${TEST_TARGET}>)
   install (TARGETS ${TEST_TARGET} DESTINATION ${CMAKE_INSTALL_PREFIX})
 endforeach()
+
 
 
 

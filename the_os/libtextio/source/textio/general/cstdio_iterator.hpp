@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <cerrno>
 
-namespace textio::fmt::detail
+namespace textio::detail
 {
 	struct cstdio_iterator
   {
