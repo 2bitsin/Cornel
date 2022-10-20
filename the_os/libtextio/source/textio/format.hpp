@@ -4,13 +4,13 @@
 #include <concepts>
 #include <string>
 
-#include "meta_type_list.hpp"
-#include "meta_string.hpp"
+#include "meta/type_list.hpp"
+#include "meta/string.hpp"
 
-#include "format_node_static.hpp"
-#include "format_node_insert.hpp"
-#include "format_optimize.hpp"
-#include "format_parse.hpp"
+#include "format/node_static.hpp"
+#include "format/node_insert.hpp"
+#include "format/optimize.hpp"
+#include "format/parse.hpp"
 
 namespace textio::fmt::detail
 {

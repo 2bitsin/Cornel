@@ -1,6 +1,6 @@
 #pragma once
 
-#include "meta_string.hpp"
+#include "meta/string.hpp"
 
 namespace textio::fmt::detail
 {

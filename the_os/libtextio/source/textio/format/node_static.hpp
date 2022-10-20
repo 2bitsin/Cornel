@@ -3,7 +3,7 @@
 #include <concepts>
 #include <algorithm>
 
-#include "meta_string.hpp"
+#include "meta/string.hpp"
 
 namespace textio::fmt::detail
 {

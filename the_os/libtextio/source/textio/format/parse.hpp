@@ -1,7 +1,7 @@
 #pragma once
 
-#include "meta_type_list.hpp"
-#include "meta_string.hpp"
+#include "meta/type_list.hpp"
+#include "meta/string.hpp"
 
 namespace textio::fmt::detail
 {

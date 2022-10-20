@@ -6,8 +6,8 @@
 #include <string>
 #include <string_view>
 
-#include "format_options.hpp"
-#include "format_error.hpp"
+#include "options.hpp"
+#include "error.hpp"
 
 namespace textio::fmt
 {

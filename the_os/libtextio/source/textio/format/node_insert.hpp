@@ -1,10 +1,10 @@
 #pragma once
 
-#include "meta_type_list.hpp"
-#include "meta_string.hpp"
-#include "format_base_convert.hpp"
-#include "format_variable.hpp"
-#include "format_value_convert.hpp"
+#include "meta/type_list.hpp"
+#include "meta/string.hpp"
+#include "format/base_convert.hpp"
+#include "format/variable.hpp"
+#include "format/value_convert.hpp"
 
 namespace textio::fmt::detail
 {	

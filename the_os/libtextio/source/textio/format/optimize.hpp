@@ -1,10 +1,10 @@
 #pragma once
 
 #include <type_traits>
-#include "meta_type_list.hpp"
-#include "meta_string.hpp"
-#include "format_node_static.hpp"
-#include "format_node_insert.hpp"
+#include "meta/type_list.hpp"
+#include "meta/string.hpp"
+#include "format/node_static.hpp"
+#include "format/node_insert.hpp"
 
 namespace textio::fmt::detail
 {
