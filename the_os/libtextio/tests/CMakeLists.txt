@@ -8,6 +8,8 @@ set (TEST_SOURCES
   t006_simple_tuple.cpp
   t007_simple_random0.cpp
 	t008_simple_gmkb.cpp
+	t009_format_basic.cpp
+	t010_format_user_convert_value.cpp
 )
 
 set (TEST_PREFIX textio)

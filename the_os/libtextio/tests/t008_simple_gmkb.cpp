@@ -4,7 +4,7 @@
 #include "expect.hpp"
 
 #ifdef TESTING
-#define main t007_simple_random0
+#define main t008_simple_gmkb
 #endif
 
 int main(int,char** const) 

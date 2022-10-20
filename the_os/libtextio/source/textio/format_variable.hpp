@@ -1,5 +1,7 @@
 #pragma once
 
+#include "meta_string.hpp"
+
 namespace textio::fmt::detail
 {
 	template <meta::string String, size_t DefaultIndex>

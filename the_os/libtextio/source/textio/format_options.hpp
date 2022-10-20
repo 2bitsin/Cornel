@@ -19,9 +19,12 @@ namespace textio::fmt::detail
 	enum class fmt_type
 	{
 		none,
-		binary,
-		octal,
-		decimal,
+		lower_binary,
+		upper_binary,
+		lower_octal,
+		upper_octal,
+		lower_decimal,
+		upper_decimal,
 		lower_hexadecimal, 
 		upper_hexadecimal,
 		character,
@@ -48,9 +51,12 @@ namespace textio::fmt::detail
 		{
 			switch (char_v)
 			{
-			case 'b': return fmt_type::binary;
-			case 'o': return fmt_type::octal;
-			case 'd': return fmt_type::decimal;
+			case 'b': return fmt_type::lower_binary;
+			case 'B': return fmt_type::upper_binary;
+			case 'o': return fmt_type::lower_octal;
+			case 'O': return fmt_type::upper_octal;
+			case 'd': return fmt_type::lower_decimal;
+			case 'D': return fmt_type::upper_decimal;				
 			case 'x': return fmt_type::lower_hexadecimal;
 			case 'X': return fmt_type::upper_hexadecimal;
 			case 'c': return fmt_type::character;
@@ -81,7 +87,7 @@ namespace textio::fmt::detail
 			return fmt_align::none;
 		}
 		
-		fmt_align		direction		{ fmt_align::left };
+		fmt_align		direction		{ fmt_align::none };
 		char_type		fill_char		{ ' '							};		
 		int32_t			width				{ 0								};
 		int32_t			precision		{ 0								};		
@@ -199,7 +205,13 @@ namespace textio::fmt::detail
 				index += 1u; 
 				size_t index0 = index;
 				while (index < value.size() && is_digit(value[index])) index += 1u;
-				if (index - index0) std::from_chars(value.begin() + index0, value.begin() + index, precision);				
+				size_t numeric_value = 0;
+				if (index - index0) {
+					for(auto i = index0; i < index; ++i) {
+						numeric_value = numeric_value * 10u + (value[i] - '0');
+					}					
+				}
+				precision = numeric_value;
 			}
 
 			////////////////////
@@ -227,10 +239,13 @@ namespace textio::fmt::detail
 			case fmt_type::upper_pointer: return 16u;
 			case fmt_type::lower_hexadecimal: return 16u;
 			case fmt_type::upper_hexadecimal: return 16u;
-			case fmt_type::decimal: return 10u;
-			case fmt_type::none: return 10u;
-			case fmt_type::octal: return 8u;
-			case fmt_type::binary: return 2u;
+			case fmt_type::lower_decimal:	return 10u;
+			case fmt_type::upper_decimal:	return 10u;
+			case fmt_type::lower_octal:	return 8u;
+			case fmt_type::upper_octal:	return 8u;				
+			case fmt_type::lower_binary: return 2u;
+			case fmt_type::upper_binary: return 2u;				
+			case fmt_type::none:;
 			default: return 10u;
 			}
 		}
@@ -241,15 +256,29 @@ namespace textio::fmt::detail
 			switch (format_type)
 			{
 			case fmt_type::lower_pointer: return "0x";
-			case fmt_type::upper_pointer: return "0x";
+			case fmt_type::upper_pointer: return "0X";
 			case fmt_type::lower_hexadecimal: return "0x";
-			case fmt_type::upper_hexadecimal: return "0x";
-			case fmt_type::decimal: return "0d";
+			case fmt_type::upper_hexadecimal: return "0X";
+			case fmt_type::lower_decimal: return "0d";
+			case fmt_type::upper_decimal: return "0D";
+			case fmt_type::lower_octal: return "0o";
+			case fmt_type::upper_octal: return "0O";
+			case fmt_type::lower_binary: return "0b";
+			case fmt_type::upper_binary: return "0B";
 			case fmt_type::none: return "0d";
-			case fmt_type::octal: return "0o";
-			case fmt_type::binary: return "0b";
 			default: return "0d";
 			}			
+		}
+
+		inline constexpr auto is_upper() const noexcept
+		{
+			return format_type == fmt_type::upper_hexadecimal 
+					|| format_type == fmt_type::upper_pointer	;
+		}
+		inline constexpr auto is_lower() const noexcept
+		{
+			return format_type == fmt_type::lower_hexadecimal 
+					|| format_type == fmt_type::lower_pointer	;
 		}
 	};
 	

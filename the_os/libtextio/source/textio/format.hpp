@@ -21,11 +21,12 @@ namespace textio::fmt::detail
 	}
 	
 	template <std::output_iterator<char> OIterator, typename ArgsTuple, typename... NodeN>
-	inline auto format_as_impl(OIterator out_iterator, meta::type_list<NodeN...>, ArgsTuple const& args) -> OIterator
+	inline auto format_to_impl(OIterator out_iterator, meta::type_list<NodeN...>, ArgsTuple const& args) -> OIterator
 	{
 		((out_iterator = NodeN::apply(out_iterator, args)), ...);
 		return out_iterator;
 	}
+	
 }
 
 namespace textio::fmt
@@ -34,7 +35,13 @@ namespace textio::fmt
 	auto format_as(ArgN&&... args) -> AsWhat
 	{
 	  AsWhat collect;
-	  detail::format_as_impl(std::back_inserter(collect), detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
+	  detail::format_to_impl(std::back_inserter(collect), detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
 	  return collect;
+	}
+
+	template <meta::string Format_string, std::output_iterator<char> OIterator, typename... ArgN>
+	auto format_to(OIterator o_iterator, ArgN&&... args) -> OIterator
+	{
+		return detail::format_to_impl(o_iterator, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
 	}
 }

@@ -191,6 +191,24 @@ namespace meta
 			return false;
 		}
 
+		template <auto Value>
+		constexpr auto find() const 
+		{
+			return npos;
+		}
+		
+		constexpr auto find(auto Value) const 
+		{
+			return npos;
+		}
+
+		constexpr auto begin() const -> const char_type* { return nullptr; }
+		constexpr auto end() const -> const char_type* { return nullptr; }
+
+		template <std::size_t Offset, std::size_t Size = 0>
+		constexpr auto substr() const-> string<0u, char_type> { return {}; }
+		
+    static inline constexpr auto npos = size_t(-1);
   };
   
   template <typename CharT, size_t Count>
@@ -208,7 +226,7 @@ namespace meta
 	namespace literals
 	{
 		template <meta::string String>
-		constexpr auto operator "" _Ts()
+		constexpr auto operator "" _cxs()
 		{
 			return String;
 		}
