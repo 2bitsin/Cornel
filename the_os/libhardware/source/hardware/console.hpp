@@ -34,6 +34,8 @@ struct console
     iterator operator ++ (int) noexcept { return *this; }
   }; 
 
+  static auto out() -> iterator { return iterator{}; }
+
   template <typename... T> static inline auto write   (T&&... args) { return textio::simple::write   (iterator{}, std::forward<T>(args)...); }
   template <typename... T> static inline auto writeln (T&&... args) { return textio::simple::writeln (iterator{}, std::forward<T>(args)...); }
 

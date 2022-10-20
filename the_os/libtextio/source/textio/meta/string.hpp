@@ -79,7 +79,7 @@ namespace meta
 
     constexpr auto operator [] (size_t index) const -> char_type
     {
-      return index < m_size ? m_data [index] : throw std::out_of_range("Subscript out of range");
+      return m_data [index] ;
     }
         
     static constexpr auto size() -> size_t
@@ -93,12 +93,12 @@ namespace meta
     }   
     
     template <size_t Offset, size_t... Index>
-    constexpr auto substr(std::index_sequence<Index...> what) const -> string<sizeof...(Index), char_type>
+    constexpr auto substr(std::index_sequence<Index...>) const -> string<sizeof...(Index), char_type>
     {
       return { (m_data[Offset + Index]) ... };
     }
 
-    template <size_t Offset, size_t NewCount = m_size >= Offset ? m_size - Offset : 0>		
+    template <size_t Offset, size_t NewCount = m_size >= Offset ? m_size - Offset : 0>    
     constexpr auto substr() const
     {
       return substr<Offset>(std::make_index_sequence<NewCount>{});
@@ -144,23 +144,23 @@ namespace meta
     {
       return m_data[m_size - 1u];
     }
-		
-		template <char_type Value>
-		constexpr auto contains() const -> bool
-		{
-			for (auto ch : m_data)
-				if (ch == Value)
-					return true;
-			return false;
-		}
-		
-		constexpr auto contains(char_type value) const -> bool
-		{
-			for (auto ch : m_data)
-				if (ch == value)
-					return true;
-			return false;
-		}
+    
+    template <char_type Value>
+    constexpr auto contains() const -> bool
+    {
+      for (auto ch : m_data)
+        if (ch == Value)
+          return true;
+      return false;
+    }
+    
+    constexpr auto contains(char_type value) const -> bool
+    {
+      for (auto ch : m_data)
+        if (ch == value)
+          return true;
+      return false;
+    }
         
     static inline constexpr auto npos = size_t(-1);
   };    
@@ -185,29 +185,29 @@ namespace meta
     {
       return { "" };
     }       
-		
-		constexpr auto contains(char_type value) const -> bool
-		{
-			return false;
-		}
+    
+    constexpr auto contains(char_type value) const -> bool
+    {
+      return false;
+    }
 
-		template <auto Value>
-		constexpr auto find() const 
-		{
-			return npos;
-		}
-		
-		constexpr auto find(auto Value) const 
-		{
-			return npos;
-		}
+    template <auto Value>
+    constexpr auto find() const 
+    {
+      return npos;
+    }
+    
+    constexpr auto find(auto Value) const 
+    {
+      return npos;
+    }
 
-		constexpr auto begin() const -> const char_type* { return nullptr; }
-		constexpr auto end() const -> const char_type* { return nullptr; }
+    constexpr auto begin() const -> const char_type* { return nullptr; }
+    constexpr auto end() const -> const char_type* { return nullptr; }
 
-		template <std::size_t Offset, std::size_t Size = 0>
-		constexpr auto substr() const-> string<0u, char_type> { return {}; }
-		
+    template <std::size_t Offset, std::size_t Size = 0>
+    constexpr auto substr() const-> string<0u, char_type> { return {}; }
+    
     static inline constexpr auto npos = size_t(-1);
   };
   
@@ -223,12 +223,12 @@ namespace meta
   template <meta::string String, std::size_t Offset, std::size_t Count = String.size() - Offset>
   static inline constexpr auto string_substr = String.template substr<Offset, Count>();
 
-	namespace literals
-	{
-		template <meta::string String>
-		constexpr auto operator "" _cxs()
-		{
-			return String;
-		}
-	}
+  namespace literals
+  {
+    template <meta::string String>
+    constexpr auto operator "" _cxs()
+    {
+      return String;
+    }
+  }
 }

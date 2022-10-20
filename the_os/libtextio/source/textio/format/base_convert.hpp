@@ -1,6 +1,6 @@
 #pragma once
 
-#include "meta/value_list.hpp"
+#include "../meta/value_list.hpp"
 
 namespace textio::fmt::detail
 { 
@@ -58,8 +58,8 @@ namespace textio::fmt::detail
       return -T (digit_convert_base_impl<
         std::make_unsigned_t<T>,    
         meta::value_list_reverse<
-					meta::value_list_transform<
-						meta::value_list_pop_front<CharList>, digit_to_integer_bind<T>::template type>>, 
+          meta::value_list_transform<
+            meta::value_list_pop_front<CharList>, digit_to_integer_bind<T>::template type>>, 
         Base
       >::value);
     }
@@ -67,7 +67,7 @@ namespace textio::fmt::detail
     {
       return T (digit_convert_base_impl<T, 
         meta::value_list_reverse<
-					meta::value_list_transform<CharList, digit_to_integer_bind<T>::template type>>, 
+          meta::value_list_transform<CharList, digit_to_integer_bind<T>::template type>>, 
         Base
       >::value);
     }

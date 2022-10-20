@@ -12,6 +12,7 @@
 #include <utils/macros.hpp>
 
 #include <textio/simple.hpp>
+#include <textio/format.hpp>
 
 #include <netboot32/pxe_interface.hpp>
 #include <netboot32/interrupts.hpp>
@@ -35,14 +36,19 @@ void finalize(bool last_time)
 CO_PUBLIC 
 auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) -> void
 {  
+  using namespace std::string_view_literals;
   initialize(true);
   pxe_interface::initialize(true, _PXENVplus, _bangPXE);
   
   ::memory::buffer<std::byte> config_ini_buffer;
-  console::writeln("downloading config.ini ...");
+
+  //console::writeln("downloading config.ini ...");
+
+  textio::fmt::format_to<"Loading {} ...">(console::out(), "config.ini"sv);
+
   [[maybe_unused]] const auto result = pxe_interface::download_file("config.ini", config_ini_buffer);
 
-  console::writeln(std::string_view{ config_ini_buffer });
+  //console::writeln(std::string_view{ config_ini_buffer });
 
   for(;;) { x86arch::yield(); }
 

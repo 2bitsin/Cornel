@@ -105,7 +105,6 @@ namespace textio::simple
       static const constexpr auto length = std::numeric_limits<Arg0>::digits10 + 2;
       char buffer [length+200];
       static_assert(length > 1);
-      std::ranges::fill(buffer, '@');
       std::to_chars_result result;
       result = std::to_chars(std::begin(buffer), std::end(buffer), arg0);
 //      co_assert(result.ec == std::errc());
