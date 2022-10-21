@@ -38,8 +38,8 @@ static void initialize_ftp()
   
 #ifndef NO_DEBUG_LOG
   format_to<"Cached reply packet : \n">(stdout);
-  format_to<"  * cached_reply_s.size : {:d}\n">(stdout, cached_reply_s.size());
-  format_to<"  * cached_reply_s.data : {:08x}\n">(stdout, cached_reply_s.data());
+  format_to<"  * {:.<19s} : {:d}\n">(stdout, "cached_reply_s.size", cached_reply_s.size());
+  format_to<"  * {:.<19s} : {:08x}\n">(stdout, "cached_reply_s.data", cached_reply_s.data());
 #endif  
 
   std::construct_at(&G_cached_dhcp_reply, cached_reply_s);
@@ -47,11 +47,11 @@ static void initialize_ftp()
   { return panick::pxe_failed("Cached reply packet is invalid"); }
 
 #ifndef NO_DEBUG_LOG
-  format_to<"  * client IP ......... : {}\n">(stdout, G_cached_dhcp_reply.client_ip());
-  format_to<"  * your IP ........... : {}\n">(stdout, G_cached_dhcp_reply.your_ip());
-  format_to<"  * server IP ......... : {}\n">(stdout, G_cached_dhcp_reply.server_ip());
-  format_to<"  * gateway IP ........ : {}\n">(stdout, G_cached_dhcp_reply.gateway_ip());
-  format_to<"  * client MAC ........ : {}\n">(stdout, G_cached_dhcp_reply.client_addr());
+  format_to<"  * {:.<19s} : {}\n">(stdout, "client IP ",  G_cached_dhcp_reply.client_ip());
+  format_to<"  * {:.<19s} : {}\n">(stdout, "your IP ",    G_cached_dhcp_reply.your_ip());
+  format_to<"  * {:.<19s} : {}\n">(stdout, "server IP ",  G_cached_dhcp_reply.server_ip());
+  format_to<"  * {:.<19s} : {}\n">(stdout, "gateway IP ", G_cached_dhcp_reply.gateway_ip());
+  format_to<"  * {:.<19s} : {}\n">(stdout, "client MAC ", G_cached_dhcp_reply.client_addr());
 #endif 
 }
 
