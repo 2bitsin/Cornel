@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cerrno>
+
 #include <hardware/console.hpp>
 
 static int G_errno { 0 };

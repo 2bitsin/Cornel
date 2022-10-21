@@ -10,7 +10,6 @@
 #include <hardware/bios_data_area.hpp>
 #include <hardware/x86assembly.hpp>
 #include <utils/debug.hpp>
-#include <textio/simple.hpp>
 
 struct console
 {

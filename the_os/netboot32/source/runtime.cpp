@@ -9,7 +9,6 @@
 #include <utils/debug.hpp>
 
 #include <hardware/x86assembly.hpp>
-#include <hardware/console.hpp>
 #include <hardware/bios_data_area.hpp>
 
 #include <netboot32/runtime.hpp>

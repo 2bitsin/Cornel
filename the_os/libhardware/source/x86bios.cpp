@@ -1,8 +1,8 @@
-#include <hardware/console.hpp>
 #include <hardware/real_address.hpp>
 #include <hardware/x86bios.hpp>
 #include <hardware/x86call16.hpp>
 #include <hardware/x86call16_stack.hpp>
+#include <hardware/x86assembly.hpp>
 
 #include <system_error>
 #include <memory_resource>

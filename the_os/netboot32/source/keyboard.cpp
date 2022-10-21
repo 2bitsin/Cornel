@@ -3,12 +3,8 @@
 #include <ranges>
 #include <algorithm>
 
-#include <textio/simple.hpp>
-#include <textio/simple/fmt.hpp>
-
 #include <netboot32/keyboard.hpp>
 #include <hardware/kbdctrl.hpp>
-#include <hardware/console.hpp>
 
 namespace keyboard
 {

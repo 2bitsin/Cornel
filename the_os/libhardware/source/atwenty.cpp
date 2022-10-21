@@ -4,10 +4,8 @@
 #include <hardware/x86assembly.hpp>
 #include <hardware/kbdctrl.hpp>
 #include <hardware/pic8259.hpp>
-#include <hardware/console.hpp>
 
 #include <utils/var.hpp>
-#include <textio/simple.hpp>
 
 static inline const constexpr std::uint8_t FAST_GATE_A20_ENABLE_BIT = 0x02u;
 static inline const constexpr std::uint8_t FAST_GATE_RESET_BIT = 0x01u;

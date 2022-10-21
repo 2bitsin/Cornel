@@ -10,7 +10,6 @@
 #include <netboot32/keyboard.hpp>
 #include <netboot32/interrupts.hpp>
 
-#include <textio/simple.hpp>
 #include <textio/format.hpp>
 #include <textio/format/helpers/repeat_value.hpp>
 

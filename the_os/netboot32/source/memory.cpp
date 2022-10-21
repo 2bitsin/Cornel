@@ -4,15 +4,14 @@
 #include <memory/block_list.hpp>
 #include <memory/buffer.hpp>
 
-#include <hardware/console.hpp>
 #include <hardware/atwenty.hpp>
 #include <hardware/real_address.hpp>
 #include <hardware/x86bios.hpp>
+#include <hardware/bios_data_area.hpp>
 
 #include <netboot32/memory.hpp>
 #include <netboot32/panick.hpp>
 
-#include <textio/simple.hpp>
 #include <textio/format/helpers/data_size.hpp>
 #include <textio/format.hpp>
 

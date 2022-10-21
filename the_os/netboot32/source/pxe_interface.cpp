@@ -6,10 +6,10 @@
 #include <algorithm>
 #include <ranges>
 
-#include <hardware/console.hpp>
 #include <hardware/real_address.hpp>
 #include <hardware/x86call16.hpp>
 #include <hardware/x86call16_stack.hpp>
+#include <hardware/x86assembly.hpp>
 
 #include <netboot32/pxe_interface.hpp>
 #include <netboot32/pxe_structs.hpp>

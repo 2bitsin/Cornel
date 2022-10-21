@@ -5,13 +5,12 @@
 #include <vector>
 #include <string>
 
-#include <hardware/console.hpp>
 #include <hardware/bios_data_area.hpp>
 #include <hardware/x86bios.hpp>
+#include <hardware/x86assembly.hpp>
 
 #include <utils/macros.hpp>
 
-#include <textio/simple.hpp>
 #include <textio/format.hpp>
 
 #include <netboot32/pxe_interface.hpp>
