@@ -6,9 +6,9 @@
 #include <concepts>
 #include <type_traits>
 
-#include "../simple.hpp"
+#include "../../format.hpp"
 
-namespace textio::simple::fmt::detail
+namespace textio::fmt::helpers::detail
 {
   template <typename T, auto... Flags> 
   struct data_size_impl
@@ -18,8 +18,10 @@ namespace textio::simple::fmt::detail
     data_size_impl(T const& value): value(value) { }
     
     template <std::output_iterator<char> O>
-    inline auto write(O out_i) const noexcept -> O
+    auto format(O out_i) const -> O
     {
+      using ::textio::fmt::format_to;
+
       static constexpr auto sz_K = 1024ull;
       static constexpr auto sz_M = 1024ull * sz_K;
       static constexpr auto sz_G = 1024ull * sz_M;
@@ -30,9 +32,8 @@ namespace textio::simple::fmt::detail
       static constexpr std::uint64_t sz[] = { sz_E, sz_P, sz_T, sz_G, sz_M, sz_K, 1u };
       static constexpr char const* sx[] = { "E", "P", "T", "G", "M", "K", "" };
       
-      if (value == 0)
-      {
-        return ::textio::simple::write(out_i, '0');
+      if (value == 0) {
+        return format_to(out_i, '0');
       }
 
       bool first = true;
@@ -42,9 +43,9 @@ namespace textio::simple::fmt::detail
         if (0 == part_value)
           continue;
         if (!first)
-          out_i = ::textio::simple::write(out_i, ' ', part_value, sx[i]);
+          out_i = format_to<"{}{}{}">(out_i, ' ', part_value, sx[i]);
         else
-          out_i = ::textio::simple::write(out_i, part_value, sx[i]);
+          out_i = format_to<"{}{}">(out_i, part_value, sx[i]);
         first = false;
       }
       
@@ -53,7 +54,7 @@ namespace textio::simple::fmt::detail
   };
 }
 
-namespace textio::simple::fmt
+namespace textio::fmt::helpers
 {
   template <typename T, auto... Flags>
   requires (std::is_integral_v<T>)

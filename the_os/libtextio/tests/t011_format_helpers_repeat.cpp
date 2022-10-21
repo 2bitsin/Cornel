@@ -1,6 +1,6 @@
 #include <iterator>
 #include <textio/format.hpp>
-#include <textio/format/helpers/repeat.hpp>
+#include <textio/format/helpers/repeat_value.hpp>
 #include "expect.hpp"
 
 #ifdef TESTING

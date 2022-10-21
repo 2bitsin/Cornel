@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <utils/bits.hpp>
+#include <textio/format.hpp>
 
 template <std::integral Maj = std::uint8_t, std::integral Min = std::uint8_t>
 struct version
@@ -43,13 +44,14 @@ struct version
     else
       static_assert(I > 2u, "Index out of bounds");
   }
-#ifdef __LIBTEXTIO__
+
   template <std::output_iterator<char> O>
-  auto write (O out_i) const noexcept -> O
+  inline auto format (O out_i) const -> O
   {    
-    return textio::simple::write(out_i, major, '.', minor);
+    using ::textio::fmt::format_to;
+    return format_to<"{}.{}">(out_i, major, minor);
   }
-#endif
+
 };
 
 namespace std

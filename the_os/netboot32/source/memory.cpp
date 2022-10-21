@@ -13,7 +13,8 @@
 #include <netboot32/panick.hpp>
 
 #include <textio/simple.hpp>
-#include <textio/simple/fmt_data_size.hpp>
+#include <textio/format/helpers/data_size.hpp>
+#include <textio/format.hpp>
 
 
 #include <cstdlib>
@@ -29,8 +30,8 @@ static block_list G_extended_heap;
 
 static void initialize_extended_heap() 
 {
-  using namespace textio::simple;
-  using namespace textio::simple::fmt;
+  using namespace textio::fmt;
+
   // Initialize extended memory heap
   x86arch::bios_acpi_memory_map_entry_t entry;
   std::uint32_t i_offset = 0u, o_offset = 0u, length = 0u;
@@ -56,19 +57,20 @@ static void initialize_extended_heap()
     }
   } 
   while(o_offset != 0u);
-  writeln_to(stdout, "  * ", data_size(heap_size), " Bytes extended memory available.");  
+  using namespace textio::fmt::helpers;
+  format_to<"  * {} Bytes extended memory available.\n">(stdout, data_size(heap_size));  
 }
 
 static void initialize_base_heap()
 {
-  using namespace textio::simple;
-  using namespace textio::simple::fmt;
+  using namespace textio::fmt;
 
   const auto* top_of_heap = (std::byte const *)(bda::conventional_memory_size * 0x400u);
   std::span heap_bytes { G_heap_begin, top_of_heap };
   // Initialize heap
   G_base_heap.insert_range(heap_bytes);
-  writeln_to(stdout, "  * ", data_size(heap_bytes.size()), " Bytes base memory available."); 
+  using namespace textio::fmt::helpers;
+  format_to<"  * {} Bytes base memory available.\n">(stdout, data_size(heap_bytes.size())); 
 }
 
 
@@ -181,11 +183,10 @@ namespace memory
 {
   void initialize(bool first_time)
   {
-    using namespace textio::simple;
-    using namespace textio::simple::fmt;    
+    using namespace textio::fmt;
     if (!first_time)
       return;
-    writeln_to(stdout, "Initializing heap ...");   
+    format_to<"Initializing heap ...\n">(stdout);   
     initialize_base_heap();
     initialize_extended_heap();
     std::pmr::set_default_resource(&::memory::get_base_heap());

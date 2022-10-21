@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../meta/string.hpp"
+#include "../general/error.hpp"
 
 #include <charconv>
 
@@ -226,7 +227,7 @@ namespace textio::fmt::detail
       // Shouldn't be anything left
       /////////////////////////////
       if (index < value.size() && value[index] != 0) {
-        throw std::invalid_argument("Invalid format string: garbage at the end of options string");
+        ::textio::detail::throw_invalid_argument("Invalid format string: garbage at the end of options string");
       }
     }   
     inline constexpr auto base() const noexcept 

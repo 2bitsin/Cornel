@@ -43,14 +43,12 @@ auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) -> void
   initialize(true);
   pxe_interface::initialize(true, _PXENVplus, _bangPXE);
   
+  format_to<"Loading {} ...\n">(stdout, "config.ini");
+
   ::memory::buffer<std::byte> config_ini_buffer;
-  
-  "Loading {} ...\n"_fmt.to(stdout, "config.ini");
-
-  [[maybe_unused]] const auto result = pxe_interface::download_file("config.ini", config_ini_buffer);
-
-  
-
+  [[maybe_unused]] const auto result 
+    = pxe_interface::download_file("config.ini", config_ini_buffer);
+ 
   for(;;) { x86arch::yield(); }
 
   pxe_interface::finalize(false);

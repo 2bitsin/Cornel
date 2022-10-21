@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../meta/value_list.hpp"
+#include "../general/error.hpp"
 
 namespace textio::fmt::detail
 { 
@@ -14,7 +15,7 @@ namespace textio::fmt::detail
       else if (v >= '0' && v <= '9') return T(v - '0');
       else if (v >= 'a' && v <= 'z') return T(v - 'a' + 10);
       else if (v >= 'A' && v <= 'Z') return T(v - 'A' + 10);
-      else throw std::invalid_argument("Not a valid digit");
+      else ::textio::detail::throw_conversion_error("invalid digit");
     })(Value);
   };
   

@@ -20,6 +20,8 @@ namespace textio::fmt::detail
     using variable::options_string;
     using variable::next_default_index;
     using variable::uses_default;
+
+		static inline constexpr auto value = String;
           
     template <typename Collect, typename... Args>
     inline static auto apply(Collect&& collect, std::tuple<Args...> const& args)

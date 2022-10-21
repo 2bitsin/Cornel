@@ -29,8 +29,7 @@ static pxe_interface::dhcp::packet G_cached_dhcp_reply;
 
 static void initialize_ftp()
 {
-  using namespace textio::simple;
-  using namespace textio::simple::fmt;
+  using namespace textio::fmt;
   using namespace pxe_interface;
   std::span<const std::byte> cached_reply_s;
   std::uint16_t limit { 0 };
@@ -38,9 +37,9 @@ static void initialize_ftp()
   { return panick::pxe_failed("failed to get cached reply packet"); }
   
 #ifndef NO_DEBUG_LOG
-  writeln_to(stdout, "Cached reply packet : ");
-  writeln_to(stdout, "  * cached_reply_s.size : ", cached_reply_s.size());
-  writeln_to(stdout, "  * cached_reply_s.data : ", hex<'&'>(cached_reply_s.data()));
+  format_to<"Cached reply packet : \n">(stdout);
+  format_to<"  * cached_reply_s.size : {:d}\n">(stdout, cached_reply_s.size());
+  format_to<"  * cached_reply_s.data : {:08x}\n">(stdout, cached_reply_s.data());
 #endif  
 
   std::construct_at(&G_cached_dhcp_reply, cached_reply_s);
@@ -48,11 +47,11 @@ static void initialize_ftp()
   { return panick::pxe_failed("Cached reply packet is invalid"); }
 
 #ifndef NO_DEBUG_LOG
-  writeln_to(stdout, "  * client IP ..... : ", G_cached_dhcp_reply.client_ip());
-  writeln_to(stdout, "  * your IP ....... : ", G_cached_dhcp_reply.your_ip());
-  writeln_to(stdout, "  * server IP ..... : ", G_cached_dhcp_reply.server_ip());
-  writeln_to(stdout, "  * gateway IP .... : ", G_cached_dhcp_reply.gateway_ip());
-  writeln_to(stdout, "  * client MAC .... : ", G_cached_dhcp_reply.client_addr());
+  format_to<"  * client IP ......... : {}\n">(stdout, G_cached_dhcp_reply.client_ip());
+  format_to<"  * your IP ........... : {}\n">(stdout, G_cached_dhcp_reply.your_ip());
+  format_to<"  * server IP ......... : {}\n">(stdout, G_cached_dhcp_reply.server_ip());
+  format_to<"  * gateway IP ........ : {}\n">(stdout, G_cached_dhcp_reply.gateway_ip());
+  format_to<"  * client MAC ........ : {}\n">(stdout, G_cached_dhcp_reply.client_addr());
 #endif 
 }
 
@@ -88,7 +87,7 @@ static auto validate_PXENVplus(PXENVplus const& pxe_s) -> bool
 
 static auto initialize_pxe(PXENVplus& pxenvplus_s, bangPXE& bangpxe_s) -> version<std::uint8_t, std::uint8_t>
 {
-  using namespace textio::simple;
+  using namespace textio::fmt;
   if (!validate_PXENVplus(pxenvplus_s)) {
     panick::invalid_pxenvplus();
   }
@@ -96,7 +95,7 @@ static auto initialize_pxe(PXENVplus& pxenvplus_s, bangPXE& bangpxe_s) -> versio
   if (pxenvplus_s.version >= 0x201u)
   {
   #ifndef NO_DEBUG_LOG
-    writeln_to(stdout, "Using !PXE");
+    format_to<"Using !PXE\n">(stdout);
   #endif
     if (!validate_bangPXE(bangpxe_s))
     {
@@ -107,23 +106,23 @@ static auto initialize_pxe(PXENVplus& pxenvplus_s, bangPXE& bangpxe_s) -> versio
   else 
   {
   #ifndef NO_DEBUG_LOG
-    writeln_to(stdout, "Using PXENV+");
+    format_to<"Using PXENV+\n">(stdout);
   #endif
     G_pxe_entry_point = pxenvplus_s.entry_point_16;
   }
 #ifndef NO_DEBUG_LOG
-  writeln_to(stdout, "PXE entry point : ", G_pxe_entry_point);
+  format_to<"PXE entry point : {}\n">(stdout, G_pxe_entry_point);
 #endif
   return version<>::from_word<8, 8>(pxenvplus_s.version);
 }
 
 void pxe_interface::initialize(bool first_time, PXENVplus& pxenvplus_s, bangPXE& bangpxe_s)
 {
-  using namespace textio::simple;
+  using namespace textio::fmt;
   if (!first_time)
     return;
   const auto pxe_version = initialize_pxe(pxenvplus_s, bangpxe_s);  
-  writeln_to(stdout, "Initialized PXE v", pxe_version, " ... ");
+  format_to<"Initialized PXE v{} ...\n">(stdout, pxe_version);
   initialize_ftp();
 }
 
@@ -258,8 +257,6 @@ auto pxe_interface::download_file (std::string_view file_name, ::memory::buffer<
 
 auto pxe_interface::download_file (std::string_view file_name, ::memory::buffer<std::byte>& o_buffer, pxe_interface::tftp_params const& options) -> pxenv_status
 {
-  using namespace textio::simple::fmt;
-
   pxenv_status  status      { pxenv_status::invalid_status };
   std::uint32_t bytes_read  { 0u };
   std::uint16_t last_packet { 0u };

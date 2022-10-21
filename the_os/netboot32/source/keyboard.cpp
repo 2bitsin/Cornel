@@ -34,7 +34,6 @@ namespace keyboard
 
   void irq() noexcept
   {
-    using namespace textio::simple::fmt;
     auto curr_scancode = kbdctrl::read_data(kbdctrl::dont_wait);
     if (curr_scancode != 0xE0u) 
     { G_keyboard_state[curr_scancode & 0x7Fu] = !(curr_scancode & 0x80u); }

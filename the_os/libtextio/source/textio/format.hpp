@@ -3,6 +3,7 @@
 #include <tuple>
 #include <concepts>
 #include <string>
+#include <iterator>
 
 #include "meta/type_list.hpp"
 #include "meta/string.hpp"
@@ -31,7 +32,7 @@ namespace textio::fmt::detail
 
 namespace textio::fmt
 {
-	template <meta::string Format_string, typename AsWhat = std::string, typename... ArgN>
+	template <meta::string Format_string = meta::string{"{}"}, typename AsWhat = std::string, typename... ArgN>
 	auto format_as(ArgN&&... args) -> AsWhat
 	{
 	  AsWhat collect;
@@ -39,20 +40,24 @@ namespace textio::fmt
 	  return collect;
 	}
 
-	template <meta::string Format_string, std::output_iterator<char> OIterator, typename... ArgN>
+	template <meta::string Format_string = meta::string{"{}"}, std::output_iterator<char> OIterator, typename... ArgN>
 	auto format_to(OIterator o_iterator, ArgN&&... args) -> OIterator
 	{
-		return detail::format_to_impl(o_iterator, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
-	}	
-
-	template <meta::string Format_string, typename... ArgN>
+	
+	return detail::format_to_impl(o_iterator, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
+	}
+	
+	template <meta::string Format_string = meta::string{"{}"}, typename... ArgN>
 	auto format_to(std::FILE* file, ArgN&&... args) -> int
 	{
 		using textio::detail::cstdio_iterator;
 		auto cstdio_i = detail::format_to_impl(cstdio_iterator{ file }, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
 		return cstdio_i.status();
 	}
+}
 
+namespace textio::fmt
+{
 
 	template <meta::string Format_string>
 	struct format_statement

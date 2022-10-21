@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
-#include <textio/simple.hpp>
+#include <textio/format.hpp>
 
 struct block_list
 {
@@ -110,22 +110,20 @@ auto pretty_print(block_list const& blist, Anything&& oss) noexcept -> void
     return (std::byte const*)rhs - (std::byte const*)lhs;
   };
 
-  using namespace textio::simple;
-  using namespace textio::simple::fmt;
+  using namespace textio::fmt;
 
-  writeln_to(oss, ">>> head = 00000000, tail = ", hex<'&'>(byte_diff(blist.m_head, blist.m_tail)));
-
+  format_to<"{}head={:08x}, tail={:08x}\n">(oss, ">>> ", 0, byte_diff(blist.m_head, blist.m_tail));
 
   std::uintptr_t total_size{ 0 }, allocated{ 0 }, available{ 0 }; 
   for (auto head = blist.m_head; head; head = head->next)
   {
 
-    write_to(oss, hex<'&'>(byte_diff(head, blist.m_head)), ": ");
+    format_to<"{:#08x}: ">(oss, byte_diff(head, blist.m_head));
 
-    if (head->next) write_to(oss, "next=", hex<'&'>(byte_diff(head->next, blist.m_head)), ", "); else write_to(oss, "next=( null ), ");
-    if (head->prev) write_to(oss, "prev=", hex<'&'>(byte_diff(head->prev, blist.m_head)), ", "); else write_to(oss, "prev=( null ), ");
+    if (head->next) format_to<"next={:08x}, ">(oss, byte_diff(head->next, blist.m_head)); else format_to<"next={:*^8s}, ">(oss, "null") ;
+    if (head->prev) format_to<"prev={:08x}, ">(oss, byte_diff(head->prev, blist.m_head)); else format_to<"prev={:*^8s}, ">(oss, "null") ;
 
-    writeln_to(oss, "size=", hex<'&'>(head->size), " status=", status(*head));
+    format_to<"size={:08x} status={:<10s}\n">(oss, head->size, status(*head));
      
     total_size += head->size;   
     if (block_list::is_block_available(*head))

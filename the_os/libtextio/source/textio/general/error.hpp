@@ -13,10 +13,21 @@ namespace textio::detail
   [[noreturn]] 
   static inline auto throw_conversion_error(std::string_view error) -> void
   {
-  #ifdef _MSC_VER
+  #ifdef __cpp_exceptions
     throw std::runtime_error(std::string(error));
   #else
     std::__throw_runtime_error(error.data());
   #endif
   }
+
+  [[noreturn]] 
+  static inline auto throw_invalid_argument(std::string_view error) -> void
+  {
+  #ifdef __cpp_exceptions
+    throw std::invalid_argument(std::string(error));
+  #else
+    std::__throw_invalid_argument(error.data());
+  #endif
+  }
+
 }

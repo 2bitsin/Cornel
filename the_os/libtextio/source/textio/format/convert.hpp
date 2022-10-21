@@ -140,6 +140,55 @@ namespace textio::fmt::detail
     }     
   };   
 
+  template <typename Value_type, typename Char_type, meta::string Options>  
+  struct format_convert<Value_type*, Char_type, Options>
+  {   
+    using char_type   = Char_type;
+    using value_type  = Value_type*;
+
+    static inline constexpr auto options = format_options<value_type, char_type>{ Options };
+
+    template <std::output_iterator<char> OIterator>
+    static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
+    {
+      static constexpr bool is_integral_format = (
+          options.format_type == fmt_type::lower_pointer 
+        ||options.format_type == fmt_type::upper_pointer
+        ||options.format_type == fmt_type::lower_binary
+        ||options.format_type == fmt_type::upper_binary
+        ||options.format_type == fmt_type::lower_octal
+        ||options.format_type == fmt_type::upper_octal
+        ||options.format_type == fmt_type::lower_decimal
+        ||options.format_type == fmt_type::upper_decimal
+        ||options.format_type == fmt_type::lower_hexadecimal
+        ||options.format_type == fmt_type::upper_hexadecimal);
+
+      static constexpr bool is_string_format = 
+        std::is_same_v<std::remove_const_t<Value_type>, char_type> && 
+          (options.format_type == fmt_type::string 
+         ||options.format_type == fmt_type::none);
+
+      if constexpr (is_string_format)
+      {
+        using convert = format_convert<std::basic_string_view<char_type>, char_type, Options>;
+        if (nullptr == value) 
+        { return convert::apply(o_iterator, { "null" }); }
+        else
+        { return convert::apply(o_iterator, { value }); }
+      }
+      else if constexpr (is_integral_format)
+      {
+        using convert = format_convert<std::uintptr_t, char_type, Options>;
+        return convert::apply(o_iterator, (std::uintptr_t)value);
+      }      
+      else 
+      {
+        static_assert(sizeof(value_type)==0, "Not a suitable format type for pointer");
+      }
+      return o_iterator;
+    } 
+  }; 
+
   template <typename Char_type, meta::string Options, typename... Q>  
   struct format_convert<std::basic_string<Char_type, Q...>, Char_type, Options>
   {   

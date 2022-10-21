@@ -1,8 +1,7 @@
 #pragma once
 
 #include <span>
-#include <textio/simple.hpp>
-#include <textio/simple/fmt.hpp>
+#include <textio/format.hpp>
 
 #include <netboot32/pxe_interface.hpp>
 
@@ -15,9 +14,15 @@ namespace pxe_interface::dhcp
     ip_address_v4(std::uint32_t const& value): m_value(value) {};
 
     template <std::output_iterator<char> O>
-    auto write(O out) -> O 
+    inline auto format(O out) const -> O 
     {
-      return textio::simple::write(out, (m_value >> 0)&0xff, '.', (m_value >> 8)&0xff, '.', (m_value >> 16)&0xff, '.', (m_value >> 24)&0xff);
+      using textio::fmt::format_to;
+      return format_to<"{:d}.{:d}.{:d}.{:d}">(out, 
+        ((m_value >>  0)&0xff),
+        ((m_value >>  8)&0xff), 
+        ((m_value >> 16)&0xff), 
+        ((m_value >> 24)&0xff)
+       );
     }
 
     auto value () const noexcept -> std::uint32_t { return m_value; }
@@ -31,14 +36,13 @@ namespace pxe_interface::dhcp
     client_address(std::span<const std::uint8_t> const& value): m_value(value) {};
 
     template <std::output_iterator<char> O>
-    auto write(O out) -> O 
+    inline auto format(O out) const -> O 
     {
-      using textio::simple::write;
-      using textio::simple::fmt::hex;
+      using textio::fmt::format_to;
 
-      out = write(out, m_value[0]);
+      out = format_to<"{:02x}">(out, m_value[0]);
       for(auto&& sub_v : m_value.subspan(1))
-        out = write(out, ':', hex<'&'>(sub_v));      
+        out = format_to<":{:02x}">(out, sub_v);
       return out;
     }
 
