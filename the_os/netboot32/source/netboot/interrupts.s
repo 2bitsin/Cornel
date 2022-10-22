@@ -1,4 +1,4 @@
-  .text
+  .section ".text.interrupts", "ax" 
   .global ISR_handler
 
 

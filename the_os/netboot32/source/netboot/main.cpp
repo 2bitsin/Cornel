@@ -37,10 +37,7 @@ auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) -> void
 {    
   using namespace textio::fmt;
   initialize(true);
-
-  __debugbreak();
-  asm("int $0x3");
-
+  
   pxe::initialize(true, _PXENVplus, _bangPXE);
   
   format_to<"Loading {} ...\n">(stdout, "netboot32.cfg");
@@ -49,6 +46,7 @@ auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) -> void
   [[maybe_unused]] const auto result = pxe::download_file("netboot32.cfg", config_ini_buffer);
  
 
+  asm("int $0x3");
   for(;;) { 
     x86arch::yield(); 
   }

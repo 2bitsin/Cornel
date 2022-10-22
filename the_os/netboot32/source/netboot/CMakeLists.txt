@@ -5,7 +5,7 @@ add_library(netboot
   runtime.cpp
   memory.cpp
   panick.cpp
-  netboot32.cpp
+  main.cpp
   keyboard.cpp
   cstdio_impl.cpp) 
 
