@@ -9,8 +9,8 @@
 #include <hardware/x86bios.hpp>
 #include <hardware/bios_data_area.hpp>
 
-#include <netboot32/memory.hpp>
-#include <netboot32/panick.hpp>
+#include <netboot/memory.hpp>
+#include <netboot/panick.hpp>
 
 #include <textio/format/helpers/data_size.hpp>
 #include <textio/format.hpp>
@@ -57,7 +57,9 @@ static void initialize_extended_heap()
   } 
   while(o_offset != 0u);
   using namespace textio::fmt::helpers;
+#ifndef NO_DEBUG_LOGS
   format_to<"  * {} Bytes extended memory available.\n">(stdout, data_size(heap_size));  
+#endif
 }
 
 static void initialize_base_heap()
@@ -69,7 +71,9 @@ static void initialize_base_heap()
   // Initialize heap
   G_base_heap.insert_range(heap_bytes);
   using namespace textio::fmt::helpers;
+#ifndef NO_DEBUG_LOGS
   format_to<"  * {} Bytes base memory available.\n">(stdout, data_size(heap_bytes.size())); 
+#endif
 }
 
 
@@ -185,7 +189,9 @@ namespace memory
     using namespace textio::fmt;
     if (!first_time)
       return;
+  #ifndef NO_DEBUG_LOGS
     format_to<"Initializing heap ...\n">(stdout);   
+  #endif
     initialize_base_heap();
     initialize_extended_heap();
     std::pmr::set_default_resource(&::memory::get_base_heap());
@@ -282,5 +288,10 @@ namespace std::pmr
   auto new_delete_resource() noexcept -> memory_resource*
   {
     return &memory::get_base_heap();
+  }
+
+  auto monotonic_buffer_resource::_M_new_buffer(std::size_t, std::size_t) -> void
+  {
+    std::__throw_bad_alloc();
   }
 }

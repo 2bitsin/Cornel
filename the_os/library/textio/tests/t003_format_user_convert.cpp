@@ -3,7 +3,7 @@
 #include "expect.hpp"
 
 #ifdef TESTING
-#define main t010_format_convert_value
+#define main t003_format_convert_value
 #endif
 
 struct vec3i

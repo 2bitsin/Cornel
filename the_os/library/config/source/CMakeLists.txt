@@ -1,3 +1,5 @@
 add_library(config config.cpp)
+
 target_include_directories(config PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(config PROPERTIES CXX_STANDARD 23)
+

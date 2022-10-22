@@ -1,23 +1,13 @@
-set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/.link)
-set(NETBOOT32_MAP ${CMAKE_BINARY_DIR}/netboot32.map)
-
+add_subdirectory(netboot)
+add_subdirectory(pxe)
 add_subdirectory(bootstrap)
 
-add_executable(netboot32 
-  interrupts.s 
-  interrupts.cpp
-  runtime.cpp
-  memory.cpp
-  panick.cpp
-  pxe_interface.cpp
-  pxe_dhcp.cpp
-  netboot32.cpp
-  keyboard.cpp
-  cstdio_impl.cpp
-  )
+add_executable(netboot32 main.cpp)
+target_link_libraries(netboot32 netboot pxe textio hardware bootstrap utils cimpl memory ${LIB_GCC_PATH})
 
-target_include_directories(netboot32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(netboot32 textio hardware bootstrap utils cimpl memory ${LIB_GCC_PATH})
+set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/.link)
+set(NETBOOT32_MAP ${CMAKE_BINARY_DIR}/netboot32.map)  
+
 set_target_properties(netboot32 PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 target_link_options(netboot32 PUBLIC -Xlinker -Map=${NETBOOT32_MAP} -T ${LINKER_SCRIPT})
 

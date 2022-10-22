@@ -11,7 +11,7 @@
 #include <hardware/x86assembly.hpp>
 #include <hardware/bios_data_area.hpp>
 
-#include <netboot32/runtime.hpp>
+#include <netboot/runtime.hpp>
 
 #include <memory/block_list.hpp>
 

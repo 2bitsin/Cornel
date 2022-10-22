@@ -1,3 +1,4 @@
 cmake_minimum_required(VERSION 3.22.0)
 project(configuration)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/config.ini DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/netboot32.run DESTINATION ${CMAKE_INSTALL_PREFIX})

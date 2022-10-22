@@ -4,7 +4,7 @@
 #include "expect.hpp"
 
 #ifdef TESTING
-#define main t011_format_helpers_repeat
+#define main t004_format_helpers_repeat
 #endif
 
 int main(int,char** const) 

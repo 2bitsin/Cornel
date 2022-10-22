@@ -7,6 +7,7 @@
 #include <string_view>
 
 #include "options.hpp"
+#include "to_chars.hpp"
 #include "../general/error.hpp"
 
 namespace textio::fmt
@@ -252,9 +253,9 @@ namespace textio::fmt::detail
       ////////////////////////////////////
       
       std::size_t output_count { 0 };
-      char_type buffer [min_string_buffer_size];
+      char_type buffer [min_string_buffer_size] { 0 };
       auto buffer_i { std::begin(buffer) };
-      char_type number [min_number_buffer_size];
+      char_type number [min_number_buffer_size] { 0 };
 
       //////////////////////////////////////////////////////////
       // Sign sign is already taken care of, make value unsigned
@@ -270,10 +271,14 @@ namespace textio::fmt::detail
       /////////////////////////////////////////
       // Print the number into temporary buffer
       /////////////////////////////////////////
+		#ifdef USE_STD_TO_CHARS
       auto [number_e, errc] = std::to_chars(std::begin(number), std::end(number), value_u, options.base());
+		#else
+			auto [errc, number_e] = detail::to_chars<options.is_lower(), options.base()>(std::begin(number), std::end(number), value_u);
+		#endif	
       if (errc != std::errc{}) {
         using ::textio::detail::throw_conversion_error;
-        throw_conversion_error("std::to_chars failed to convert value to string");
+        throw_conversion_error("to_chars failed to convert value to string");
       }     
       output_count += (number_e - std::begin(number));
                   

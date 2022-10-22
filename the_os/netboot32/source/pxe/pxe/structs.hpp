@@ -5,11 +5,11 @@
 
 #include <hardware/real_address.hpp>
 
-#include "pxe_interface.hpp"
+#include "pxe.hpp"
 
 #pragma pack(push, 1)
 
-using pxenv_status = pxe_interface::pxenv_status;
+using pxenv_status = pxe::pxenv_status;
 
 struct segoff32
 {

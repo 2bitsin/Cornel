@@ -3,7 +3,7 @@
 #include <ranges>
 #include <algorithm>
 
-#include <netboot32/keyboard.hpp>
+#include <netboot/keyboard.hpp>
 #include <hardware/kbdctrl.hpp>
 
 namespace keyboard

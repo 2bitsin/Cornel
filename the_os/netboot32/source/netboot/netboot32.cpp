@@ -13,10 +13,10 @@
 
 #include <textio/format.hpp>
 
-#include <netboot32/pxe_interface.hpp>
-#include <netboot32/interrupts.hpp>
-#include <netboot32/runtime.hpp>
-#include <netboot32/memory.hpp>
+#include <pxe/pxe.hpp>
+#include <netboot/interrupts.hpp>
+#include <netboot/runtime.hpp>
+#include <netboot/memory.hpp>
 
 void initialize(bool first_time)
 {
@@ -34,22 +34,25 @@ void finalize(bool last_time)
 
 CO_PUBLIC 
 auto main (PXENVplus& _PXENVplus, bangPXE& _bangPXE) -> void
-{  
-  using namespace std::string_view_literals;
+{    
   using namespace textio::fmt;
-  using namespace textio::fmt::literals;
-
   initialize(true);
-  pxe_interface::initialize(true, _PXENVplus, _bangPXE);
+
+  __debugbreak();
+  asm("int $0x3");
+
+  pxe::initialize(true, _PXENVplus, _bangPXE);
   
-  format_to<"Loading {} ...\n">(stdout, "config.ini");
+  format_to<"Loading {} ...\n">(stdout, "netboot32.cfg");
 
   ::memory::buffer<std::byte> config_ini_buffer;
-  [[maybe_unused]] const auto result 
-    = pxe_interface::download_file("config.ini", config_ini_buffer);
+  [[maybe_unused]] const auto result = pxe::download_file("netboot32.cfg", config_ini_buffer);
  
-  for(;;) { x86arch::yield(); }
 
-  pxe_interface::finalize(false);
+  for(;;) { 
+    x86arch::yield(); 
+  }
+
+  pxe::finalize(false);
   finalize(true);
 }

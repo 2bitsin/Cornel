@@ -7,8 +7,8 @@
 #include <hardware/pic8259.hpp>
 #include <hardware/rtccmos.hpp>
 
-#include <netboot32/keyboard.hpp>
-#include <netboot32/interrupts.hpp>
+#include <netboot/keyboard.hpp>
+#include <netboot/interrupts.hpp>
 
 #include <textio/format.hpp>
 #include <textio/format/helpers/repeat_value.hpp>
@@ -53,25 +53,31 @@ static inline constexpr std::string_view G_exception_string [] =
   ""
 };
 
-CO_PUBLIC
-int ISR_handler(interrupts::stack_frame& state)
-{ 
+auto interrupts::display_crash_info(interrupts::stack_frame const& state) -> void
+{
   using namespace textio::fmt;
   using namespace textio::fmt::helpers;
-  using namespace std;
+
+  format_to<"{}\n">(stdout, repeat_value<79>('-'));
+  format_to<"Exception #{:08x} - {:s} has occured.\n">(stdout, state.which, G_exception_string[state.which]);
+  format_to<"{}\n">(stdout, repeat_value<79>('-'));
+  format_to<"cs:eip={:#04x}:{:#08x} fs={:#04x} gs={:#04x}\n">(stdout, state.cs, state.eip, state.fs, state.gs);
+  format_to<"ss:esp={:#04x}:{:#08x} ebp={:#08x} (esp{:+d})\n">(stdout, state.ss, state.esp, state.ebp, state.ebp - state.esp);
+  format_to<"ds:esi={:#04x}:{:#08x} es:edi={:#04x}:{:#08x}\n">(stdout, state.ds, state.esi, state.ds, state.edi);
+  format_to<"edx:eax={:#08x}:{:#08x} {:0>20d} {0:0>10d}:{1:0>10d}\n">(stdout, state.edx, state.eax, (state.edx*0x100000000ull + state.eax));
+  format_to<"ecx:ebx={:#08x}:{:#08x} {:0>20d} {0:0>10d}:{1:0>10d}\n">(stdout, state.ecx, state.ebx, (state.ecx*0x100000000ull + state.ebx));
+  format_to<"eflags={:#032b}\n">(stdout, state.eflags);
+  format_to<"{}\n">(stdout, repeat_value<79>('-'));
+}
+
+CO_PUBLIC
+__attribute__ ((used))
+int ISR_handler(interrupts::stack_frame& state)
+{ 
 
   if (state.which < 32) 
   {
-    format_to<"{}\n">(stdout, repeat_value<79>('-'));
-    format_to<"Exception #{:08x} - {:s} has occured.\n">(stdout, state.which, G_exception_string[state.which]);
-    format_to<"{}\n">(stdout, repeat_value<79>('-'));
-    format_to<"cs:eip={:#04x}:{:#08x} fs={:#04x} gs={:#04x}\n">(stdout, state.cs, state.eip, state.fs, state.gs);
-    format_to<"ss:esp={:#04x}:{:#08x} ebp={:#08x} (esp{:+d})\n">(stdout, state.ss, state.esp, state.ebp, state.ebp - state.esp);
-    format_to<"ds:esi={:#04x}:{:#08x} es:edi={:#04x}:{:#08x}\n">(stdout, state.ds, state.esi, state.ds, state.edi);
-    format_to<"edx:eax={:#08x}:{:#08x} {:0>20d} {0:0>10d}:{1:0>10d}\n">(stdout, state.edx, state.eax, (state.edx*0x100000000ull + state.eax));
-    format_to<"ecx:ebx={:#08x}:{:#08x} {:0>20d} {0:0>10d}:{1:0>10d}\n">(stdout, state.ecx, state.ebx, (state.ecx*0x100000000ull + state.ebx));
-    format_to<"eflags={:#032b}\n">(stdout, state.eflags);
-    format_to<"{}\n">(stdout, repeat_value<79>('-'));    
+    display_crash_info(state);
     __debugbreak();
     std::abort();
   }

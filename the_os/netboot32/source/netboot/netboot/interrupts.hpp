@@ -49,4 +49,5 @@ namespace interrupts
   auto initialize(bool first_time) -> void;
   auto finalize(bool last_time) -> void;
   auto default_interrupt_mask() -> std::uint16_t;
+  auto display_crash_info(interrupts::stack_frame const& state) -> void;
 };

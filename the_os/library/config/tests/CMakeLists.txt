@@ -1,10 +1,10 @@
 set (TEST_SOURCES 
-  t000_allocator.cpp
+  t000_config.cpp
 )
 
-set (TEST_PREFIX memory)
+set (TEST_PREFIX config)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/../libtextio ${CMAKE_BINARY_DIR}/libtextio)
+add_subdirectory(${CMAKE_SOURCE_DIR}/../textio ${CMAKE_BINARY_DIR}/textio)
 
 foreach (test_item ${TEST_SOURCES})
   get_filename_component(test_name ${test_item} NAME_WE)

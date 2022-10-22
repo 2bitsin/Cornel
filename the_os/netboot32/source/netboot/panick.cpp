@@ -1,4 +1,4 @@
-#include <netboot32/panick.hpp>
+#include <netboot/panick.hpp>
 #include <memory/block_list.hpp>
 #include <hardware/x86assembly.hpp>
 #include <textio/format.hpp>
@@ -120,6 +120,22 @@ namespace std
   {
     using namespace textio::fmt;
     format_to<"#{:03d} - Runtime error ({:s}).\n">(stdout, __COUNTER__, err);
+    std::abort();
+  }
+
+  [[noreturn]]
+  void __throw_logic_error(char const* err)
+  {
+    using namespace textio::fmt;
+    format_to<"#{:03d} - Logic error ({:s}).\n">(stdout, __COUNTER__, err);
+    std::abort();
+  }
+
+  [[noreturn]]
+  void __throw_bad_array_new_length()
+  {
+    using namespace textio::fmt;
+    format_to<"#{:03d} - Bad array new length.\n">(stdout, __COUNTER__);
     std::abort();
   }
 }

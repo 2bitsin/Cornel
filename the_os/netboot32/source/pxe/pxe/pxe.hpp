@@ -5,11 +5,12 @@
 #include <span>
 
 #include <memory/buffer.hpp>
+#include <pxe/params.hpp>
 
 struct PXENVplus;
 struct bangPXE;
 
-namespace pxe_interface
+namespace pxe
 {
   namespace packet_type
   {
@@ -103,12 +104,6 @@ namespace pxe_interface
     return pxenv_status::success != status;
   }
 
-  struct tftp_params
-  {
-    std::uint32_t server_ip   { 0u      };
-    std::uint16_t port        { 0x4500u };
-    std::uint32_t gateway_ip  { 0u      };
-  };
 
   auto initialize       (bool first_time, ::PXENVplus&, ::bangPXE&) -> void;
   auto finalize         (bool last_time) -> void;

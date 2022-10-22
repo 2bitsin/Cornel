@@ -72,19 +72,21 @@ ISR_prologue_and_epilogue:
     .endr
   .endm
 
-ISR_make_n_entries 0,  8, 0 
-ISR_make_n_entries 8,  1, 1 
-ISR_make_n_entries 9,  1, 0 
-ISR_make_n_entries 10, 5, 1 
-ISR_make_n_entries 15, 2, 0 
-ISR_make_n_entries 17, 1, 1 
-ISR_make_n_entries 18, 3, 0 
-ISR_make_n_entries 21, 1, 1
-ISR_make_n_entries 22, 7, 0
-ISR_make_n_entries 29, 2, 1
-ISR_make_n_entries 31, 1, 0
-ISR_make_n_entries 32, 16, 0
+  ISR_make_n_entries 0,  8, 0 
+  ISR_make_n_entries 8,  1, 1 
+  ISR_make_n_entries 9,  1, 0 
+  ISR_make_n_entries 10, 5, 1 
+  ISR_make_n_entries 15, 2, 0 
+  ISR_make_n_entries 17, 1, 1 
+  ISR_make_n_entries 18, 3, 0 
+  ISR_make_n_entries 21, 1, 1
+  ISR_make_n_entries 22, 7, 0
+  ISR_make_n_entries 29, 2, 1
+  ISR_make_n_entries 31, 1, 0
+  ISR_make_n_entries 32, 16, 0
 
-.section ".isrtab", "ax"
-ISR_emit_n_table_entries 0,48
+.section ".isrtab", "ad"
+.global ISR_table
+ISR_table:
+  ISR_emit_n_table_entries 0,48
 .section ".text"

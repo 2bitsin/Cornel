@@ -3,9 +3,9 @@
 #include <span>
 #include <textio/format.hpp>
 
-#include <netboot32/pxe_interface.hpp>
+#include <pxe/params.hpp>
 
-namespace pxe_interface::dhcp
+namespace pxe::dhcp
 {
   struct dhcp_layout;
 
@@ -66,7 +66,7 @@ namespace pxe_interface::dhcp
 
     auto client_addr() const noexcept -> client_address;
 
-    auto tftp_server() const noexcept -> pxe_interface::tftp_params;
+    auto tftp_server() const noexcept -> pxe::tftp_params;
     
   private:
      dhcp_layout const* m_layout; 

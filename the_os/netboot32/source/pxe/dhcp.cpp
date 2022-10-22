@@ -1,6 +1,6 @@
-#include <netboot32/pxe_dhcp.hpp>
+#include <pxe/dhcp.hpp>
 
-namespace pxe_interface::dhcp
+namespace pxe::dhcp
 {
   #pragma pack(push, 1)
   struct dhcp_layout
@@ -70,9 +70,9 @@ namespace pxe_interface::dhcp
     return client_address({&m_layout->chaddr[0], m_layout->hlen});
   }
 
-  auto packet::tftp_server() const noexcept -> ::pxe_interface::tftp_params
+  auto packet::tftp_server() const noexcept -> ::pxe::tftp_params
   {
-    return ::pxe_interface::tftp_params {
+    return ::pxe::tftp_params {
       .server_ip  = server_ip().value(),
       .port       = 0x4500u,
       .gateway_ip = gateway_ip().value()

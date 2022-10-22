@@ -1,8 +1,8 @@
 set (TEST_SOURCES 
-  t009_format_basic.cpp
-  t010_format_user_convert.cpp
-  t011_format_helpers_repeat.cpp
-  t012_format_options.cpp
+	t001_format_to_chars.cpp
+  t002_format_basic.cpp
+  t003_format_user_convert.cpp
+  t004_format_helpers_repeat.cpp
 )
 
 set (TEST_PREFIX textio)

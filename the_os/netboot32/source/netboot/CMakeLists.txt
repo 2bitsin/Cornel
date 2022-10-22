@@ -1,0 +1,14 @@
+
+add_library(netboot
+  interrupts.s 
+  interrupts.cpp
+  runtime.cpp
+  memory.cpp
+  panick.cpp
+  netboot32.cpp
+  keyboard.cpp
+  cstdio_impl.cpp) 
+
+target_include_directories(netboot PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(netboot PUBLIC utils textio pxe)
+  
