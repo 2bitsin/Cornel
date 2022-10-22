@@ -2,6 +2,8 @@
 #include <cerrno>
 
 #include <hardware/console.hpp>
+#include <utils/debug.hpp>
+#include <utils/macros.hpp>
 
 static int G_errno { 0 };
 
@@ -9,6 +11,7 @@ namespace std
 {  
   extern "C"
   {
+    CO_NOINLINE
     int* __errno_location() 
     {
       return &G_errno;
@@ -33,18 +36,21 @@ namespace std
       return fputc (char_v, file_v);
     }
 
+    CO_NOINLINE
     int fputc(int char_v, FILE* file_v)
     {
       errno = 0;
       if (file_v == stdout || file_v == stderr)
       {
         console::instance().write_char (char_v);
+        __debugbreak();
         return char_v;
       }
       errno = EBADF;
       return EOF;
     }
 
+    CO_NOINLINE
     int fputs(const char* str_v, FILE* file_v)
     {
       while (*str_v) 
@@ -55,6 +61,7 @@ namespace std
       return 1;
     }
 
+    CO_NOINLINE
     unsigned int fwrite(const void* ptr_v, size_t size_v, size_t count_v, FILE* file_v)
     {
       auto char_p = (const char*)ptr_v;

@@ -271,11 +271,11 @@ namespace textio::fmt::detail
       /////////////////////////////////////////
       // Print the number into temporary buffer
       /////////////////////////////////////////
-		#ifdef USE_STD_TO_CHARS
+    #ifdef USE_STD_TO_CHARS
       auto [number_e, errc] = std::to_chars(std::begin(number), std::end(number), value_u, options.base());
-		#else
-			auto [errc, number_e] = detail::to_chars<options.is_lower(), options.base()>(std::begin(number), std::end(number), value_u);
-		#endif	
+    #else
+      auto [errc, number_e] = detail::to_chars<options.is_lower(), options.base()>(std::begin(number), std::end(number), value_u);
+    #endif  
       if (errc != std::errc{}) {
         using ::textio::detail::throw_conversion_error;
         throw_conversion_error("to_chars failed to convert value to string");
@@ -339,7 +339,7 @@ namespace textio::fmt::detail
     static inline constexpr auto options = format_options<value_type, char_type>{ Options };        
     static inline constexpr auto min_number_buffer_size = sizeof(value_type) * 8u * 2u;
     static inline constexpr auto min_string_buffer_size = std::max<std::size_t>(options.pad_zeros * options.width + options.prefix_base * 2u + 1u, min_number_buffer_size);
-
+    
     template <std::output_iterator<char> OIterator>
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
     {
