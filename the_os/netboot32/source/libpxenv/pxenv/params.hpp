@@ -3,13 +3,13 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <hardware/real_address.hpp>
+#include <hardware/x86address16.hpp>
 
-#include "pxe.hpp"
+#include <pxenv/core.hpp>
 
 #pragma pack(push, 1)
 
-using pxenv_status = pxe::pxenv_status;
+using pxenv_status = ::pxenv::pxenv_status;
 
 struct segoff32
 {
@@ -17,7 +17,7 @@ struct segoff32
   std::uint16_t seg;
 };
 
-using segoff = x86arch::real_address;
+using segoff = x86arch::address16;
 
 struct segdesc32
 {

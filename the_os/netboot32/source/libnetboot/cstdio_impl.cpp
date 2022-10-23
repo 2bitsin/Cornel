@@ -11,7 +11,6 @@ namespace std
 {  
   extern "C"
   {
-    CO_NOINLINE
     int* __errno_location() 
     {
       return &G_errno;
@@ -19,7 +18,7 @@ namespace std
 
     auto stdin  = (FILE *)0;    
     auto stdout = (FILE *)1;    
-    auto stderr = (FILE *)2;    
+    auto stderr = (FILE *)2;
 
     int putchar(int char_v)
     {      
@@ -43,14 +42,13 @@ namespace std
       if (file_v == stdout || file_v == stderr)
       {
         console::instance().write_char (char_v);
-        __debugbreak();
         return char_v;
       }
       errno = EBADF;
       return EOF;
     }
 
-    CO_NOINLINE
+    CO_NOINLINE 
     int fputs(const char* str_v, FILE* file_v)
     {
       while (*str_v) 

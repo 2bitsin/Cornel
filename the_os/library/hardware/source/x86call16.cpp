@@ -31,7 +31,7 @@ static inline std::uint32_t call16_invoke(x86arch::call16_context& ctx, Target c
   std::construct_at(&call16_thunk.regs, std::move (ctx));
 
   if constexpr(!std::is_same_v<Target, x86arch::call16_address>) 
-  { call16_thunk.addr.to_pointer<std::uint8_t>()[1u] = target; }
+  { call16_thunk.addr.as<std::uint8_t*>()[1u] = target; }
   else
   { std::construct_at(&call16_thunk.addr, std::move (target)); }
 
@@ -43,7 +43,7 @@ static inline std::uint32_t call16_invoke(x86arch::call16_context& ctx, Target c
     save_idtr = x86arch::sidt();
     x86arch::lidt (x86arch::Xdtr_t{ .limit = 0x400, .base = nullptr });
 
-//  __debugbreak();
+    //__debugbreak();
     ((call16_function*)&call16_thunk.code[0])();
 
     x86arch::lidt (save_idtr);

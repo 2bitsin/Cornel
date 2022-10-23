@@ -11,7 +11,7 @@ x86arch::call16_stack::call16_stack(std::pmr::memory_resource& allocator, call16
 : m_context { context }
 , m_buffer  { allocator, size }
 {
-  const auto stack_address = real_address::from(m_buffer);
+  const auto stack_address = address16::from(m_buffer);
   m_context.ss = stack_address.seg;
   m_context.esp = stack_address.off + size;      
 }

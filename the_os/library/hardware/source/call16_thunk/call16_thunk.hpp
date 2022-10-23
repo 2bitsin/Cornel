@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <hardware/real_address.hpp>
+#include <hardware/x86address16.hpp>
 
 namespace x86arch::detail
 {
@@ -39,7 +39,7 @@ namespace x86arch::detail
     std::uint16_t flags;    
   };
 
-  using call16_address = x86arch::real_address;
+  using call16_address = x86arch::address16;
   
   union call16_thunk_layout
   {

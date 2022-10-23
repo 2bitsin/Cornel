@@ -1,5 +1,6 @@
 #include <hardware/console.hpp>
 #include <utils/int.hpp>
+#include <utils/macros.hpp>
 
 console::console() : 
   tab_size  (8u),
@@ -25,6 +26,7 @@ void console::set_attribute(std::uint8_t value)
 {
   attribute = uint16_t(value*0x100u);
 }
+
 
 void console::write_char(char value)
 {

@@ -10,5 +10,5 @@ add_library(netboot
   cstdio_impl.cpp) 
 
 target_include_directories(netboot PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(netboot PUBLIC utils textio pxe)
+target_link_libraries(netboot PUBLIC utils textio pxenv hardware)
   

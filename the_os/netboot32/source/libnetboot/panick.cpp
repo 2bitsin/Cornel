@@ -158,7 +158,7 @@ void panick::invalid_bangpxe() noexcept
 }
 
 [[noreturn]]
-void panick::pxe_failed(const char* what) noexcept
+void panick::pxenv_failed(const char* what) noexcept
 {
   using namespace textio::fmt;
   format_to<"#{:03d} - PXE api failure ({:s}).\n">(stdout, __COUNTER__, what);

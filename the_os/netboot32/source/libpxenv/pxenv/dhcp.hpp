@@ -1,13 +1,24 @@
 #pragma once
 
 #include <span>
+#include <tuple>
+
 #include <textio/format.hpp>
 
-#include <pxe/params.hpp>
+#include <pxenv/tftp.hpp>
+#include <pxenv/params.hpp>
 
-namespace pxe::dhcp
+namespace pxenv::dhcp
 {
-  struct dhcp_layout;
+
+  enum class packet_type_id: std::uint16_t
+  {
+    dhcp_discover = 1,
+    dhcp_ack      = 2,
+    cached_reply  = 3
+  };
+
+  struct layout;
 
   struct ip_address_v4
   {
@@ -52,11 +63,11 @@ namespace pxe::dhcp
     std::span<const std::uint8_t> m_value;
   };
 
-  struct packet
+  struct info
   {
-    packet(std::span<const std::byte> buffer) noexcept;
-    packet() noexcept;
-
+    auto        data() const -> layout const*;
+    auto        size() const -> std::size_t;
+    
     auto    is_valid() const noexcept -> bool;
  
     auto   client_ip() const noexcept -> ip_address_v4;
@@ -66,9 +77,19 @@ namespace pxe::dhcp
 
     auto client_addr() const noexcept -> client_address;
 
-    auto tftp_server() const noexcept -> pxe::tftp_params;
-    
+    auto tftp_server() const noexcept -> pxenv::tftp::params;
+
+    static auto cached (packet_type_id packet_type = packet_type_id::cached_reply) -> std::tuple<pxenv_status, dhcp::info>;
+
+  protected:
+    info(layout const* data, std::size_t size) noexcept;
+    info() noexcept;
+
   private:
-     dhcp_layout const* m_layout; 
+    std::size_t m_size { 0 };
+    layout const* m_data { nullptr }; 
+
+    static std::tuple<layout const*, std::size_t, std::size_t> s_cached_info [3u];
   };
+
 }

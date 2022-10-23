@@ -10,12 +10,14 @@
 #include <hardware/bios_data_area.hpp>
 #include <hardware/x86assembly.hpp>
 #include <utils/debug.hpp>
+#include <utils/macros.hpp>
 
 struct console
 {
   console();
   ~console();
 
+  CO_NOINLINE
   void set_attribute(std::uint8_t value);
   void write_char(char value);
   

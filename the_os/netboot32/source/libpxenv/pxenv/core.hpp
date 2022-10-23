@@ -5,20 +5,12 @@
 #include <span>
 
 #include <memory/buffer.hpp>
-#include <pxe/params.hpp>
 
 struct PXENVplus;
 struct bangPXE;
 
-namespace pxe
+namespace pxenv
 {
-  namespace packet_type
-  {
-    static inline constexpr const std::uint16_t dhcp_discover = 1;
-    static inline constexpr const std::uint16_t dhcp_ack      = 2;
-    static inline constexpr const std::uint16_t cached_reply  = 3;
-  }
-
   enum class pxenv_status: std::uint16_t
   {
     success                           = 0x00u,
@@ -96,6 +88,8 @@ namespace pxe
 
     tftp_invalid_packet_number        = 0xF000u,
     invalid_cached_dhcp_replay        = 0xF001u,
+    installation_check_failed         = 0xF002u,
+    tftp_request_cancelled            = 0xF003u,
     invalid_status                    = 0xFFFFu
   };
 
@@ -105,22 +99,7 @@ namespace pxe
   }
 
 
-  auto initialize       (bool first_time, ::PXENVplus&, ::bangPXE&) -> void;
+  auto initialize       (bool first_time) -> void;
   auto finalize         (bool last_time) -> void;
-
-  auto get_cached_info  (std::uint16_t packet_type, std::span<const std::byte>& buffer, std::uint16_t& buffer_limit) -> pxenv_status;
-
-  auto tftp_get_fsize   (std::string_view file_name, std::uint32_t& o_file_size, tftp_params const& options) -> pxenv_status;
-  auto tftp_get_fsize   (std::string_view file_name, std::uint32_t& o_file_size) -> pxenv_status;
-
-  auto tftp_open        (std::string_view file_name, std::uint16_t& o_packet_size, tftp_params const& options) -> pxenv_status;
-  auto tftp_open        (std::string_view file_name, std::uint16_t& o_packet_size) -> pxenv_status;
-
-  auto tftp_read        (std::span<std::byte>& buffer, std::uint16_t& o_packet_number) -> pxenv_status;
-  auto tftp_close       () -> pxenv_status;
-
-  // --------------------------------------- utility functions --------------------------------------
-
-  auto download_file    (std::string_view file_name, ::memory::buffer<std::byte>& buffer, tftp_params const& options) -> pxenv_status; 
-  auto download_file    (std::string_view file_name, ::memory::buffer<std::byte>& buffer) -> pxenv_status; 
+  auto call             (void* params, std::uint16_t opcode) -> pxenv_status;
 };

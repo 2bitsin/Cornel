@@ -11,13 +11,13 @@
 namespace x86arch
 {
   #pragma pack(push, 1)
-  struct real_address
+  struct address16
   {
-    static auto from (void const* value) noexcept -> x86arch::real_address;
+    static auto from (void const* value) noexcept -> x86arch::address16;
 
     template <typename T>
     requires requires (T&& what) { { what.data() } -> std::convertible_to<void const*>; } 
-    static auto from (T&& what) noexcept -> x86arch::real_address
+    static auto from (T&& what) noexcept -> x86arch::address16
     {
       return from(what.data());
     }
@@ -25,9 +25,9 @@ namespace x86arch
     auto to_pointer() const noexcept -> void*;
 
     template <typename T>
-    auto to_pointer() const noexcept -> T*
+    auto as() const noexcept -> T
     { 
-      return std::launder((T*)to_pointer()); 
+      return std::launder((T)to_pointer()); 
     }
 
     template <std::uintmax_t N>
@@ -63,8 +63,8 @@ namespace x86arch
 namespace std
 {
   template <>  
-  struct tuple_size<::x86arch::real_address>: std::integral_constant<std::size_t, 2u> {};
+  struct tuple_size<::x86arch::address16>: std::integral_constant<std::size_t, 2u> {};
   
   template <std::size_t N>
-  struct tuple_element<N, ::x86arch::real_address>: std::type_identity<std::uint16_t> {};
+  struct tuple_element<N, ::x86arch::address16>: std::type_identity<std::uint16_t> {};
 }

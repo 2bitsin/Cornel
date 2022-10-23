@@ -5,7 +5,7 @@
 #include <memory/buffer.hpp>
 
 #include <hardware/atwenty.hpp>
-#include <hardware/real_address.hpp>
+#include <hardware/x86address16.hpp>
 #include <hardware/x86bios.hpp>
 #include <hardware/bios_data_area.hpp>
 
@@ -79,7 +79,7 @@ static void initialize_base_heap()
 
 using namespace std;
 
-CO_PUBLIC 
+CO_PUBLIC CO_NOINLINE 
 void* malloc(std::size_t size)
 {
   auto ptr = G_base_heap.allocate(size);
@@ -88,7 +88,7 @@ void* malloc(std::size_t size)
   return ptr;
 }
 
-CO_PUBLIC 
+CO_PUBLIC CO_NOINLINE 
 void* calloc(std::size_t nelem, std::size_t size)
 {
   // Get total size
@@ -103,14 +103,14 @@ void* calloc(std::size_t nelem, std::size_t size)
   return ptr;
 }
 
-CO_PUBLIC
+CO_PUBLIC CO_NOINLINE
 void free(void* ptr)
 {
   if(!G_base_heap.deallocate(ptr))
   { panick::invalid_free(ptr, G_base_heap); }
 }
 
-CO_PUBLIC 
+CO_PUBLIC CO_NOINLINE 
 void* realloc(void* old_ptr, std::size_t new_size)
 {  
   if (nullptr == old_ptr) 
@@ -141,30 +141,35 @@ void* realloc(void* old_ptr, std::size_t new_size)
   panick::out_of_memory(new_size, G_base_heap);
 }
 
+CO_NOINLINE
 void operator delete(void* ptr) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
   { panick::invalid_free(ptr, G_base_heap); }
 }
 
+CO_NOINLINE
 void operator delete[](void* ptr) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
   { panick::invalid_free(ptr, G_base_heap); }
 }
 
+CO_NOINLINE
 void operator delete(void* ptr, [[maybe_unused]] std::size_t size) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
   { panick::invalid_free(ptr, G_base_heap); }
 }
 
+CO_NOINLINE
 void operator delete[](void* ptr, [[maybe_unused]] std::size_t size) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
   { panick::invalid_free(ptr, G_base_heap); }
 }
 
+CO_NOINLINE
 void* operator new[](std::size_t size) noexcept
 {
   auto ptr = G_base_heap.allocate(size);
@@ -173,6 +178,7 @@ void* operator new[](std::size_t size) noexcept
   return ptr;
 }
 
+CO_NOINLINE
 void* operator new(std::size_t size) noexcept
 {
   auto ptr = G_base_heap.allocate(size);
@@ -180,7 +186,6 @@ void* operator new(std::size_t size) noexcept
   { panick::out_of_memory(size, G_base_heap); }
   return ptr;
 }
-
 
 namespace memory
 {
@@ -223,13 +228,15 @@ namespace memory
     class resource_impl
     : public std::pmr::memory_resource
     {
-    private:
+    private:    
+      CO_NOINLINE
       void* do_allocate(std::size_t size, std::size_t alignment) override {
         if (alignment > 16)
           __throw_invalid_argument(aligment_error);
         return std::malloc(size);
       }
 
+      CO_NOINLINE
       void do_deallocate(void* ptr, std::size_t, std::size_t alignment) override {
         if (alignment > 16)        
           __throw_invalid_argument(aligment_error);
@@ -249,12 +256,14 @@ namespace memory
     : public std::pmr::memory_resource
     {
     private:
+      CO_NOINLINE
       void* do_allocate(std::size_t size, std::size_t alignment) override {
         if (alignment > 16)
           __throw_invalid_argument(aligment_error);
         return ext_allocate(size);
       }
 
+      CO_NOINLINE
       void do_deallocate(void* ptr, std::size_t, std::size_t alignment) override {
         if (alignment > 16)        
           __throw_invalid_argument(aligment_error);

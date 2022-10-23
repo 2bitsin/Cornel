@@ -1,4 +1,4 @@
-#include <hardware/real_address.hpp>
+#include <hardware/x86address16.hpp>
 #include <hardware/x86bios.hpp>
 #include <hardware/x86call16.hpp>
 #include <hardware/x86call16_stack.hpp>
@@ -18,7 +18,7 @@ auto x86arch::bios_acpi_memory_map_read(bios_acpi_memory_map_entry_t& entry, std
 {
   x86arch::call16_context ctx;
   x86arch::call16_stack stack{ ctx, 0x400u };    
-  auto [off, seg] = real_address::from(&entry);
+  auto [off, seg] = address16::from(&entry);
   ctx.eax = 0x0000e820;
   ctx.edx = 0x534d4150;
   ctx.ecx = sizeof(bios_acpi_memory_map_entry_t);

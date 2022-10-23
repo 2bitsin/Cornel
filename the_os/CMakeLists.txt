@@ -8,7 +8,6 @@ add_subdirectory(library/hardware)
 add_subdirectory(library/textio)
 add_subdirectory(library/memory)
 add_subdirectory(library/utils)
-add_subdirectory(library/config)
 add_subdirectory(config)
 add_subdirectory(netboot32)
 
