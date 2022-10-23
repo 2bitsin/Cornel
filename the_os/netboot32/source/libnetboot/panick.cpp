@@ -165,3 +165,10 @@ void panick::pxenv_failed(const char* what) noexcept
   std::abort();
 }
 
+[[noreturn]] void unable_to_download(const char* what) noexcept
+{
+  using namespace textio::fmt;
+  format_to<"#{:03d} - Unable to download {:s}.\n">(stdout, __COUNTER__, what);
+  std::abort();
+}
+

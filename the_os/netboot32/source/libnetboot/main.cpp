@@ -8,6 +8,8 @@
 #include <netboot/interrupts.hpp>
 #include <netboot/runtime.hpp>
 #include <netboot/memory.hpp>
+#include <netboot/progress.hpp>
+#include <netboot/panick.hpp>
 
 #include <hardware/bios_data_area.hpp>
 #include <hardware/x86bios.hpp>
@@ -16,42 +18,10 @@
 #include <utils/macros.hpp>
 
 #include <textio/format.hpp>
+#include <textio/format/helpers/repeat_value.hpp>
 
 #include <pxenv/core.hpp>
 #include <pxenv/tftp.hpp>
-
-struct print_progress: ::pxenv::tftp::Inotify
-{
-  print_progress() = default;
-
-  bool initialize (std::string_view& name, ::pxenv::tftp::params&) override
-  {
-    using namespace textio::fmt;
-    format_to<"Downloading {} ">(stdout, name);
-    return true;
-  }
-
-  bool update_sizes (std::size_t total_size, std::size_t) override
-  {
-    using namespace textio::fmt;
-    format_to<"({} bytes) ">(stdout, total_size);
-    return true;
-  }
-
-  bool progress (std::span<const std::byte>, std::size_t, std::size_t) override
-  {
-    using namespace textio::fmt;
-    format_to<".">(stdout);
-    return true;
-  }
-
-  bool finalize (std::size_t) override
-  {
-    using namespace textio::fmt;
-    format_to<"done.\n">(stdout);
-    return true;
-  }
-};
 
 void initialize(bool first_time)
 {
@@ -70,24 +40,19 @@ void finalize(bool last_time)
 }
 
 CO_PUBLIC 
-auto main ([[maybe_unused]] PXENVplus& _PXENVplus, 
-           [[maybe_unused]] bangPXE& _bangPXE) 
-  -> void
+auto main (PXENVplus&, bangPXE&) -> void
 {    
   using namespace textio::fmt;
   initialize(true);
 
-  print_progress progress;
-
-  {
-    auto [success, buffer] = pxenv::tftp::download("netboot32.run", progress);
+  netboot::progress_notify p;
+  auto [status, buffer] = pxenv::tftp::download("netboot32.run", p);
+  if (pxenv::pxenv_status::success != status) {
+    panick::unable_to_download("netboot32.run");    
   }
 
-  {
-    auto [success, buffer] = pxenv::tftp::download("netboot32.sys", progress);  
-  }
+  format_to(stdout, std::string_view{ buffer });
 
-  asm("int $0x3");
   for(;;) 
   { 
     x86arch::yield(); 
