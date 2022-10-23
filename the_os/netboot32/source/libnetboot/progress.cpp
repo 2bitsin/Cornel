@@ -3,8 +3,6 @@
 #include <textio/format.hpp>
 #include <textio/format/helpers/repeat_value.hpp>
 
-using netboot::progress_notify;
-
 bool progress_notify::initialize (std::string_view& name, ::pxenv::tftp::params&)
 {
   m_file_name = name;
