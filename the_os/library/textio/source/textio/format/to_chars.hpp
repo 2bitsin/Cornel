@@ -8,7 +8,11 @@
 #include <tuple>
 #include <bit>
 
-#define CAN_IT_BE_INLINED __attribute__((noinline))
+#if defined(__GNUC__)
+	#define CAN_IT_BE_INLINED __attribute__((noinline))
+#elif	defined(_MSC_VER)
+	#define	CAN_IT_BE_INLINED __declspec(noinline)
+#endif
 
 namespace textio::fmt::detail
 {

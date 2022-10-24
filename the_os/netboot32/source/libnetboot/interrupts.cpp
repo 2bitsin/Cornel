@@ -53,7 +53,7 @@ static inline constexpr std::string_view G_exception_string [] =
   ""
 };
 
-auto interrupts::display_crash_info(interrupts::stack_frame const& state) -> void
+static auto ISR_display_crash_info(interrupts::stack_frame const& state) -> void
 {
   using namespace textio::fmt;
   using namespace textio::fmt::helpers;
@@ -70,19 +70,8 @@ auto interrupts::display_crash_info(interrupts::stack_frame const& state) -> voi
   format_to<"{}\n">(stdout, repeat_value<79>('-'));
 }
 
-CO_PUBLIC
-__attribute__ ((used))
-int ISR_handler(interrupts::stack_frame& state)
-{ 
-
-  if (state.which < 32) 
-  {
-    display_crash_info(state);
-    __debugbreak();
-    x86arch::sti();
-    std::abort();
-  }
-  const auto IRQ_num = state.which - 0x20;
+static auto ISR_dispatch(const std::uint8_t IRQ_num) -> int
+{  
   switch(IRQ_num)
   {
   case 0x00: /* timer::irq();           */break;
@@ -104,6 +93,25 @@ int ISR_handler(interrupts::stack_frame& state)
   }
   pic8259::end_of_interrupt(IRQ_num);
   return 0;
+}
+
+CO_PUBLIC 
+int ISR_handler(interrupts::stack_frame& state)
+{ 
+  if (state.which < 32) 
+  {
+    ISR_display_crash_info(state);
+    
+    // Invoke bochs debugger
+    __debugbreak(); 
+
+    // Enabele IRQs so we can CTRL+ALT+DEL 
+    x86arch::sti(); 
+
+    // DIE! ... (x _ x)
+    std::abort();
+  }
+  return ISR_dispatch(state.which - 0x20u);
 }
 
 auto interrupts::default_interrupt_mask() -> std::uint16_t
