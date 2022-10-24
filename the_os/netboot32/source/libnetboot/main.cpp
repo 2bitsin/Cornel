@@ -45,7 +45,8 @@ auto main (PXENVplus&, bangPXE&) -> void
   using namespace textio::fmt;
   initialize(true);
 
-  netboot::progress_notify p;
+  format_to<"Starting OS ...\n">(stdout);
+  progress_notify p;
   auto [status, buffer] = pxenv::tftp::download("netboot32.run", p);
   if (pxenv::pxenv_status::success != status) {
     panick::unable_to_download("netboot32.run");    
@@ -53,10 +54,7 @@ auto main (PXENVplus&, bangPXE&) -> void
 
   format_to(stdout, std::string_view{ buffer });
 
-  for(;;) 
-  { 
-    x86arch::yield(); 
-  }
+  asm("int $0x3");
 
   pxenv::finalize(false);
   finalize(true);

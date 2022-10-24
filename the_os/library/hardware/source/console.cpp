@@ -1,5 +1,4 @@
 #include <hardware/console.hpp>
-#include <utils/int.hpp>
 #include <utils/macros.hpp>
 
 console::console() : 
@@ -65,7 +64,7 @@ void console::advance_cariage_return()
 void console::advance_tabulate()
 {
   ++cursor_x;
-  cursor_x = quantize_to(tab_size, cursor_x);
+  cursor_x = ((cursor_x + tab_size - 1)/tab_size) * tab_size;
   if (cursor_x >= page_cols)
     advance_line_feed();
 }

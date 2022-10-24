@@ -1,7 +1,6 @@
   .section ".text.interrupts", "ax" 
   .global ISR_handler
 
-
 ISR_prologue_and_epilogue:
   pushl   %esp
   addl    $8,     (%esp)
@@ -85,8 +84,12 @@ ISR_prologue_and_epilogue:
   ISR_make_n_entries 31, 1, 0
   ISR_make_n_entries 32, 16, 0
 
-.section ".isrtab", "ad"
-.global ISR_table
-ISR_table:
+
+  .section ".data.interrupts", "aw"
+  
+  .global ISR_table_begin
+  .global ISR_table_end
+
+ISR_table_begin:
   ISR_emit_n_table_entries 0,48
-.section ".text"
+ISR_table_end:

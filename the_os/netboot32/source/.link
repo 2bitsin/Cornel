@@ -1,8 +1,6 @@
 OUTPUT_FORMAT(binary)
 ENTRY(bootstrap_entry)
-
-EXTERN(ISR_handler ISR_table)
-
+EXTERN(ISR_table_begin ISR_table_end)
 SECTIONS
 {
   . = 0x7c00;
@@ -23,8 +21,8 @@ SECTIONS
   .data :
   {  
   G_idtr = .;
-    SHORT(SIZEOF(.isrtab));
-    LONG(ADDR(.isrtab));
+    SHORT(ISR_table_end - ISR_table_begin);
+    LONG(ISR_table_begin);
 
   G_init_array_begin = .;
     LONG(ADDR(.init_array));

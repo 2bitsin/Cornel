@@ -1,9 +1,9 @@
 #pragma once
 
+#include <new>
 #include <cstddef>
 #include <cstdint>
 #include <tuple>
-#include <new>
 #include <concepts>
 
 #include <textio/format.hpp>
@@ -16,18 +16,32 @@ namespace x86arch
     static auto from (void const* value) noexcept -> x86arch::address16;
 
     template <typename T>
-    requires requires (T&& what) { { what.data() } -> std::convertible_to<void const*>; } 
+    requires requires (T const& so)
+    { 
+      { so.seg } -> std::convertible_to<std::uint16_t>;
+      { so.off } -> std::convertible_to<std::uint16_t>;
+    }
+    static auto from(T const& so) -> address16
+    {
+      return address16 { .off = so.off, .seg = so.seg };
+    }
+
+    template <typename T>
+    requires requires (T&& what) 
+    { 
+      { what.data() } -> std::convertible_to<void const*>; 
+    } 
     static auto from (T&& what) noexcept -> x86arch::address16
     {
       return from(what.data());
     }
 
-    auto to_pointer() const noexcept -> void*;
+    auto as_void_p() const noexcept -> void*;
 
     template <typename T>
     auto as() const noexcept -> T
     { 
-      return std::launder((T)to_pointer()); 
+      return std::launder((T)as_void_p()); 
     }
 
     template <std::uintmax_t N>

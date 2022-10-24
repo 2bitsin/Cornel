@@ -21,7 +21,7 @@ bool progress_notify::progress (std::span<const std::byte> buffer, std::size_t, 
   using namespace textio::fmt::helpers;
   offset += buffer.size();
   const auto length = offset*50/m_final_size;
-  format_to<"{:s} [{:_<50}] {:>3d}%\r"> (stdout, m_file_name, repeat_value(length, char('=')), length*2);
+  format_to<"  * {:s} [{:_<50}] {:>3d}%\r"> (stdout, m_file_name, repeat_value(length, char('=')), length*2);
   return true;
 }
 
@@ -29,6 +29,6 @@ bool progress_notify::finalize (std::size_t)
 {
   using namespace textio::fmt;
   using namespace textio::fmt::helpers;
-  format_to<"\r{:s} [{:_<50}] {:>3d}%\n"> (stdout, m_file_name, repeat_value(50, char('=')), 100);
+  format_to<"  * {:s} [{:_<50}] {:>3d}%\n"> (stdout, m_file_name, repeat_value(50, char('=')), 100);
   return true;
 }

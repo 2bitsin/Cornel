@@ -11,10 +11,8 @@ CO_PUBLIC
 void abort()
 {
   using namespace textio::fmt;
-  format_to<"Halting system.\n">(stdout);
-  x86arch::cli();
-  x86arch::hlt();
-  for(;;);
+  format_to<"Halting system, press Ctrl+Alt+Del to reboot.\n">(stdout);
+  for(;;) x86arch::yield(); 
 }
 
 [[noreturn]]
@@ -140,32 +138,15 @@ namespace std
   }
 }
 
-
-[[noreturn]] 
-void panick::invalid_pxenvplus() noexcept
-{
-  using namespace textio::fmt;
-  format_to<"#{:03d} - Invalid PXENV+ structure.\n">(stdout, __COUNTER__);
-  std::abort();
-}
-
 [[noreturn]]
-void panick::invalid_bangpxe() noexcept
+void panick::pxenv_error(const char* what) noexcept
 {
   using namespace textio::fmt;
-  format_to<"#{:03d} - Invalid !PXE structure.\n">(stdout, __COUNTER__);
+  format_to<"#{:03d} - PXE error, {:s}.\n">(stdout, __COUNTER__, what);
   std::abort();
 }
 
-[[noreturn]]
-void panick::pxenv_failed(const char* what) noexcept
-{
-  using namespace textio::fmt;
-  format_to<"#{:03d} - PXE api failure ({:s}).\n">(stdout, __COUNTER__, what);
-  std::abort();
-}
-
-[[noreturn]] void unable_to_download(const char* what) noexcept
+[[noreturn]] void panick::unable_to_download(const char* what) noexcept
 {
   using namespace textio::fmt;
   format_to<"#{:03d} - Unable to download {:s}.\n">(stdout, __COUNTER__, what);

@@ -42,7 +42,7 @@ struct PXENVplus
   uint32_t  entry_point_32;
   uint16_t  entry_point_32_seg;
   segdesc16 seg_desc[5];
-  segoff    pxe_bang_ptr;
+  segoff    bangpxe_addr;
 };
 
 struct bangPXE
@@ -104,7 +104,7 @@ static_assert(offsetof(PXENVplus, seg_desc[3].real_seg  ) == 0x20);
 static_assert(offsetof(PXENVplus, seg_desc[3].size      ) == 0x22);
 static_assert(offsetof(PXENVplus, seg_desc[4].real_seg  ) == 0x24);
 static_assert(offsetof(PXENVplus, seg_desc[4].size      ) == 0x26);
-static_assert(offsetof(PXENVplus, pxe_bang_ptr          ) == 0x28);
+static_assert(offsetof(PXENVplus, bangpxe_addr          ) == 0x28);
 
 struct pxenv_get_cached_info_type
 {

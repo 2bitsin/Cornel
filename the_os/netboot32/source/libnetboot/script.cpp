@@ -34,7 +34,7 @@ static constexpr auto trim_comments(std::string_view& string_v)
 
 strcipt::execute(std::string_view text) noexcept -> script&
 {
-  while(!text.empty())
+ 7 while(!text.empty())
   {
     for(auto i = 0u; i < text.size(); ++i)
     {

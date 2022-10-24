@@ -90,6 +90,8 @@ namespace pxenv
     invalid_cached_dhcp_replay        = 0xF001u,
     installation_check_failed         = 0xF002u,
     tftp_request_cancelled            = 0xF003u,
+    bad_pxenvplus_structure           = 0xF004u,
+    bad_bangpxe_structure             = 0xF005u,
     invalid_status                    = 0xFFFFu
   };
 

@@ -79,6 +79,7 @@ int ISR_handler(interrupts::stack_frame& state)
   {
     display_crash_info(state);
     __debugbreak();
+    x86arch::sti();
     std::abort();
   }
   const auto IRQ_num = state.which - 0x20;
