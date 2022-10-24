@@ -5,6 +5,7 @@
 
 #include <textio/format.hpp>
 #include <script/script.hpp>
+#include <script/executor.hpp>
 
 #ifdef TESTING
 #define main t000_hello_world
@@ -21,8 +22,11 @@ int main(int,char** const)
 
   //format_to (o, "Hello, World!\n");
 
-	script s;
-	s.execute(R"(
+	script::script s;
+
+	script::executor<script::descriptor<1,2,3>{}> e;
+	
+	s.execute(e, R"(
 
 	# Here's a comment!	
 	say "Hello World!\n"
