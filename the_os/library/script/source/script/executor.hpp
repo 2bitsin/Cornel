@@ -9,11 +9,17 @@
 namespace script
 { 
 	
-	template <meta::string>
-	struct descriptor
-	{};
+	template <auto V> struct constexpr_dummy {};
 
-	template <descriptor... D>
+	template <typename T>
+	concept command_like = requires(T && what)
+	{		
+		{ constexpr_dummy<what.string>{} };
+	};
+		
+
+	template <typename... Command>
+	requires (command_like<Command> && ...)
 	struct executor
 	{				
 		using errno_type = int;

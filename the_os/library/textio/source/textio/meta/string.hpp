@@ -135,6 +135,11 @@ namespace meta
       return { m_data, m_size };
     }
 
+    constexpr operator std::basic_string_view<char_type>() const
+    {
+      return { m_data, m_size };
+    }
+
     constexpr auto front() const -> char_type
     {
       return m_data[0];
@@ -185,6 +190,11 @@ namespace meta
     {
       return { "" };
     }       
+
+    constexpr operator std::basic_string_view<char_type>() const
+    {
+      return { "" };
+    }
     
     constexpr auto contains(char_type value) const -> bool
     {

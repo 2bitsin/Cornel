@@ -7,9 +7,19 @@
 #include <script/script.hpp>
 #include <script/executor.hpp>
 
+#include <textio/meta/string.hpp>
+
 #ifdef TESTING
 #define main t000_hello_world
 #endif
+
+template <meta::string S>
+struct test_command
+{
+	static inline constexpr auto string = S;
+};
+
+
 
 int main(int,char** const) 
 {
@@ -24,7 +34,8 @@ int main(int,char** const)
 
 	script::script s;
 
-	script::executor<script::descriptor<1,2,3>{}> e;
+	script::executor<test_command<"Hello">> e;
+	
 	
 	s.execute(e, R"(
 
