@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../meta/value_list.hpp"
+#include <meta/value_list.hpp>
 #include "../general/error.hpp"
 
 namespace textio::fmt::detail

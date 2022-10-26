@@ -1,8 +1,8 @@
 #pragma once
 
 #include <type_traits>
-#include "../meta/type_list.hpp"
-#include "../meta/string.hpp"
+#include <meta/type_list.hpp>
+#include <meta/string.hpp>
 #include "node_static.hpp"
 #include "node_insert.hpp"
 

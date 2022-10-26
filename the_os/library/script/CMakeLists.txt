@@ -11,4 +11,11 @@ else()
   message(NOTICE "CMAKE_SYSTEM_NAME is ${CMAKE_SYSTEM_NAME}, skipping tests")
 endif()
 
+if (NOT (TARGET textio))
+	add_subdirectory(../textio textio)
+endif()
+
+if (NOT (TARGET meta))
+	add_subdirectory(../meta textio)
+endif()
 

@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 
-#include <textio/meta/string.hpp>
+#include <meta/string.hpp>
 
 namespace script
 { 

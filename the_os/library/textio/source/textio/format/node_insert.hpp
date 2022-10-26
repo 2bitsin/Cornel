@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../meta/type_list.hpp"
-#include "../meta/string.hpp"
+#include <meta/type_list.hpp>
+#include <meta/string.hpp>
 #include "base_convert.hpp"
 #include "variable.hpp"
 #include "convert.hpp"
@@ -21,7 +21,7 @@ namespace textio::fmt::detail
     using variable::next_default_index;
     using variable::uses_default;
 
-		static inline constexpr auto value = String;
+    static inline constexpr auto value = String;
           
     template <typename Collect, typename... Args>
     inline static auto apply(Collect&& collect, std::tuple<Args...> const& args)

@@ -1,11 +1,13 @@
 set (TEST_SOURCES 
-	t001_format_to_chars.cpp
+  t001_format_to_chars.cpp
   t002_format_basic.cpp
   t003_format_user_convert.cpp
   t004_format_helpers_repeat.cpp
 )
 
 set (TEST_PREFIX textio)
+
+add_subdirectory(../../meta ./meta)
 
 foreach (test_item ${TEST_SOURCES})
   get_filename_component(test_name ${test_item} NAME_WE)

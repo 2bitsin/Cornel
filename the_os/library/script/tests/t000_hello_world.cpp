@@ -7,19 +7,48 @@
 #include <script/script.hpp>
 #include <script/executor.hpp>
 
-#include <textio/meta/string.hpp>
+#include <meta/string.hpp>
 
 #ifdef TESTING
 #define main t000_hello_world
 #endif
 
-template <meta::string S>
-struct test_command
+
+struct cmd_say
 {
-	static inline constexpr auto string = S;
+	static inline constexpr auto string = meta::string{ "say" };
+};
+
+struct cmd_hello
+{
+	static inline constexpr auto string = meta::string{ "hello" };
 };
 
 
+template <std::size_t Offset, meta::string... ArgN>
+struct string_matcher {};
+
+template <std::size_t Offset, meta::string Arg0, meta::string... ArgN>
+struct string_matcher<Offset, Arg0, ArgN...>
+{
+	static inline constexpr auto match(auto&& value) -> std::size_t
+	{
+		std::basic_string_view lhs { value };
+		std::basic_string_view rhs { meta::string_truncate_v<Arg0> };
+		if (lhs == rhs)
+			return Offset;		
+		return string_matcher<Offset+1u, ArgN...>::match(value);
+	}	
+};
+
+template <std::size_t Offset>
+struct string_matcher<Offset>
+{
+	static inline constexpr auto match(auto&& value) -> std::size_t
+	{
+		return (std::size_t)-1 ;
+	}
+};
 
 int main(int,char** const) 
 {
@@ -30,11 +59,15 @@ int main(int,char** const)
   auto buffer = ""s;
   auto o = std::back_inserter(buffer);
 
-  //format_to (o, "Hello, World!\n");
+	auto q = string_matcher<0u, "say", "do", "hello", "goodbye">::match("hello");
 
+	__debugbreak();
+	
+  //format_to (o, "Hello, World!\n");
+/*
 	script::script s;
 
-	script::executor<test_command<"Hello">> e;
+	script::executor<cmd_say, cmd_hello> e;
 	
 	
 	s.execute(e, R"(
@@ -48,7 +81,7 @@ int main(int,char** const)
 	# gruesome ... isn't it ? (._.)
 
 	)");
-
+	*/
   expect_eq(buffer, expected);
 }  
 

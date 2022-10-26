@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../meta/string.hpp"
+#include <meta/string.hpp>
 #include "../general/error.hpp"
 
 #include <charconv>
