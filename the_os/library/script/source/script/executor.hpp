@@ -3,9 +3,12 @@
 #include <string_view>
 #include <vector>
 #include <variant>
+#include <optional>
 #include <charconv>
 #include <type_traits>
+
 #include <meta/string.hpp>
+#include <textio/format.hpp>
 
 namespace script
 { 		
@@ -47,12 +50,15 @@ namespace script
 			return false;
 		}
 	}
-
 	
 	template <typename Implementation, meta::string String, typename ... ArgN>
 	struct command_base
 	{
+		using args_tuple = std::tuple<ArgN...>;
+		using args_vec = std::vector<std::string_view>;
 		static inline constexpr auto string = meta::string_truncate_v<String>;
+		static inline constexpr auto last_arg_index = sizeof...(ArgN) - 1u;
+		static inline constexpr auto is_variadic = std::is_same_v<args_vec, std::tuple_element_t<last_arg_index, args_tuple>>;
 		
 		auto set_arg(auto&& exec, std::size_t index, std::string_view value) -> bool
 		{
@@ -61,26 +67,61 @@ namespace script
 				m_args[index] = std::move(value);
 				return true;
 			}			
+			
+			if constexpr (is_variadic)
+			{
+				index -= last_arg_index;
+				if (m_args[last_arg_index].size() <= index)
+					m_args[last_arg_index].resize(index + 1);
+				m_args[last_arg_index][index] = value;
+				return true;
+			}
+			
 			return false;
 		}
 
 		template <std::size_t...Index>
 		auto done(auto&& exec, std::index_sequence<Index...>)
+			-> std::optional<int>
 		{
+			using namespace textio::fmt;
 			std::tuple<ArgN...> args;
-			(from_string(std::get<Index>(args), m_args[Index]), ...);
+			std::size_t curr_arg_i = 0u;
+			const auto convert_success_v = ((curr_arg_i = Index, from_string(std::get<Index>(args), m_args[Index])) && ...);
+			if (!convert_success_v) {
+				exec.error(format_as<"argument {} is invalid", std::string>(curr_arg_i));
+				return std::nullopt;
+			}
 			return std::apply([&exec, this](auto&&... args) {
 				return (*(Implementation*)this).execute(exec, std::forward<decltype(args)>(args)...);
 			}, args);
 		}
 
-		auto done(auto&& exec)
+		auto done(auto&& exec) 
+			-> std::optional<int>
 		{
 			return done(std::forward<decltype(exec)>(exec), std::make_index_sequence<sizeof...(ArgN)>{});
 		}
 
 		std::string_view m_args[sizeof...(ArgN)];
 	};
+
+	template <typename Implementation, meta::string String>
+	struct command_base<Implementation, String>
+	{
+		auto set_arg(auto&& exec, std::size_t index, std::string_view value) -> bool
+		{
+			exec.error("command does not accept any arguments.");
+			return false;
+		}
+
+		auto done(auto&& exec)
+			-> std::optional<int>
+		{
+			return (*(Implementation*)this).execute(exec);
+		}
+	};
+
 
 	template <typename... Command>
 	struct executor
@@ -90,7 +131,8 @@ namespace script
 		using cmd_init_type = void(executor&);
 		using command_var = std::variant<std::monostate, Command...>;
 		
-		auto begin() -> executor&
+		auto begin() noexcept
+			-> executor&
 		{			
 			m_line += 1u;
 			m_argn = 0u;
@@ -98,13 +140,18 @@ namespace script
 			return *this; 
 		}
 
-		auto end() -> executor&
+		auto end() noexcept
+			-> executor&
 		{ 
-			std::visit([this]<typename T>(T&& cmd_v) -> int {
-				if constexpr (std::is_same_v<std::decay_t<T>, std::monostate>)
-					return 0; 
-				else
+			std::visit([this]<typename T>(T&& cmd_v) 
+				-> std::optional<int> 
+			{
+				if constexpr (std::is_same_v<std::decay_t<T>, std::monostate>) {
+					return std::nullopt; 
+				}
+				else {
 					return cmd_v.done(*this);
+				}
 			}, m_cmd_v);
 			return *this;
 		}
@@ -149,21 +196,19 @@ namespace script
 			if (!set_arg_v)
 			{
 				if (m_cmd_v.index() != 0u)
-				{
 					return error("Invalid argument.");
-				}
 				else
-				{
 					return error("Invalid command.");
-				}
 			}
 						
 			return *this; 
 		}
 		
-		auto error(std::string_view what) noexcept -> executor&
+		auto error(std::string_view what) noexcept 
+			-> executor&
 		{	
-			__debugbreak();
+			using namespace textio::fmt;
+			format_to<"{} (on line {}), error: {}\n">(stdout, m_cmd_s, m_line, what);
 			return *this; 
 		}
 			
