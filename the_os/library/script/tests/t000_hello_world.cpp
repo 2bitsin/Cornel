@@ -1,5 +1,6 @@
 #include <iterator>
 #include <string>
+#include <string_view>
 
 #include "expect.hpp"
 
@@ -14,41 +15,25 @@
 #endif
 
 
-struct cmd_say
+struct cmd_say: script::command_base<cmd_say, "say", std::string_view>
 {
-	static inline constexpr auto string = meta::string{ "say" };
-};
-
-struct cmd_hello
-{
-	static inline constexpr auto string = meta::string{ "hello" };
-};
-
-
-template <std::size_t Offset, meta::string... ArgN>
-struct string_matcher {};
-
-template <std::size_t Offset, meta::string Arg0, meta::string... ArgN>
-struct string_matcher<Offset, Arg0, ArgN...>
-{
-	static inline constexpr auto match(auto&& value) -> std::size_t
+	auto execute(auto&& context, auto&& message) -> int
 	{
-		std::basic_string_view lhs { value };
-		std::basic_string_view rhs { meta::string_truncate_v<Arg0> };
-		if (lhs == rhs)
-			return Offset;		
-		return string_matcher<Offset+1u, ArgN...>::match(value);
-	}	
-};
-
-template <std::size_t Offset>
-struct string_matcher<Offset>
-{
-	static inline constexpr auto match(auto&& value) -> std::size_t
-	{
-		return (std::size_t)-1 ;
+		std::cout << message << std::endl;
+		return 0;
 	}
 };
+
+struct cmd_exit: script::command_base<cmd_exit, "exit", int>
+{
+	auto execute(auto&& context, auto&& code) -> int
+	{
+		std::cout << "Exited with code : " << int(code) << std::endl;
+		return 0;
+	}
+};
+
+
 
 int main(int,char** const) 
 {
@@ -59,29 +44,23 @@ int main(int,char** const)
   auto buffer = ""s;
   auto o = std::back_inserter(buffer);
 
-	auto q = string_matcher<0u, "say", "do", "hello", "goodbye">::match("hello");
 
-	__debugbreak();
+
 	
-  //format_to (o, "Hello, World!\n");
-/*
 	script::script s;
 
-	script::executor<cmd_say, cmd_hello> e;
+	script::executor<cmd_say, cmd_exit> e;
 	
 	
 	s.execute(e, R"(
 
 	# Here's a comment!	
-	say "Hello World!\n"
-	say "Wait for it ...\n"              ...\n             "waaaait for it ....\n"						"... \n"				"Hello World!\n"
-	say "Goodbye cruel world!\n"
-	say "We need a string that can have a double quote in it: \"\n"
+	say "Hello World!"
 	exit 1
 	# gruesome ... isn't it ? (._.)
 
 	)");
-	*/
+	
   expect_eq(buffer, expected);
 }  
 
