@@ -8,7 +8,7 @@ namespace script
 	using namespace std::string_view_literals;
 	using namespace std::string_literals;
 	
-	struct script
+	struct interpreter
 	{			
 		static inline constexpr auto G_white_space = " \t\r\n"sv;
 		
@@ -34,7 +34,7 @@ namespace script
 		    string_v.remove_suffix(string_v.size() - pos);
 		}
 			
-		auto execute(auto&& executor_v, std::string_view text_v) noexcept -> script&
+		auto execute(auto&& executor_v, std::string_view text_v) noexcept -> interpreter&
 		{
 			std::string_view line;
 			while (!text_v.empty())
@@ -66,7 +66,7 @@ namespace script
 		}
 
 	protected:				
-	  auto tokenize(auto&& executor_v, std::string_view line_v) noexcept -> script&
+	  auto tokenize(auto&& executor_v, std::string_view line_v) noexcept -> interpreter&
 		{  	  
 		  if (line_v.empty())
 		    return *this;

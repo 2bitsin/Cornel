@@ -1,81 +1,172 @@
 #pragma once
 
 #include <string_view>
+#include <array>
 #include <vector>
 #include <variant>
 #include <optional>
 #include <charconv>
 #include <type_traits>
+#include <algorithm>
+#include <iterator>
 
 #include <meta/string.hpp>
 #include <textio/format.hpp>
 
-namespace script
+namespace script::detail
 { 		
 
-	template <typename T>
-	static inline auto from_string(T& value_v, std::string_view string_v) -> bool
+	static inline auto bounce_string(auto& value_o, auto const& value_i)
 	{
+		value_o.clear();
+		value_o.reserve(value_i.size());
+		bool is_escape = false;
+		for (auto&& char_v : value_i)
+		{				
+			if (!is_escape)
+			{
+				if (char_v != '\\') {
+					value_o.push_back	(char_v);
+					continue;	
+				}
+				is_escape = true;
+				continue;
+			}
+			switch (char_v)
+			{
+			case 'n': value_o.push_back('\n'); break;
+			case 'r': value_o.push_back('\r'); break;
+			case 't': value_o.push_back('\t'); break;
+			case 'v': value_o.push_back('\v'); break;
+			case 'b': value_o.push_back('\b'); break;
+			case 'f': value_o.push_back('\f'); break;
+			case 'a': value_o.push_back('\a'); break;
+			case '\\': value_o.push_back('\\'); break;
+			case '\'': value_o.push_back('\''); break;
+			case '\"': value_o.push_back('\"'); break;
+			default: value_o.push_back(char_v); break;
+			}
+			is_escape = false;
+		}
+		if (is_escape) {
+			value_o.push_back('\\');
+		}
+		return true;		
+	}
+
+	template <std::size_t Index, typename Exec, typename Tuple, typename Array>
+	static inline auto convert_arg(Exec&& exec, Tuple& args_o, Array const& args_i) -> bool
+	{
+		using namespace std::string_view_literals;
+		using namespace textio::fmt;
+
+		using T = std::tuple_element_t<Index, Tuple>;		
+		
+		auto& value_o = std::get<Index>(args_o);
+		auto const& value_i = args_i[Index];
+		
 		if constexpr (std::is_same_v<T, bool>)
 		{
-			if (string_v == "true" || string_v == "True" || string_v == "TRUE") {
-				value_v = true;
+			if (value_i == "true"sv || value_i == "True"sv || value_i == "TRUE"sv) {
+				value_o = true; 				
 				return true;
 			}
-			if (string_v == "false" || string_v == "False" || string_v == "FALSE"){
-				value_v = false;
+			else if (value_i == "false"sv || value_i == "False"sv || value_i == "FALSE"sv){
+				value_o = false;
 				return true;
 			}
-			return from_string<int>(value_v, string_v);
+
+			int int_v { 0 };
+			auto [end_i, errc] = std::from_chars(value_i.data(), value_i.data() + value_i.size(), int_v);
+			if (errc != std::errc()) {
+				exec.error(format_as<"Invalid argument '{}'", std::string>(value_i));
+				return false;
+			}
+			value_o = !!int_v;
+			return true;
 		}		
 		else if constexpr (std::is_integral_v<T>)
-		{			
-			auto from_chars_v = std::from_chars(string_v.data(), string_v.data() + string_v.size(), value_v);
-			if (from_chars_v.ec != std::errc{})
+		{
+			auto [end_i, errc] = std::from_chars(value_i.data(), value_i.data() + value_i.size(), value_o);
+			if (errc != std::errc()) {
+				exec.error(format_as<"Invalid argument '{}'", std::string>(value_i));
 				return false;
+			}			
 			return true;
 		}
-		else if constexpr (std::is_convertible_v<std::string_view, T>)
+		else if constexpr (std::is_same_v<T, std::vector<std::string_view>>)
 		{
-			value_v = T{ string_v };
+			value_o.clear();
+			value_o.reserve(args_i.size() - Index);
+			value_o.insert(value_o.end(), args_i.begin() + Index, args_i.end());
 			return true;
 		}
-		else if constexpr (std::is_convertible_v<std::string, T>)
+		else if constexpr (std::is_same_v<T, std::vector<std::string>>)
 		{
-			value_v = T{ std::string(string_v) };
+			value_o.clear();
+			value_o.reserve(args_i.size() - Index);
+			std::transform(args_i.begin() + Index, args_i.end(), std::back_inserter(value_o), [] (auto&& i) 
+			{ 
+				std::string o;
+				if (bounce_string(o, i))
+					return o;
+				return std::string(i);
+			});
+			return true;
+		}
+		else if constexpr (std::is_same_v<T, std::string>)
+		{
+			return bounce_string(value_o, value_i);
+		}
+		else if constexpr (std::is_convertible_v<decltype(value_i), T>)
+		{
+			value_o = value_i;
 			return true;
 		}
 		else
 		{
+			exec.error(format_as<"Invalid argument '{}'", std::string>(value_i));
 			return false;
-		}
+		}		
 	}
-	
+}
+
+namespace script
+{	
 	template <typename Implementation, meta::string String, typename ... ArgN>
 	struct command_base
 	{
 		using args_tuple = std::tuple<ArgN...>;
-		using args_vec = std::vector<std::string_view>;
+		using argsv_vec = std::vector<std::string_view>;
+		using argss_vec = std::vector<std::string>;
 		static inline constexpr auto string = meta::string_truncate_v<String>;
 		static inline constexpr auto last_arg_index = sizeof...(ArgN) - 1u;
-		static inline constexpr auto is_variadic = std::is_same_v<args_vec, std::tuple_element_t<last_arg_index, args_tuple>>;
+		static inline constexpr auto is_variadic 
+			 =std::is_same_v<argsv_vec, std::tuple_element_t<last_arg_index, args_tuple>> 
+			||std::is_same_v<argss_vec, std::tuple_element_t<last_arg_index, args_tuple>> ;
+		 
+		command_base() noexcept
+		{
+			if constexpr (is_variadic) {
+				m_args.resize(last_arg_index);
+			}
+		}
 		
 		auto set_arg(auto&& exec, std::size_t index, std::string_view value) -> bool
 		{
+			if constexpr (is_variadic)
+			{
+				if (index >= std::size(m_args))
+					m_args.resize(index + 1u);
+			}
+			
 			if (index < std::size(m_args))
 			{
 				m_args[index] = std::move(value);
 				return true;
 			}			
 			
-			if constexpr (is_variadic)
-			{
-				index -= last_arg_index;
-				if (m_args[last_arg_index].size() <= index)
-					m_args[last_arg_index].resize(index + 1);
-				m_args[last_arg_index][index] = value;
-				return true;
-			}
+			exec.error("Too many arguments");			
 			
 			return false;
 		}
@@ -85,9 +176,10 @@ namespace script
 			-> std::optional<int>
 		{
 			using namespace textio::fmt;
-			std::tuple<ArgN...> args;
+			
 			std::size_t curr_arg_i = 0u;
-			const auto convert_success_v = ((curr_arg_i = Index, from_string(std::get<Index>(args), m_args[Index])) && ...);
+			args_tuple args;
+			const auto convert_success_v = ((curr_arg_i = Index, detail::convert_arg<Index>(exec, args, m_args)) && ...);
 			if (!convert_success_v) {
 				exec.error(format_as<"argument {} is invalid", std::string>(curr_arg_i));
 				return std::nullopt;
@@ -102,13 +194,19 @@ namespace script
 		{
 			return done(std::forward<decltype(exec)>(exec), std::make_index_sequence<sizeof...(ArgN)>{});
 		}
-
-		std::string_view m_args[sizeof...(ArgN)];
+		
+		using argument_array_type = std::conditional_t<!is_variadic, 
+			std::array<std::string_view, sizeof...(ArgN)>, 
+			std::vector<std::string_view>>;
+		
+		argument_array_type m_args;		
 	};
 
 	template <typename Implementation, meta::string String>
 	struct command_base<Implementation, String>
 	{
+		static inline constexpr auto string = meta::string_truncate_v<String>;
+
 		auto set_arg(auto&& exec, std::size_t index, std::string_view value) -> bool
 		{
 			exec.error("command does not accept any arguments.");
@@ -123,44 +221,55 @@ namespace script
 	};
 
 
-	template <typename... Command>
+	template <typename Implementation, typename... Command>
 	struct executor
 	{				
-		using errno_type = int;
+		using status_type = int;
 
 		using cmd_init_type = void(executor&);
 		using command_var = std::variant<std::monostate, Command...>;
+		using exit_var = std::variant<std::monostate, status_type>;
+
+		using base = executor<Implementation, Command...>;
+
+		auto self() noexcept 
+			-> Implementation&
+		{
+			return (Implementation&)*this;
+		}
 		
 		auto begin() noexcept
-			-> executor&
+			-> Implementation&
 		{			
 			m_line += 1u;
 			m_argn = 0u;
 			m_cmd_v = {};
-			return *this; 
-		}
+			m_cmd_s = {};
+			return self();
+		}		
 
 		auto end() noexcept
-			-> executor&
+			-> Implementation&
 		{ 
-			std::visit([this]<typename T>(T&& cmd_v) 
-				-> std::optional<int> 
+			m_exit_v = std::visit([this]<typename T>(T&& cmd_v) 
+				-> std::optional<status_type> 
 			{
 				if constexpr (std::is_same_v<std::decay_t<T>, std::monostate>) {
 					return std::nullopt; 
 				}
 				else {
-					return cmd_v.done(*this);
+					return cmd_v.done(self());
 				}
 			}, m_cmd_v);
-			return *this;
+			return self();
 		}
 			
-		auto emit(std::string_view value) -> executor&
+		auto emit(std::string_view value) 
+			-> Implementation&
 		{ 		
 			using std::tuple;
 			using std::string_view;
-			
+			// TODO : Implement sorted hash list with binary search for O(log n) lookup, possibly a hashmap later
 			static constexpr tuple<string_view, cmd_init_type*> init_table [] = 
 			{				
 				(tuple{ 
@@ -181,7 +290,7 @@ namespace script
 					{
 						if (value == cmd_string)
 						{
-							cmd_init(*this);				
+							cmd_init(self());				
 							return true;
 						}
 					}					
@@ -189,27 +298,32 @@ namespace script
 				}
 				else 
 				{					
-					return cmd.set_arg(*this, m_argn++, value);
+					return cmd.set_arg(self(), m_argn++, value);
 				}
 			}, m_cmd_v);
 
 			if (!set_arg_v)
 			{
 				if (m_cmd_v.index() != 0u)
-					return error("Invalid argument.");
+					return self().error("Invalid argument.");
 				else
-					return error("Invalid command.");
+					return self().error("Invalid command.");
 			}
 						
-			return *this; 
+			return self();
 		}
-		
+				
 		auto error(std::string_view what) noexcept 
-			-> executor&
+			-> Implementation&
 		{	
 			using namespace textio::fmt;
-			format_to<"{} (on line {}), error: {}\n">(stdout, m_cmd_s, m_line, what);
-			return *this; 
+			format_to<"{} (on line {}), error: {}\n">(self().stdout_handle(), m_cmd_s, m_line, what);
+			return self();
+		}
+
+		auto stdout_handle() const noexcept 
+		{
+			return stdout;
 		}
 			
 	private:		
@@ -217,6 +331,7 @@ namespace script
 		std::size_t m_argn { 0u };
 		command_var m_cmd_v {};
 		std::string_view m_cmd_s {};
+		std::optional<status_type> m_exit_v {};
 	};
 	
 }

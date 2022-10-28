@@ -5,7 +5,7 @@
 #include "expect.hpp"
 
 #include <textio/format.hpp>
-#include <script/script.hpp>
+#include <script/interpreter.hpp>
 #include <script/executor.hpp>
 
 #include <meta/string.hpp>
@@ -15,11 +15,13 @@
 #endif
 
 
-struct cmd_say: script::command_base<cmd_say, "say", std::string_view>
+struct cmd_say: script::command_base<cmd_say, "say", std::vector<std::string>>
 {
-	auto execute(auto&& context, auto&& message) -> int
+	auto execute(auto&& context, auto&& all_messages) -> int
 	{
-		std::cout << message << std::endl;
+		for(auto&& curr_msg : all_messages)
+			context.log<"{} ">(curr_msg);
+		context.log<"\n">();
 		return 0;
 	}
 };
@@ -28,11 +30,54 @@ struct cmd_exit: script::command_base<cmd_exit, "exit", int>
 {
 	auto execute(auto&& context, auto&& code) -> int
 	{
-		std::cout << "Exited with code : " << int(code) << std::endl;
+		context.log<"Exited with code : {}\n">(code);
 		return 0;
 	}
 };
 
+struct cmd_hello : script::command_base<cmd_hello, "hello">
+{
+	auto execute(auto&& context) -> int
+	{
+		context.log<"Hello World!\n">();
+		return 0;
+	}
+};
+
+struct cmd_perform : script::command_base<cmd_perform, "perform", std::string_view>
+{
+	auto execute(auto&& context, auto&& command) -> int
+	{
+		context.log<"* Program performs {} with great success!\n">(command);
+		return 0;
+	}
+};
+
+template <std::output_iterator<char> O>
+struct executor: script
+	::executor<executor<O>, 
+		cmd_perform,
+		cmd_exit, 
+		cmd_hello,
+		cmd_say
+	>
+{
+	O out_i;
+	
+	executor(O out_i) noexcept: out_i(out_i) {}
+
+	auto stdout_handle() const noexcept
+	{
+		return out_i;
+	}
+
+	template <meta::string Format_string>
+	auto log(auto&& ... what) noexcept
+	{
+		using textio::fmt::format_to;
+		format_to<Format_string>(stdout_handle(), std::forward<decltype(what)>(what)...);
+	}
+};
 
 
 int main(int,char** const) 
@@ -40,26 +85,24 @@ int main(int,char** const)
   using namespace std::string_literals;
   using namespace textio::fmt;
 
-  static const auto expected = ""s;
+  static const auto expected = "Hello World!\nGoodbye cruel World! \n* Program performs hirakiri with great success!\nExited with code : 1\n"s;
   auto buffer = ""s;
   auto o = std::back_inserter(buffer);
-
-
-
 	
-	script::script s;
-
-	script::executor<cmd_say, cmd_exit> e;
-	
-	
+	script::interpreter s;
+	executor e { o };
+		
 	s.execute(e, R"(
-
-	# Here's a comment!	
-	say "Hello World!"
-	exit 1
-	# gruesome ... isn't it ? (._.)
-
+		# Here's a comment!	
+		hello
+		say "Goodbye\n"   "cruel"   "World!"
+		perform hirakiri		
+		exit 1
+		blub
+		perform hira kiri
+		# gruesome ... isn't it ? (._.)
 	)");
+
 	
   expect_eq(buffer, expected);
 }  

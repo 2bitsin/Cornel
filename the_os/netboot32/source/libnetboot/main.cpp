@@ -23,6 +23,9 @@
 #include <pxenv/core.hpp>
 #include <pxenv/tftp.hpp>
 
+#include <script/interpreter.hpp>
+#include <script/executor.hpp>
+
 void initialize(bool first_time)
 {
   runtime::initialize(first_time);
@@ -52,7 +55,8 @@ auto main (PXENVplus&, bangPXE&) -> void
     panick::unable_to_download("netboot32.run");    
   }
 
-  format_to(stdout, std::string_view{ buffer });
+  script::
+
 
   asm("int $0x3");
 
