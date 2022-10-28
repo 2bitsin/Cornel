@@ -78,7 +78,8 @@
     "iomanip": "cpp",
     "regex": "cpp",
     "any": "cpp",
-    "charconv": "cpp"
+    "charconv": "cpp",
+    "shared_mutex": "cpp"
   },
   "C_Cpp.errorSquiggles": "Disabled"
 }

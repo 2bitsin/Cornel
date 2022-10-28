@@ -136,6 +136,15 @@ namespace std
     format_to<"#{:03d} - Bad array new length.\n">(stdout, __COUNTER__);
     std::abort();
   }
+
+  [[noreturn]]
+  void __throw_out_of_range_fmt(char const*, ...)
+  {
+    using namespace textio::fmt;
+    format_to<"#{:03d} - Out of range fmt.\n">(stdout, __COUNTER__);
+    std::abort();
+  }
+
 }
 
 [[noreturn]]

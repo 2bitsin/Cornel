@@ -11,5 +11,5 @@ add_library(netboot
   progress.cpp) 
 
 target_include_directories(netboot PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(netboot PUBLIC utils textio pxenv hardware)
+target_link_libraries(netboot PUBLIC utils textio pxenv hardware script)
   

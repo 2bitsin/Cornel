@@ -42,6 +42,23 @@ void finalize(bool last_time)
   runtime::finalize(last_time);
 }
 
+struct cmd_say: script::command_base<cmd_say, "say", std::vector<std::string>>
+{
+  auto execute(auto&& context_v, std::vector<std::string> const& args_v) -> int
+  {
+    using namespace textio::fmt;
+    for(auto const& arg: args_v)
+      format_to<"{} ">(context_v.stdout_handle(), arg);
+    format_to<"\n">(context_v.stdout_handle());
+    return 0;
+  }
+};
+
+struct netboot_executor: script::executor<netboot_executor, cmd_say>
+{
+
+};
+
 CO_PUBLIC 
 auto main (PXENVplus&, bangPXE&) -> void
 {    
@@ -55,7 +72,10 @@ auto main (PXENVplus&, bangPXE&) -> void
     panick::unable_to_download("netboot32.run");    
   }
 
-  script::
+  script::interpreter si;
+  netboot_executor se;
+
+  si.execute(se, std::string_view{buffer});
 
 
   asm("int $0x3");
