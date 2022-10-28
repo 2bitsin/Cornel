@@ -1,25 +1,28 @@
+#include <algorithm>
+#include <ranges>
+
 #include <hardware/console.hpp>
+#include <hardware/x86bios.hpp>
+#include <hardware/x86assembly.hpp>
+
 #include <utils/macros.hpp>
+#include <utils/debug.hpp>
+
+using x86arch::bda;
 
 console::console() : 
   tab_size  (8u),
   attribute (0x0700u),
-  video_io  (bda::video_adapter_io_port),
-  page_cols (bda::number_of_columns),
-  page_rows (bda::last_row_number + 1),
-  cursor_x  (bda::page_cursor_position[bda::active_video_page][0]),
-  cursor_y  (bda::page_cursor_position[bda::active_video_page][1]),
-  buffer    ((std::uint16_t*)(0xB8000 + bda::offset_of_video_page), page_rows * page_cols)
-{
-  __debug_print(__func__);
-  __debug_print("\r\n");
-}
+  video_io  (bda().video_io_port),
+  page_cols (bda().number_of_text_columns),
+  page_rows (bda().number_of_text_rows_minus_one + 1u),
+  cursor_x  (bda().page_cursor_position[bda().active_video_page][0]),
+  cursor_y  (bda().page_cursor_position[bda().active_video_page][1]),
+  buffer    ((std::uint16_t*)(0xB8000 + bda().active_video_page_offset), page_rows * page_cols)
+{}
 
 console::~console()
-{
-  __debug_print(__func__);
-  __debug_print("\r\n");
-}
+{}
 
 void console::set_attribute(std::uint8_t value)
 {
@@ -98,9 +101,9 @@ void console::advance_cursor(char value)
 void console::update_hardware_cursor()
 {
   using namespace x86arch;
-  const std::uint16_t pos = bda::offset_of_video_page + cursor_y * page_cols + cursor_x; 
-  bda::page_cursor_position[bda::active_video_page][0] = cursor_x;
-  bda::page_cursor_position[bda::active_video_page][1] = cursor_y;
+  const std::uint16_t pos = bda().active_video_page_offset + cursor_y * page_cols + cursor_x; 
+  bda().page_cursor_position[bda().active_video_page][0] = cursor_x;
+  bda().page_cursor_position[bda().active_video_page][1] = cursor_y;
   outb(video_io+0, 0x0Fu);
   outb(video_io+1, ((pos >> 0u) & 0xFF));
   outb(video_io+0, 0x0Eu);

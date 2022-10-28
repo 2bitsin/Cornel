@@ -76,6 +76,22 @@ void panick::invalid_free_ext(void* ptr, struct ::block_list const& blist) noexc
   std::abort();
 }
 
+[[noreturn]]
+void panick::pxenv_error(const char* what) noexcept
+{
+  using namespace textio::fmt;
+  format_to<"#{:03d} - PXE error, {:s}.\n">(stdout, __COUNTER__, what);
+  std::abort();
+}
+
+[[noreturn]] 
+void panick::unable_to_download(const char* what) noexcept
+{
+  using namespace textio::fmt;
+  format_to<"#{:03d} - Unable to download {:s}.\n">(stdout, __COUNTER__, what);
+  std::abort();
+}
+
 namespace std
 {
   [[noreturn]] 
@@ -92,9 +108,7 @@ namespace std
     using namespace textio::fmt;
     format_to<"#{:03d} - Bad cast error\n">(stdout, __COUNTER__);
     std::abort();
-  }
-
-  [[noreturn]]
+  }  
 
   [[noreturn]] 
   void __throw_length_error(char const* err)
@@ -145,20 +159,5 @@ namespace std
     std::abort();
   }
 
-}
-
-[[noreturn]]
-void panick::pxenv_error(const char* what) noexcept
-{
-  using namespace textio::fmt;
-  format_to<"#{:03d} - PXE error, {:s}.\n">(stdout, __COUNTER__, what);
-  std::abort();
-}
-
-[[noreturn]] void panick::unable_to_download(const char* what) noexcept
-{
-  using namespace textio::fmt;
-  format_to<"#{:03d} - Unable to download {:s}.\n">(stdout, __COUNTER__, what);
-  std::abort();
 }
 

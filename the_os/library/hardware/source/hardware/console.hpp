@@ -3,13 +3,6 @@
 #include <span>
 #include <cstddef>
 #include <cstdint>
-#include <algorithm>
-#include <ranges>
-#include <iterator>
-
-#include <hardware/bios_data_area.hpp>
-#include <hardware/x86assembly.hpp>
-#include <utils/debug.hpp>
 #include <utils/macros.hpp>
 
 struct console

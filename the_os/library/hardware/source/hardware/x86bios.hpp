@@ -4,18 +4,11 @@
 #include <cstdint>
 #include <system_error>
 
+#include "x86bios_data_area.hpp"
+
 namespace x86arch
 {
-  #pragma pack(push, 1)
-  struct alignas(16) bios_acpi_memory_map_entry_t
-  {
-    std::uint64_t base;
-    std::uint64_t size;
-    std::uint32_t type;
-    std::uint32_t attr;
-  };  
-  #pragma pack(pop)
-
   auto bios_conventional_memory_size () -> std::uint32_t;
-  auto bios_acpi_memory_map_read(bios_acpi_memory_map_entry_t& entry, std::uint32_t& o_length, std::uint32_t& o_offset, std::uint32_t i_offset = 0u) -> std::errc;
+  auto bios_acpi_memory_map_read (bios_acpi_memory_map_entry_t& entry, std::uint32_t& o_length, std::uint32_t& o_offset, std::uint32_t i_offset = 0u) -> std::errc;
+  auto read_bios_data_area(std::uint8_t offset_i, void* value_o, std::size_t size_i) -> void;
 }

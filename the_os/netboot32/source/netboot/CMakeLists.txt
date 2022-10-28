@@ -7,7 +7,6 @@ add_library(netboot
   panick.cpp
   main.cpp
   keyboard.cpp
-  cstdio_impl.cpp
   progress.cpp) 
 
 target_include_directories(netboot PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

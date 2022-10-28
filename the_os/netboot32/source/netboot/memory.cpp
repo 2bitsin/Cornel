@@ -7,7 +7,6 @@
 #include <hardware/atwenty.hpp>
 #include <hardware/x86address16.hpp>
 #include <hardware/x86bios.hpp>
-#include <hardware/bios_data_area.hpp>
 
 #include <netboot/memory.hpp>
 #include <netboot/panick.hpp>
@@ -64,13 +63,14 @@ static void initialize_extended_heap()
 
 static void initialize_base_heap()
 {
+  using x86arch::bda;
   using namespace textio::fmt;
+  using namespace textio::fmt::helpers;
 
-  const auto* top_of_heap = (std::byte const *)(bda::conventional_memory_size * 0x400u);
+  const auto* top_of_heap = (std::byte const *)(bda().base_memory_size * 0x400u);
   std::span heap_bytes { G_heap_begin, top_of_heap };
   // Initialize heap
   G_base_heap.insert_range(heap_bytes);
-  using namespace textio::fmt::helpers;
 #ifndef NO_DEBUG_LOGS
   format_to<"  * {} Bytes base memory available.\n">(stdout, data_size(heap_bytes.size())); 
 #endif

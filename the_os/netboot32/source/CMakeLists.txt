@@ -1,9 +1,10 @@
-add_subdirectory(libbootstrap)
-add_subdirectory(libpxenv)
-add_subdirectory(libnetboot)
+add_subdirectory(bootstrap)
+add_subdirectory(pxenv)
+add_subdirectory(impl)
+add_subdirectory(netboot)
 
 add_executable(netboot32 netboot32.cpp)
-target_link_libraries(netboot32 netboot pxenv textio hardware bootstrap utils cimpl memory script ${LIB_GCC_PATH})
+target_link_libraries(netboot32 netboot pxenv textio hardware bootstrap utils cimpl memory script impl ${LIB_GCC_PATH})
 
 set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/.link)
 set(NETBOOT32_MAP ${CMAKE_BINARY_DIR}/netboot32.map)  
