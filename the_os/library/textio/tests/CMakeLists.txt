@@ -3,6 +3,7 @@ set (TEST_SOURCES
   t002_format_basic.cpp
   t003_format_user_convert.cpp
   t004_format_helpers_repeat.cpp
+	t005_logger_basic.cpp
 )
 
 set (TEST_PREFIX textio)

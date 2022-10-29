@@ -5,8 +5,6 @@
 #include <hardware/kbdctrl.hpp>
 #include <hardware/pic8259.hpp>
 
-#include <utils/var.hpp>
-
 static inline const constexpr std::uint8_t FAST_GATE_A20_ENABLE_BIT = 0x02u;
 static inline const constexpr std::uint8_t FAST_GATE_RESET_BIT = 0x01u;
 

@@ -3,7 +3,8 @@ add_library(cimpl
   strlen.cpp 
   toupper.cpp 
   memcmp.cpp
-  memchr.cpp)
+  memchr.cpp
+  sprintf_lite.cpp)
 
 target_include_directories(cimpl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

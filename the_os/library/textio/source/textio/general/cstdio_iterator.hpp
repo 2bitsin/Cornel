@@ -40,7 +40,7 @@ namespace textio::detail
     auto operator ++ (int) noexcept -> cstdio_iterator
 		{ return *this; }
 
-		cstdio_iterator(std::FILE* file)
+		cstdio_iterator(std::FILE* file = stdout)
 		: m_filep	{ file },
 			m_errno { 0		 }
 		{}		

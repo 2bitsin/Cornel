@@ -236,7 +236,7 @@ namespace meta
   namespace literals
   {
     template <meta::string String>
-    constexpr auto operator "" _cxs()
+    constexpr auto operator "" _Ms()
     {
       return String;
     }

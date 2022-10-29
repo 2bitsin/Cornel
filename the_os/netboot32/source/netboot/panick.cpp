@@ -5,6 +5,7 @@
 #include <utils/macros.hpp>
 
 #include <cstdlib>
+#include <cstdarg>
 
 CO_PUBLIC 
 [[noreturn]]
@@ -92,6 +93,11 @@ void panick::unable_to_download(const char* what) noexcept
   std::abort();
 }
 
+namespace __gnu_cxx
+{
+  int __snprintf_lite(char *__buf, size_t __bufsize, const char *__fmt, va_list __ap);
+}
+
 namespace std
 {
   [[noreturn]] 
@@ -152,10 +158,24 @@ namespace std
   }
 
   [[noreturn]]
-  void __throw_out_of_range_fmt(char const*, ...)
+  void __throw_out_of_range_fmt(char const* __fmt, ...)
   {
-    using namespace textio::fmt;
-    format_to<"#{:03d} - Out of range fmt.\n">(stdout, __COUNTER__);
+    using namespace textio::fmt;    
+
+    const size_t __len = __builtin_strlen(__fmt);
+    // We expect at most 2 numbers, and 1 short string. The additional
+    // 512 bytes should provide more than enough space for expansion.
+    const size_t __alloca_size = __len + 512;
+    char *const __s = static_cast<char*>(__builtin_alloca(__alloca_size));
+    va_list __ap;
+
+    va_start(__ap, __fmt);
+    __gnu_cxx::__snprintf_lite(__s, __alloca_size, __fmt, __ap);
+    
+    format_to<"#{:03d} - Out of range : {}.\n">(stdout, __COUNTER__, __s);
+
+    va_end(__ap);  // Not reached.
+
     std::abort();
   }
 
