@@ -18,12 +18,15 @@
 
 #include <textio/format.hpp>
 #include <textio/format/helpers/repeat_value.hpp>
+#include <textio/logger.hpp>
 
 #include <pxenv/core.hpp>
 #include <pxenv/tftp.hpp>
 
 #include <script/interpreter.hpp>
 #include <script/executor.hpp>
+
+declare_module(Netboot);
 
 void initialize(bool first_time)
 {
@@ -47,7 +50,8 @@ auto main () -> void
   using namespace textio::fmt;
   initialize(true);
 
-  format_to<"Starting OS ...\n">(stdout);
+  Glog.write<"Starting OS ..."> ();
+
   progress_notify p;
   auto [status, buffer] = pxenv::tftp::download("netboot32.run", p);
   if (pxenv::pxenv_status::success != status) {

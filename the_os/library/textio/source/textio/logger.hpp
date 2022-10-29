@@ -69,12 +69,7 @@ namespace textio
 			default: return {};			
 			}
 		}		
-	};
 
-	template <meta::string Module = "">
-	struct logger_module_base: logger_base
-	{		
-		
 		static inline auto level(level_type value) -> level_type
 		{
 			return std::exchange (G_current_level, value);
@@ -95,6 +90,32 @@ namespace textio
 		static inline level_type G_current_level = level_type::info;
 	};
 
+	template <meta::string Module = "">
+	struct logger_module_base: logger_base
+	{		
+		
+		static inline auto level(level_type value) -> level_type
+		{
+			return std::exchange (G_current_level, value);
+		}
+
+		static inline auto level() -> level_type
+		{
+			return G_current_level;
+		}
+
+		static inline auto level_check(level_type value) -> bool
+		{
+			if (!logger_base::level_check(value))
+				return false;
+			using ul_type = std::underlying_type_t<level_type>;
+			return (ul_type)G_current_level >= (ul_type)value;
+		}		
+		
+	private:
+		static inline level_type G_current_level = level_type::all;
+	};
+
 	template <meta::string Module = "", typename Output_type = detail::cstdio_iterator>
 	struct logger_module: logger_module_base<Module>
 	{
@@ -104,22 +125,30 @@ namespace textio
 		:	m_output { output_handle }
 		{ }
 		
-		template<logger_base::level_type Value, meta::string Format_string, typename... Args>
+		template<logger_base::level_type Level, meta::string Format_string, typename... Args>
 		inline auto log(Args&& ... args) noexcept -> logger_module&
 		{
 			using textio::fmt::format_to;
-
-			if (!logger_module_base<Module>::level_check(Value))
-				return *this;
-
-			constexpr std::string_view	module_s { meta::string_truncate_v<Module> };
-			constexpr std::string_view	level_s	 { logger_base::level_as_string(Value) };
-			constexpr meta::string			format_s { meta::string_truncate_v<"[{:.<8s}] [{}] : ">, 
-			                                       meta::string_truncate_v<Format_string>,
-			                                       meta::string_truncate_v<"\n"> };
-
-			format_to<format_s>(m_output, level_s, module_s, std::forward<Args>(args)...);
 			
+			if constexpr (Level != logger_base::level_type::none)
+			{
+				if (!logger_module_base<Module>::level_check(Level))
+					return *this;
+
+				constexpr std::string_view	module_s { meta::string_truncate_v<Module> };
+				constexpr std::string_view	level_s	 { logger_base::level_as_string(Level) };
+				constexpr meta::string			format_s { meta::string_truncate_v<"[{:.<8s}] [{}] : ">, 
+				                                       meta::string_truncate_v<Format_string>,
+				                                       meta::string_truncate_v<"\n"> };
+
+				m_output = format_to<format_s>(m_output, level_s, module_s, std::forward<Args>(args)...);
+			}
+			else
+			{
+				constexpr meta::string			format_s { meta::string_truncate_v<Format_string>,
+				                                       meta::string_truncate_v<"\n"> };
+				m_output = format_to<format_s>(m_output, std::forward<Args>(args)...);				
+			}
 			return *this;
 		}
 
@@ -129,6 +158,7 @@ namespace textio
 		template<meta::string Format_string, typename... Args> inline auto info  (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::info,    Format_string>(std::forward<Args>(args)...); }
 		template<meta::string Format_string, typename... Args> inline auto debug (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::debug,   Format_string>(std::forward<Args>(args)...); }
 		template<meta::string Format_string, typename... Args> inline auto trace (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::trace,   Format_string>(std::forward<Args>(args)...); }
+		template<meta::string Format_string, typename... Args> inline auto write (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::none,    Format_string>(std::forward<Args>(args)...); }
 						
 	private:
 		output_type m_output;
@@ -137,3 +167,5 @@ namespace textio
 	template <meta::string Module, typename Output_type>
 	logger_module(Output_type output_i)->logger_module<Module, Output_type>;
 }
+
+#define declare_module(Module) static inline auto Glog = textio::logger_module<#Module, textio::detail::cstdio_iterator>{stdout}

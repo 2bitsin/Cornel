@@ -19,18 +19,27 @@ int main(int,char** const)
 	using textio::logger_module_base;
 	using textio::logger_module;
 
-	logger_module<"TEST", std::back_insert_iterator<std::string>> zout{ std::back_inserter(buffer) };
+	logger_module<"TEST", std::back_insert_iterator<std::string>> Glog{ std::back_inserter(buffer) };
 
-	zout.level(logger_base::level_type::all);
+	logger_base::level(logger_base::level_type::all);
 
-	zout.fatal<"Hello world!">();
-	zout.error<"Hello world!">();
-	zout.warn<"Hello world!">();
-	zout.debug<"Hello world!">();
-	zout.info<"Hello world!">();
-	zout.trace<"Hello world!">();
+	Glog.fatal	<"Hello world!"> ();
+	Glog.error	<"Hello world!"> ();
+	Glog.warn		<"Hello world!"> ();
+	Glog.debug	<"Hello world!"> ();
+	Glog.info		<"Hello world!"> ();
+	Glog.trace	<"Hello world!"> ();
 	
+
+	logger_base::level(logger_base::level_type::warning);
 	
+	Glog.fatal	<"Goodbye world!"> ();
+	Glog.error	<"Goodbye world!"> ();
+	Glog.warn		<"Goodbye world!"> ();
+	Glog.debug	<"Goodbye world!"> ();
+	Glog.info		<"Goodbye world!"> ();
+	Glog.trace	<"Goodbye world!"> ();
+
   expect_eq(buffer, expected);
 }  
 
