@@ -50,7 +50,7 @@ auto main () -> void
   using namespace textio::fmt;
   initialize(true);
 
-  Glog.write<"Starting OS ..."> ();
+  Glog.info<"Starting OS ..."> ();
 
   progress_notify p;
   auto [status, buffer] = pxenv::tftp::download("netboot32.run", p);
