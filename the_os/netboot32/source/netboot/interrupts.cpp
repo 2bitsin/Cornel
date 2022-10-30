@@ -115,7 +115,7 @@ static auto ISR_segment_info(std::string_view register_v, std::span<std::uint64_
 
 static auto ISR_eflags_info(std::uint32_t value_v)
 {
-  Glog.info<"{}", false>();
+  Glog.info<"{}{}{}{}">();
 }
 
 static auto ISR_display_crash_info(interrupts::stack_frame const& state) -> void
