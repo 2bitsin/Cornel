@@ -40,7 +40,9 @@ preamble:
     xor     sp,     sp
     mov     ss,     sp
     mov     sp,     LOAD_ADDRESS  ; Reset stack pointer
-    
+
+  macro comment
+  {
     movzx   edx,    ax            ; edx = offset of !PXE structure
     shr     eax,    16            ; eax = segment of !PXE structure
     shl     eax,    4             ; eax = segment of !PXE structure * 16
@@ -53,6 +55,7 @@ preamble:
     movzx   ebx,    bx            ; ebx = offset PXENV+ structure
     add     eax,    ebx           ; eax = linear address PXENV+ structure
     push    eax                   ; push pointer to PXENV+ structure
+  }
 
     mov     ax,     cs            ; ax = segment of PXENV+ structure
     mov     ds,     ax            ; 

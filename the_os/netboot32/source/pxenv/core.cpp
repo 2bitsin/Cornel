@@ -6,10 +6,10 @@
 #include <algorithm>
 #include <ranges>
 
-#include <hardware/x86address16.hpp>
-#include <hardware/x86call16.hpp>
-#include <hardware/x86call16_stack.hpp>
-#include <hardware/x86assembly.hpp>
+#include <hardware/x86/address16.hpp>
+#include <hardware/x86/call16.hpp>
+#include <hardware/x86/call16_stack.hpp>
+#include <hardware/x86/assembly.hpp>
 
 #include <pxenv/core.hpp>
 #include <pxenv/params.hpp>
@@ -19,7 +19,9 @@
 #include <netboot/memory.hpp>
 
 #include <memory/buffer.hpp>
+#include <textio/logger.hpp>
 
+declare_module(PXENV);
 
 struct PXENV_context
 {
@@ -122,20 +124,20 @@ void pxenv::initialize(bool first_time)
   // Check if PXE installed and enabled
   tie(status, pxenvplus_p) = PXENV_installation_check();
   if (pxenv_status::success != status) {
-    panick::pxenv_error("Failed to initialize PXE, installation check failed.");  
+    Gmod.fatal<"Failed to initialize PXE, installation check failed.">();  
+    std::abort();
   }
 
   // Initialize PXE
   status = PXENV_initialize(G_PXENV_context, *pxenvplus_p);
   if (pxenv_status::bad_bangpxe_structure == status) 
   {
-  #ifndef NO_DEBUG_LOGS
-    format_to<"Warning: !PXE structure is invalid, falling back to PXENV+ structure.\n">(stdout);
-  #endif
+    Gmod.warn<"PXE structure is invalid, falling back to PXENV+ structure.">();
   } 
   else if (pxenv_status::success != status) 
   {
-    panick::pxenv_error("failed to initialize PXE, PXENV+ structure is invalid.");
+    Gmod.fatal<"Failed to initialize PXE, PXENV+ structure is invalid.">();
+    std::abort();
   }
 
   // Try to grab DHCP parameters
@@ -143,18 +145,16 @@ void pxenv::initialize(bool first_time)
     const auto [status, cached_reply_s] = dhcp::info::cached(dhcp::packet_type_id::cached_reply);
     if (pxenv_status::success != status || !cached_reply_s.is_valid()) 
     {  
-      panick::pxenv_error("failed to get cached DHCP reply, or reply not valid.");
+      Gmod.fatal<"Failed to get cached DHCP reply, or reply not valid.">();
     }
 
-  #ifndef NO_DEBUG_LOGS
-    format_to<"Initialized PXE v{}.{} ...\n">(stdout, (G_PXENV_context.version >> 8) & 0xff, G_PXENV_context.version & 0xff);
-    format_to<"  * {:.<19s} : {} ({:s})\n">(stdout, "Entry point", G_PXENV_context.entry_point, G_PXENV_context.use_bange_pxe ? "!PXE" : "PXENV+");
-    format_to<"  * {:.<19s} : {}\n">(stdout, "Client IP ",  cached_reply_s.client_ip());
-    format_to<"  * {:.<19s} : {}\n">(stdout, "Your IP ",    cached_reply_s.your_ip());
-    format_to<"  * {:.<19s} : {}\n">(stdout, "Server IP ",  cached_reply_s.server_ip());
-    format_to<"  * {:.<19s} : {}\n">(stdout, "Gateway IP ", cached_reply_s.gateway_ip());
-    format_to<"  * {:.<19s} : {}\n">(stdout, "Client MAC ", cached_reply_s.client_addr());    
-  #endif 
+    Gmod.info<"Initialized PXE v{}.{} ...">((G_PXENV_context.version >> 8) & 0xff, G_PXENV_context.version & 0xff);
+    Gmod.info<"  * {:.<19s} : {} ({:s})">("Entry point", G_PXENV_context.entry_point, G_PXENV_context.use_bange_pxe ? "!PXE" : "PXENV+");
+    Gmod.info<"  * {:.<19s} : {}">("Client IP ",  cached_reply_s.client_ip());
+    Gmod.info<"  * {:.<19s} : {}">("Your IP ",    cached_reply_s.your_ip());
+    Gmod.info<"  * {:.<19s} : {}">("Server IP ",  cached_reply_s.server_ip());
+    Gmod.info<"  * {:.<19s} : {}">("Gateway IP ", cached_reply_s.gateway_ip());
+    Gmod.info<"  * {:.<19s} : {}">("Client MAC ", cached_reply_s.client_addr());
   }  
 }
 

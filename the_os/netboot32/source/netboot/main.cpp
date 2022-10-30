@@ -11,8 +11,8 @@
 #include <netboot/progress.hpp>
 #include <netboot/panick.hpp>
 
-#include <hardware/x86bios.hpp>
-#include <hardware/x86assembly.hpp>
+#include <hardware/x86/bios.hpp>
+#include <hardware/x86/assembly.hpp>
 
 #include <utils/macros.hpp>
 
@@ -50,12 +50,14 @@ auto main () -> void
   using namespace textio::fmt;
   initialize(true);
 
-  Glog.info<"Starting OS ..."> ();
+  textio::logger_base::level(textio::logger_base::level_type::all);
+
+  Gmod.info<"Starting OS ..."> ();
 
   progress_notify p;
   auto [status, buffer] = pxenv::tftp::download("netboot32.run", p);
   if (pxenv::pxenv_status::success != status) {
-    panick::unable_to_download("netboot32.run");    
+    std::abort();
   }
 
   //script::interpreter si;

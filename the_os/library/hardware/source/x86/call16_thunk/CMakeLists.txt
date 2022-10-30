@@ -20,6 +20,9 @@ set_property(SOURCE call16_thunk.s PROPERTY OBJECT_DEPENDS ${CALL16_THUNK_BINARY
 set_property(SOURCE call16_thunk.s PROPERTY COMPILE_DEFINITIONS "CALL16_THUNK_BINARY=\"${CALL16_THUNK_BINARY}\"" "CALL16_THUNK_ORG=${CALL16_THUNK_ORG}" )
 
 add_library(call16_thunk call16_thunk.s)
+
+target_include_directories(call16_thunk PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 target_compile_options(call16_thunk PRIVATE -fno-lto)
 
 add_dependencies(call16_thunk call16_thunk_bin)

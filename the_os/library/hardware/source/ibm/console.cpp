@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <ranges>
 
-#include <hardware/console.hpp>
-#include <hardware/x86bios.hpp>
-#include <hardware/x86assembly.hpp>
+#include <hardware/ibm/console.hpp>
+#include <hardware/x86/bios.hpp>
+#include <hardware/x86/assembly.hpp>
 
 #include <utils/macros.hpp>
 #include <utils/debug.hpp>

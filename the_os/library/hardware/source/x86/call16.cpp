@@ -5,10 +5,10 @@
 
 #include <utils/debug.hpp>
 #include <memory/buffer.hpp>
-#include <call16_thunk/call16_thunk.hpp>
-#include <hardware/x86call16.hpp>
-#include <hardware/x86assembly.hpp>
-#include <hardware/pic8259.hpp>
+#include <call16_thunk.hpp>
+#include <hardware/x86/call16.hpp>
+#include <hardware/x86/assembly.hpp>
+#include <hardware/ibm/pic8259.hpp>
 
 using call16_function = void __attribute__((cdecl)) ();
 
@@ -23,7 +23,7 @@ static inline std::uint32_t call16_invoke(x86arch::call16_context& ctx, Target c
   static constexpr auto reserved_size = sizeof(call16_thunk_layout) + 256u;
   if (call16_thunk_target + reserved_size > x86arch::stack_pointer())
   {
-    std::__throw_runtime_error("Call16_invoke will stomp on stack");
+    std::__throw_runtime_error("call16_invoke will stomp on stack");
   }
 
   decltype(auto) call16_thunk = (*(call16_thunk_layout*)call16_thunk_target);
@@ -38,15 +38,11 @@ static inline std::uint32_t call16_invoke(x86arch::call16_context& ctx, Target c
   {  
     x86arch::disable_interrupts _;
     save_mask = pic8259::read_mask();    
-    pic8259::write_mask(ctx.irq_mask);
+    pic8259::write_mask(ctx.irq_mask);    
     pic8259::switch_to_real_mode();
-    save_idtr = x86arch::sidt();
-    x86arch::lidt (x86arch::Xdtr_t{ .limit = 0x400, .base = nullptr });
-
-    //__debugbreak();
+    
     ((call16_function*)&call16_thunk.code[0])();
 
-    x86arch::lidt (save_idtr);
     pic8259::switch_to_prot_mode();
     pic8259::write_mask (save_mask);
   }

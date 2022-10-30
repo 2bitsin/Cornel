@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <hardware/x86address16.hpp>
+#include <hardware/x86/address16.hpp>
 
 #include <pxenv/core.hpp>
 

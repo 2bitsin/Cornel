@@ -12,5 +12,6 @@ struct progress_notify: ::pxenv::tftp::Inotify
   bool update_sizes (std::size_t total_size, std::size_t) override;
   bool progress (std::span<const std::byte> buffer, std::size_t, std::size_t offset) override;
   bool finalize (std::size_t) override;
+  auto failure (::pxenv::pxenv_status status) -> ::pxenv::pxenv_status override;
 };
 

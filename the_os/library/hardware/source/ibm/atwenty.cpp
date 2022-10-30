@@ -1,9 +1,9 @@
 #include <cstdlib>
 
-#include <hardware/atwenty.hpp>
-#include <hardware/x86assembly.hpp>
-#include <hardware/kbdctrl.hpp>
-#include <hardware/pic8259.hpp>
+#include <hardware/x86/assembly.hpp>
+#include <hardware/ibm/atwenty.hpp>
+#include <hardware/ibm/kbdctrl.hpp>
+#include <hardware/ibm/pic8259.hpp>
 
 static inline const constexpr std::uint8_t FAST_GATE_A20_ENABLE_BIT = 0x02u;
 static inline const constexpr std::uint8_t FAST_GATE_RESET_BIT = 0x01u;

@@ -5,6 +5,8 @@
 #include <span>
 #include <string_view>
 
+#include <pxenv/status.hpp>
+
 namespace pxenv::tftp
 {
   struct params;
@@ -16,6 +18,7 @@ namespace pxenv::tftp
     virtual bool update_sizes (std::size_t byte_to_download, std::size_t packet_size);    
     virtual bool progress (std::span<const std::byte> buffer, std::size_t packet_number, std::size_t offset);
     virtual bool finalize (std::size_t bytes_downloaded);
+    virtual auto failure (pxenv_status status) -> pxenv_status;
     static auto null() -> Inotify&;
   protected:
     Inotify() = default;

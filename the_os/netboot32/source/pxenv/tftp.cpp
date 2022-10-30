@@ -111,10 +111,11 @@ auto pxenv::tftp::download (std::string_view file_name, pxenv::tftp::params opti
 
   status = pxenv::tftp::get_fsize(file_name, file_size, options);
   if (status != pxenv_status::success)
-    return { status, {} };
+    return { notify_i.failure(status), {} };
+
   status = pxenv::tftp::open(file_name, packet_size, options);
   if (status != pxenv_status::success)
-    return { status, {} };
+    return { notify_i.failure(status), {} };
 
   if (!notify_i.update_sizes(file_size, packet_size)) 
     return { pxenv_status::tftp_request_cancelled, {} };
@@ -125,13 +126,16 @@ auto pxenv::tftp::download (std::string_view file_name, pxenv::tftp::params opti
   for (bytes_read = 0u; bytes_read < file_size; ) 
   {
     std::span<std::byte> out_packet_buffer = packet_buffer;  
+
     status = pxenv::tftp::read(out_packet_buffer, curr_packet);    
     if (status != pxenv_status::success)
-      return { status, {} };
+      return { notify_i.failure(status), {} };
     if (curr_packet != last_packet + 1u) 
-      return { pxenv_status::tftp_invalid_packet_number, {} };
+      return { notify_i.failure(pxenv_status::tftp_invalid_packet_number), {} };
+
     if (!notify_i.progress(out_packet_buffer, curr_packet, bytes_read))
       return { pxenv_status::tftp_request_cancelled, {} };
+
     auto dest_buffer_range = entire_buffer.subspan(bytes_read, out_packet_buffer.size());
     std::ranges::copy(out_packet_buffer, std::begin(dest_buffer_range));
     last_packet = curr_packet;
@@ -139,9 +143,11 @@ auto pxenv::tftp::download (std::string_view file_name, pxenv::tftp::params opti
     if (out_packet_buffer.size () < packet_size)
       break;
   }
+
   if (!notify_i.finalize(bytes_read)) {
     return { pxenv_status::tftp_request_cancelled, {} };
   }
+
   pxenv::tftp::close();  
   return { status, std::move(entire_buffer) };
 }

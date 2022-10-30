@@ -218,6 +218,19 @@ namespace textio::fmt::detail
     }     
   }; 
 
+  template <typename Char_type, meta::string Options, size_t N>  
+  struct format_convert<meta::string<N, Char_type>, Char_type, Options>
+  {   
+    using char_type   = Char_type;
+    using value_type  = Char_type[N];
+        
+    template <std::output_iterator<char> OIterator>
+    static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
+    {
+      using format_sv = format_convert<std::basic_string_view<char_type>, char_type, Options>;
+      return format_sv::apply(o_iterator, value);
+    }     
+  }; 
   
   template <typename Value_type, typename Char_type, meta::string Options>
   requires (std::is_integral_v<Value_type>)

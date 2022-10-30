@@ -1,7 +1,8 @@
 #include <netboot/progress.hpp>
-
-#include <textio/format.hpp>
+#include <textio/logger.hpp>
 #include <textio/format/helpers/repeat_value.hpp>
+
+declare_module(Netboot);
 
 bool progress_notify::initialize (std::string_view& name, ::pxenv::tftp::params&)
 {
@@ -20,8 +21,8 @@ bool progress_notify::progress (std::span<const std::byte> buffer, std::size_t, 
   using namespace textio::fmt;
   using namespace textio::fmt::helpers;
   offset += buffer.size();
-  const auto length = offset*50/m_final_size;
-  format_to<"  * {:s} [{:_<50}] {:>3d}%\r"> (stdout, m_file_name, repeat_value(length, char('=')), length*2);
+  const auto length = offset*25/m_final_size;
+  Gmod.info<"{:s} [{:_<25}] {:>3d}%\r", false> (m_file_name, repeat_value(length, char('X')), length*4);
   return true;
 }
 
@@ -29,6 +30,14 @@ bool progress_notify::finalize (std::size_t)
 {
   using namespace textio::fmt;
   using namespace textio::fmt::helpers;
-  format_to<"  * {:s} [{:_<50}] {:>3d}%\n"> (stdout, m_file_name, repeat_value(50, char('=')), 100);
+  Gmod.info<"{:s} [{:_<25}] {:>3d}%"> (m_file_name, repeat_value(25, char('X')), 100);
   return true;
+}
+
+auto progress_notify::failure (::pxenv::pxenv_status status) 
+  -> ::pxenv::pxenv_status
+{
+  using namespace textio::fmt;
+  Gmod.error<"\nDownload of {:s} failed with status {:x}"> (m_file_name, (std::uint16_t)status);
+  return status;
 }

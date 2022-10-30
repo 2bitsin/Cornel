@@ -1,6 +1,6 @@
 #include <utility>
 
-#include <hardware/x86call16_stack.hpp>
+#include <hardware/x86/call16_stack.hpp>
 
 
 x86arch::call16_stack::call16_stack(call16_context& context, std::size_t size) noexcept

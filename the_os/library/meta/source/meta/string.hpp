@@ -218,8 +218,14 @@ namespace meta
     template <std::size_t Offset, std::size_t Size = 0>
     constexpr auto substr() const-> string<0u, char_type> { return {}; }
     
-    static inline constexpr auto npos = size_t(-1);
+    static inline constexpr auto npos = size_t(-1);    
   };
+
+  template <typename Char_type>
+  using empty_string_t = string<0u, Char_type>;
+
+  template <typename Char_type>
+  static inline constexpr auto empty_string_v = empty_string_t<Char_type>{};
   
   template <typename CharT, size_t Count>
   string(CharT const (&data)[Count]) -> string<Count, CharT>;

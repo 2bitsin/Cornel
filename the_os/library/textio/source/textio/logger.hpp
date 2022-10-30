@@ -26,7 +26,7 @@ namespace textio
     };
 
     template <level_type Value>
-    static inline constexpr const auto& level_as_string()
+    static constexpr const auto& level_as_string()
     {
       if constexpr (Value == level_type::none) 
         return meta::string_truncate_v<"NONE">;     
@@ -43,10 +43,10 @@ namespace textio
       else if constexpr (Value == level_type::trace)
         return meta::string_truncate_v<"TRACE">;      
       else
-        return meta::string<0u, char>{};
+        return meta::empty_string_v<char>;
     }
     
-    static inline constexpr auto level_as_string(level_type value) noexcept
+    static constexpr auto level_as_string(level_type value) noexcept
       -> std::string_view
     {
 
@@ -70,17 +70,17 @@ namespace textio
       }
     }   
 
-    static inline auto level(level_type value) -> level_type
+    static auto level(level_type value) -> level_type
     {
       return std::exchange (G_current_level, value);
     }
 
-    static inline auto level() -> level_type
+    static auto level() -> level_type
     {
       return G_current_level;
     }
 
-    static inline auto level_check(level_type value) -> bool
+    static auto level_check(level_type value) -> bool
     {
       using ul_type = std::underlying_type_t<level_type>;
       return (ul_type)G_current_level >= (ul_type)value;
@@ -94,17 +94,17 @@ namespace textio
   struct logger_module_base: logger_base
   {   
     
-    static inline auto level(level_type value) -> level_type
+    static auto level(level_type value) -> level_type
     {
       return std::exchange (G_current_level, value);
     }
 
-    static inline auto level() -> level_type
+    static auto level() -> level_type
     {
       return G_current_level;
     }
 
-    static inline auto level_check(level_type value) -> bool
+    static auto level_check(level_type value) -> bool
     {
       if (!logger_base::level_check(value))
         return false;
@@ -116,64 +116,61 @@ namespace textio
     static inline level_type G_current_level = level_type::all;
   };
 
-  template <meta::string Module = meta::string<0u, char>{}, typename Output_type = detail::cstdio_iterator>
+  template <meta::string Module = meta::empty_string_v<char>, typename Output_type = detail::cstdio_iterator>
   struct logger_module: logger_module_base<Module>
   {
     using output_type = Output_type;
 
-    inline logger_module(Output_type output_handle = Output_type{ }) noexcept
+    logger_module(Output_type output_handle = Output_type{ }) noexcept
     : m_output { output_handle }
     { }
     
-    template<logger_base::level_type Level, meta::string Format_string, typename... Args>
-    inline auto log(Args&& ... args) noexcept -> logger_module&
+    template<logger_base::level_type Level, meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>    
+    auto log(Args&& ... args) noexcept -> logger_module&
     {
       using textio::fmt::format_to;
       
       if constexpr (Level != logger_base::level_type::none)
       {
-        if (!logger_module_base<Module>::level_check(Level))
-          return *this;
-
-        if constexpr (!Module.empty())
+        if (!logger_module_base<Module>::level_check(Level)) 
         {
-          constexpr std::string_view  module_s { meta::string_truncate_v<Module> };
-          constexpr std::string_view  level_s  { logger_base::level_as_string(Level) };
-          constexpr meta::string      format_s { meta::string_truncate_v<"({}) {:s}: ">, 
-                                                 meta::string_truncate_v<Format_string>,
-                                                 meta::string_truncate_v<"\n"> };
-
-          m_output = format_to<format_s>(m_output, module_s, level_s, std::forward<Args>(args)...);
           return *this;
         }
-        else
-        {
-          constexpr std::string_view  level_s  { logger_base::level_as_string(Level) };
-          constexpr meta::string      format_s { meta::string_truncate_v<"{:s}: ">, 
-                                                 meta::string_truncate_v<Format_string>,
-                                                 meta::string_truncate_v<"\n"> };
+      }
 
-          m_output = format_to<format_s>(m_output, level_s, std::forward<Args>(args)...);
-          return *this;
-        }
+      if constexpr (!Module.empty())
+      {
+        static constexpr std::string_view module_s { meta::string_truncate_v<Module> };
+        m_output = format_to<"({}) ">(m_output, module_s);
+      }
+
+      if constexpr (logger_base::level_type::none != Level
+                 && logger_base::level_type::info != Level)
+      {
+        static constexpr std::string_view level_s { logger_base::level_as_string(Level) };
+        m_output = format_to<"{:s}: ">(m_output, level_s);
+      }
+      
+      if constexpr (Append_new_line)
+      {
+        static constexpr meta::string format_s { meta::string_truncate_v<Format_string>, meta::string_truncate_v<"\n"> };     
+        m_output = format_to<format_s>(m_output, std::forward<Args>(args)...);
       }
       else
       {
-        constexpr meta::string      format_s { meta::string_truncate_v<Format_string>,
-                                               meta::string_truncate_v<"\n"> };
-        m_output = format_to<format_s>(m_output, std::forward<Args>(args)...);        
-        return *this;
+        m_output = format_to<Format_string>(m_output, std::forward<Args>(args)...);
       }
+ 
       return *this;
     }
 
-    template<meta::string Format_string, typename... Args> inline auto fatal (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::fatal,   Format_string>(std::forward<Args>(args)...); }
-    template<meta::string Format_string, typename... Args> inline auto error (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::error,   Format_string>(std::forward<Args>(args)...); }
-    template<meta::string Format_string, typename... Args> inline auto warn  (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::warning, Format_string>(std::forward<Args>(args)...); }
-    template<meta::string Format_string, typename... Args> inline auto info  (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::info,    Format_string>(std::forward<Args>(args)...); }
-    template<meta::string Format_string, typename... Args> inline auto debug (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::debug,   Format_string>(std::forward<Args>(args)...); }
-    template<meta::string Format_string, typename... Args> inline auto trace (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::trace,   Format_string>(std::forward<Args>(args)...); }
-    template<meta::string Format_string, typename... Args> inline auto write (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::none,    Format_string>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto fatal (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::fatal,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto error (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::error,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto warn  (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::warning, Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto info  (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::info,    Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto debug (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::debug,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto trace (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::trace,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto write (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::none,    Format_string, Append_new_line>(std::forward<Args>(args)...); }
             
   private:
     output_type m_output;
@@ -183,6 +180,6 @@ namespace textio
   logger_module(Output_type output_i)->logger_module<Module, Output_type>;
 }
 
-#define declare_module(Module) static inline auto Gmod = textio::logger_module<#Module, textio::detail::cstdio_iterator>{stdout}
+#define declare_module(Module) static  auto Gmod = textio::logger_module<#Module, textio::detail::cstdio_iterator>{stdout}
 
-extern textio::logger_module<meta::string<0u, char>{}, textio::detail::cstdio_iterator> Glog;
+extern textio::logger_module<meta::empty_string_v<char>, textio::detail::cstdio_iterator> Glog;

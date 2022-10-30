@@ -121,7 +121,7 @@ namespace textio::fmt::detail
     : format_options(meta::string(value))
     {}
 
-    constexpr format_options(meta::string<0, char_type> const&)
+    constexpr format_options(meta::empty_string_t<char_type> const&)
     {}
 
     template <size_t Size>

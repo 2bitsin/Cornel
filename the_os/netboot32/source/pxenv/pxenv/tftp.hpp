@@ -3,6 +3,8 @@
 #include <pxenv/core.hpp>
 #include <pxenv/tftp_notify.hpp>
 
+#include <memory/buffer.hpp>
+
 namespace pxenv::tftp
 {
   struct params

@@ -3,4 +3,4 @@
 
 #include <cstdio>
 
-textio::logger_module<meta::string<0u, char>{}, textio::detail::cstdio_iterator> Glog { stdout };
+textio::logger_module<meta::empty_string_v<char>, textio::detail::cstdio_iterator> Glog { stdout };

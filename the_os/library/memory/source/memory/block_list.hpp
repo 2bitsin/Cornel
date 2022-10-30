@@ -52,7 +52,14 @@ struct block_list
   auto is_valid(void const* ptr) const noexcept -> bool;
 
   template <typename Anything>   
-  friend auto pretty_print(block_list const& blist, Anything&& oi) noexcept -> void;    
+  friend auto pretty_print(block_list const& blist, Anything&& oi) noexcept -> void;
+
+  template <std::output_iterator<char> OIterator>
+  auto format (OIterator out_i) const noexcept -> OIterator
+  {
+    pretty_print(*this, out_i);
+    return out_i;
+  }
 
   ~block_list();
 

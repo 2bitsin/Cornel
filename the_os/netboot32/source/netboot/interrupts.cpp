@@ -1,16 +1,18 @@
+#include <algorithm>
 #include <string_view>
 #include <cstdio>
+#include <span>
 
 #include <utils/macros.hpp>
 #include <utils/debug.hpp>
-#include <hardware/x86assembly.hpp>
-#include <hardware/pic8259.hpp>
-#include <hardware/rtccmos.hpp>
+#include <hardware/x86/assembly.hpp>
+#include <hardware/ibm/pic8259.hpp>
+#include <hardware/ibm/rtccmos.hpp>
 
 #include <netboot/keyboard.hpp>
 #include <netboot/interrupts.hpp>
 
-#include <textio/format.hpp>
+#include <textio/logger.hpp>
 #include <textio/format/helpers/repeat_value.hpp>
 
 extern "C" const x86arch::Xdtr_t G_idtr;
@@ -53,21 +55,70 @@ static inline constexpr std::string_view G_exception_string [] =
   ""
 };
 
+static constexpr auto GDT_base(std::uint64_t entry) noexcept -> std::uint32_t
+{
+  const auto base0 = ((entry >> 16u) & 0xffffffu) ;
+  const auto base1 = ((entry >> 56u) & 0xffu);
+  return base0 | (base1 << 24u);
+}
+
+static constexpr auto GDT_limit(std::uint64_t entry) noexcept -> std::uint32_t
+{
+  const auto limit0 = ((entry >> 0u) & 0xffffu);
+  const auto limit1 = ((entry >> 48u) & 0xfu);
+  const auto limit = limit0 | (limit1 << 16u);
+  const auto is_4k = (entry >> 55u) & 1u;
+  return ((limit + 1u) * (is_4k ? 4096u : 1u)) - 1u;
+}
+
+static constexpr auto GDT_privilege_level(std::uint64_t entry) noexcept -> std::uint8_t
+{
+  return (entry >> 45u) & 0x3u;
+}
+
+static constexpr auto GDT_type_s(std::uint64_t entry) noexcept 
+  -> std::string_view
+{
+  const bool is_32bit = (entry >> 54u) & 1u;
+  const bool type_bit = (entry >> 44u) & 1u;
+  const bool exec_bit = (entry >> 43u) & 1u;
+  const bool dico_bit = (entry >> 42u) & 1u;
+
+  if (type_bit)
+  {
+    if (exec_bit)
+      return is_32bit ? "CS32" : "CS16";
+    else
+      if (dico_bit)
+        return is_32bit ? "SS32" : "SS16";
+      else
+        return is_32bit ? "DS32" : "DS16";
+  }
+  else 
+  {
+    return "SYSEG";
+  }
+}
+
 static auto ISR_display_crash_info(interrupts::stack_frame const& state) -> void
 {
-  using namespace textio::fmt;
   using namespace textio::fmt::helpers;
 
-  format_to<"{}\n">(stdout, repeat_value<79>('-'));
-  format_to<"Exception #{:08x} - {:s} has occured.\n">(stdout, state.which, G_exception_string[state.which]);
-  format_to<"{}\n">(stdout, repeat_value<79>('-'));
-  format_to<"cs:eip={:#04x}:{:#08x} fs={:#04x} gs={:#04x}\n">(stdout, state.cs, state.eip, state.fs, state.gs);
-  format_to<"ss:esp={:#04x}:{:#08x} ebp={:#08x} (esp{:+d})\n">(stdout, state.ss, state.esp, state.ebp, state.ebp - state.esp);
-  format_to<"ds:esi={:#04x}:{:#08x} es:edi={:#04x}:{:#08x}\n">(stdout, state.ds, state.esi, state.ds, state.edi);
-  format_to<"edx:eax={:#08x}:{:#08x} {:0>20d} {0:0>10d}:{1:0>10d}\n">(stdout, state.edx, state.eax, (state.edx*0x100000000ull + state.eax));
-  format_to<"ecx:ebx={:#08x}:{:#08x} {:0>20d} {0:0>10d}:{1:0>10d}\n">(stdout, state.ecx, state.ebx, (state.ecx*0x100000000ull + state.ebx));
-  format_to<"eflags={:#032b}\n">(stdout, state.eflags);
-  format_to<"{}\n">(stdout, repeat_value<79>('-'));
+  const auto gdt_p = x86arch::sgdt();
+
+  Glog.info(repeat_value<79>('*'));
+  Glog.info<"EXCEPTION #{:02x} ({:s})">(state.which, G_exception_string[state.which]);
+  Glog.info(repeat_value<79>('*'));
+  Glog.info<"EAX={:08x} EBX={:08x} ECX={:08x} EDX={:08x}">(state.eax, state.ebx, state.ecx, state.edx);
+  Glog.info<"ESI={:08x} EDI={:08x} EBP={:08x} ESP={:08x}">(state.esi, state.edi, state.ebp, state.esp);  
+  Glog.info<"EIP={:08x} EFL={:08x}">(state.eip, state.eflags);
+  Glog.info<"CS ={:02x} {:08x} {:08x} {:s} DPL={:d}">(state.cs, GDT_base(gdt_p[state.cs>>3]), GDT_limit(gdt_p[state.cs>>3]), GDT_type_s(gdt_p[state.cs>>3]), GDT_privilege_level(gdt_p[state.cs>>3]));
+  Glog.info<"DS ={:02x} {:08x} {:08x} {:s} DPL={:d}">(state.ds, GDT_base(gdt_p[state.ds>>3]), GDT_limit(gdt_p[state.ds>>3]), GDT_type_s(gdt_p[state.ds>>3]), GDT_privilege_level(gdt_p[state.ds>>3]));
+  Glog.info<"ES ={:02x} {:08x} {:08x} {:s} DPL={:d}">(state.es, GDT_base(gdt_p[state.es>>3]), GDT_limit(gdt_p[state.es>>3]), GDT_type_s(gdt_p[state.es>>3]), GDT_privilege_level(gdt_p[state.es>>3]));
+  Glog.info<"FS ={:02x} {:08x} {:08x} {:s} DPL={:d}">(state.fs, GDT_base(gdt_p[state.fs>>3]), GDT_limit(gdt_p[state.fs>>3]), GDT_type_s(gdt_p[state.fs>>3]), GDT_privilege_level(gdt_p[state.fs>>3]));
+  Glog.info<"GS ={:02x} {:08x} {:08x} {:s} DPL={:d}">(state.gs, GDT_base(gdt_p[state.gs>>3]), GDT_limit(gdt_p[state.gs>>3]), GDT_type_s(gdt_p[state.gs>>3]), GDT_privilege_level(gdt_p[state.gs>>3]));
+  Glog.info<"SS ={:02x} {:08x} {:08x} {:s} DPL={:d}">(state.ss, GDT_base(gdt_p[state.ss>>3]), GDT_limit(gdt_p[state.ss>>3]), GDT_type_s(gdt_p[state.ss>>3]), GDT_privilege_level(gdt_p[state.ss>>3]));
+  Glog.info(repeat_value<79>('*')); 
 }
 
 static auto ISR_dispatch(const std::uint8_t IRQ_num) -> int

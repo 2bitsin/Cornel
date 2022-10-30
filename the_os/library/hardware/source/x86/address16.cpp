@@ -1,7 +1,7 @@
 #include <bits/functexcept.h>
 #include <new>
 
-#include <hardware/x86address16.hpp>
+#include <hardware/x86/address16.hpp>
 
 auto x86arch::address16::from(void const* value) noexcept -> x86arch::address16
 { 

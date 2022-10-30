@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include <netboot/keyboard.hpp>
-#include <hardware/kbdctrl.hpp>
+#include <hardware/ibm/kbdctrl.hpp>
 
 namespace keyboard
 {

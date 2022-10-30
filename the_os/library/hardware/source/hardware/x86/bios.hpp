@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <system_error>
 
-#include "x86bios_data_area.hpp"
+#include "bios_data_area.hpp"
 
 namespace x86arch
 {

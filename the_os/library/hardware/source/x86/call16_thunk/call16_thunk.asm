@@ -2,30 +2,35 @@
    
     use32
     jmp   short call16_thunk
-  _irq_m_ : dw 0xcccc
-    
-  _eax_   : dd 0xcccccccc
-  _ebx_   : dd 0xcccccccc
-  _ecx_   : dd 0xcccccccc
-  _edx_   : dd 0xcccccccc
-  _esi_   : dd 0xcccccccc
-  _edi_   : dd 0xcccccccc
-  _ebp_   : dd 0xcccccccc
 
-  _ds_    : dw 0xcccc
-  _es_    : dw 0xcccc
-  _fs_    : dw 0xcccc
-  _gs_    : dw 0xcccc
+  _irq_m_ : db "AL"   ;dw 0xcccc
+    
+  _eax_   : db "L WO" ;dd 0xcccccccc
+  _ebx_   : db "RK A" ;dd 0xcccccccc
+  _ecx_   : db "ND N" ;dd 0xcccccccc
+  _edx_   : db "O PL" ;dd 0xcccccccc
+  _esi_   : db "AY M" ;dd 0xcccccccc
+  _edi_   : db "AKES" ;dd 0xcccccccc
+  _ebp_   : db " JAC" ;dd 0xcccccccc
+
+  _ds_    : db "K "   ;dw 0xcccc
+  _es_    : db "A "   ;dw 0xcccc
+  _fs_    : db "DU"   ;dw 0xcccc
+  _gs_    : db "LL"   ;dw 0xcccc
   
-  _esp_   : dd 0xcccccccc
-  _ss_    : dw 0xcccc
-  _flags_ : dw 0xcccc
+  _esp_   : db " BOY" ;dd 0xcccccccc
+  _ss_    : db ".."   ;dw 0xcccc
+  _flags_ : db ". "   ;dw 0xcccc
 
   _cs_ip_ : dw call16_thunk.int_xx, 0
 
-  _o_esp_ : dd 0xcccccccc
-  _o_ss_  : dw 0xcccc
-    
+  _o_esp_ : db "ALL " ;dd 0xcccccccc
+  _o_ss_  : db "WO"   ;dw 0xcccc
+  _p_idtr : db "RK"   ;dw 0xcccc
+            db " AND" ;dd 0xcccccccc
+  _r_idtr : dw 0x0400
+            dd 0x00000000
+
   call16_thunk:
     ; save registers
     pushad 
@@ -44,10 +49,11 @@
   .load_code16: 
 
     use16
-
     mov         eax,        cr0
-    and         ax,         0xfe
+    and         al,         0xfe
     mov         cr0,        eax
+    sidt        [cs:_p_idtr]
+    lidt        [cs:_r_idtr]
     jmp         0x00:.real_mode    
   .real_mode:   
     ; ---- enable nmi --------------
@@ -100,6 +106,7 @@
     out         0x70,       al
     ; -------------------------
   .reentering_prot_mode:
+    lidt        [cs:_p_idtr]
     mov         eax,        cr0
     or          ax,         1
     mov         cr0,        eax
@@ -122,4 +129,8 @@
     int         0xcc
     retf
 
-    times 512-($-$$) nop
+  .filler:      db  "ALL WORK AND NO PLAY MAKES JACK A DULL BOY."
+                db  "ALL WORK AND NO PLAY MAKES JACK A DULL BOY."
+                db  "ALL WORK AND NO PLAY MAKES JACK A DULL BOY."
+                db  "ALL WORK AND NO PLAY MAKES JACK A DULL BOY."
+    times 512-($-$$) db 0x1

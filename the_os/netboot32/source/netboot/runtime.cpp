@@ -8,7 +8,7 @@
 #include <utils/macros.hpp>
 #include <utils/debug.hpp>
 
-#include <hardware/x86assembly.hpp>
+#include <hardware/x86/assembly.hpp>
 
 #include <netboot/runtime.hpp>
 

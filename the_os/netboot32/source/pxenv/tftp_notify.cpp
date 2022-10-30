@@ -22,6 +22,11 @@ bool Inotify::finalize (std::size_t)
   return true;
 }
 
+auto Inotify::failure (pxenv_status status) -> pxenv_status
+{
+  return status;
+}
+
 auto Inotify::null() -> Inotify&
 {
   static Inotify null_instance;

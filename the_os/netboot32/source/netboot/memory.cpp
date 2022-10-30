@@ -4,19 +4,22 @@
 #include <memory/block_list.hpp>
 #include <memory/buffer.hpp>
 
-#include <hardware/atwenty.hpp>
-#include <hardware/x86address16.hpp>
-#include <hardware/x86bios.hpp>
+#include <hardware/ibm/atwenty.hpp>
+#include <hardware/x86/address16.hpp>
+#include <hardware/x86/bios.hpp>
 
 #include <netboot/memory.hpp>
 #include <netboot/panick.hpp>
 
 #include <textio/format/helpers/data_size.hpp>
-#include <textio/format.hpp>
-
+#include <textio/logger.hpp>
 
 #include <cstdlib>
 #include <algorithm>
+
+declare_module(Memory);
+
+using textio::fmt::helpers::data_size;
 
 extern "C"
 {
@@ -37,7 +40,10 @@ static void initialize_extended_heap()
 
   // Must enable A20 line to access extended memory
   if (!atwenty::try_enable()) 
-  { panick::cant_enable_atwenty(); }
+  { 
+    Gmod.fatal<"Failed to enable address line 20.">();
+    std::abort();
+  }
 
   do
   {
@@ -56,24 +62,21 @@ static void initialize_extended_heap()
   } 
   while(o_offset != 0u);
   using namespace textio::fmt::helpers;
-#ifndef NO_DEBUG_LOGS
-  format_to<"  * {} Bytes extended memory available.\n">(stdout, data_size(heap_size));  
-#endif
+  
+  Gmod.info<"{} bytes extended memory available.">(data_size(heap_size));
 }
 
 static void initialize_base_heap()
 {
   using x86arch::bda;
-  using namespace textio::fmt;
   using namespace textio::fmt::helpers;
 
   const auto* top_of_heap = (std::byte const *)(bda().base_memory_size * 0x400u);
   std::span heap_bytes { G_heap_begin, top_of_heap };
   // Initialize heap
   G_base_heap.insert_range(heap_bytes);
-#ifndef NO_DEBUG_LOGS
-  format_to<"  * {} Bytes base memory available.\n">(stdout, data_size(heap_bytes.size())); 
-#endif
+
+  Gmod.info<"{} bytes base memory available.">(data_size(heap_bytes.size())); 
 }
 
 
@@ -84,7 +87,12 @@ void* malloc(std::size_t size)
 {
   auto ptr = G_base_heap.allocate(size);
   if (nullptr == ptr)
-  { panick::out_of_memory(size, G_base_heap); }
+  { 
+    Gmod.trace(__func__);
+    Gmod.fatal<"Out of base memory, unable to allocate {} bytes">(data_size(size));
+    Gmod.debug(G_base_heap);
+    std::abort();
+  }
   return ptr;
 }
 
@@ -99,7 +107,12 @@ void* calloc(std::size_t nelem, std::size_t size)
   if (nullptr != ptr) 
   { __builtin_memset(ptr, 0, size); }
   else 
-  { panick::out_of_memory(size, G_base_heap); }
+  { 
+    Gmod.trace(__func__);
+    Gmod.fatal<"Out of base memory, unable to allocate {} bytes">(data_size(size));
+    Gmod.debug(G_base_heap);
+    std::abort();
+  }
   return ptr;
 }
 
@@ -107,7 +120,12 @@ CO_PUBLIC CO_NOINLINE
 void free(void* ptr)
 {
   if(!G_base_heap.deallocate(ptr))
-  { panick::invalid_free(ptr, G_base_heap); }
+  { 
+    Gmod.trace(__func__);
+    Gmod.fatal<"Unable to free memory block at {:#08p}">(ptr);
+    Gmod.debug(G_base_heap);
+    std::abort();
+  }
 }
 
 CO_PUBLIC CO_NOINLINE 
@@ -137,36 +155,59 @@ void* realloc(void* old_ptr, std::size_t new_size)
     G_base_heap.deallocate(old_ptr);
     return new_ptr;
   }
-  
-  panick::out_of_memory(new_size, G_base_heap);
+
+  Gmod.trace(__func__);  
+  Gmod.fatal<"Out of base memory, unable to allocate {} bytes">(data_size(new_size));
+  Gmod.debug(G_base_heap);
+  std::abort();  
 }
 
 CO_NOINLINE
 void operator delete(void* ptr) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
-  { panick::invalid_free(ptr, G_base_heap); }
+  { 
+    Gmod.trace(__func__);
+    Gmod.fatal<"Unable to free memory block at {:#08p}">(ptr);
+    Gmod.debug(G_base_heap);
+    std::abort();
+  }
 }
 
 CO_NOINLINE
 void operator delete[](void* ptr) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
-  { panick::invalid_free(ptr, G_base_heap); }
+  { 
+    Gmod.trace(__func__);
+    Gmod.fatal<"Unable to free memory block at {:#08p}">(ptr);
+    Gmod.debug(G_base_heap);
+    std::abort();
+  }
 }
 
 CO_NOINLINE
 void operator delete(void* ptr, [[maybe_unused]] std::size_t size) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
-  { panick::invalid_free(ptr, G_base_heap); }
+  { 
+    Gmod.trace(__func__);
+    Gmod.fatal<"Unable to free memory block at {:#08p}">(ptr);
+    Gmod.debug(G_base_heap);
+    std::abort();
+  }
 }
 
 CO_NOINLINE
 void operator delete[](void* ptr, [[maybe_unused]] std::size_t size) noexcept
 {
   if(!G_base_heap.deallocate(ptr))
-  { panick::invalid_free(ptr, G_base_heap); }
+  { 
+    Gmod.trace(__func__);
+    Gmod.fatal<"Unable to free memory block at {:#08p}">(ptr);
+    Gmod.debug(G_base_heap);
+    std::abort();
+  }
 }
 
 CO_NOINLINE
@@ -174,7 +215,12 @@ void* operator new[](std::size_t size) noexcept
 {
   auto ptr = G_base_heap.allocate(size);
   if (nullptr == ptr) 
-  { panick::out_of_memory(size, G_base_heap); }
+  { 
+    Gmod.trace(__func__);
+    Gmod.fatal<"Out of base memory, unable to allocate {} bytes">(data_size(size));
+    Gmod.debug(G_base_heap);
+    std::abort();
+  }
   return ptr;
 }
 
@@ -183,7 +229,12 @@ void* operator new(std::size_t size) noexcept
 {
   auto ptr = G_base_heap.allocate(size);
   if (nullptr == ptr) 
-  { panick::out_of_memory(size, G_base_heap); }
+  { 
+    Gmod.trace(__func__);
+    Gmod.fatal<"Out of base memory, unable to allocate {} bytes">(data_size(size));
+    Gmod.debug(G_base_heap);
+    std::abort();
+  }
   return ptr;
 }
 
@@ -194,9 +245,9 @@ namespace memory
     using namespace textio::fmt;
     if (!first_time)
       return;
-  #ifndef NO_DEBUG_LOGS
-    format_to<"Initializing heap ...\n">(stdout);   
-  #endif
+  
+    Gmod.debug<"Initializing heap ...">();   
+  
     initialize_base_heap();
     initialize_extended_heap();
     std::pmr::set_default_resource(&::memory::get_base_heap());
@@ -212,17 +263,27 @@ namespace memory
   {
     auto pointer = G_extended_heap.allocate(size);
     if (nullptr == pointer)
-    { panick::out_of_memory(size, G_extended_heap); }
+    { 
+      Gmod.trace(__func__); 
+      Gmod.fatal<"Out of extended memory, unable to allocate {} bytes">(data_size(size));
+      Gmod.debug(G_extended_heap);
+      std::abort();
+    }
     return pointer;
   }
 
   auto ext_deallocate(void* pointer) -> void
   {
     if (!G_extended_heap.deallocate(pointer))
-    { panick::invalid_free(pointer, G_extended_heap); }
+    { 
+      Gmod.trace(__func__);
+      Gmod.fatal<"Unable to free memory block at {:#08p}">(pointer);
+      Gmod.debug(G_extended_heap);
+      std::abort();
+    }
   }
 
-  static constexpr const char aligment_error [] = "unable to satisfy alignment of more then 16bytes";
+  
   auto get_base_heap() noexcept -> std::pmr::memory_resource&
   {    
     class resource_impl
@@ -231,15 +292,23 @@ namespace memory
     private:    
       CO_NOINLINE
       void* do_allocate(std::size_t size, std::size_t alignment) override {
-        if (alignment > 16)
-          __throw_invalid_argument(aligment_error);
+        if (alignment > 16) 
+        {
+          Gmod.trace(__func__);
+          Gmod.fatal<"unable to satisfy alignment of more then 16bytes">();
+          std::abort();
+        }          
         return std::malloc(size);
       }
 
       CO_NOINLINE
       void do_deallocate(void* ptr, std::size_t, std::size_t alignment) override {
-        if (alignment > 16)        
-          __throw_invalid_argument(aligment_error);
+        if (alignment > 16) 
+        {
+          Gmod.trace(__func__);
+          Gmod.fatal<"unable to satisfy alignment of more then 16bytes">();
+          std::abort();
+        }
         std::free(ptr);
       }
 
@@ -259,14 +328,22 @@ namespace memory
       CO_NOINLINE
       void* do_allocate(std::size_t size, std::size_t alignment) override {
         if (alignment > 16)
-          __throw_invalid_argument(aligment_error);
+        {
+          Gmod.trace(__func__);
+          Gmod.fatal<"unable to satisfy alignment of more then 16bytes">();
+          std::abort();
+        }
         return ext_allocate(size);
       }
 
       CO_NOINLINE
       void do_deallocate(void* ptr, std::size_t, std::size_t alignment) override {
-        if (alignment > 16)        
-          __throw_invalid_argument(aligment_error);
+        if (alignment > 16) 
+        {
+          Gmod.trace(__func__);
+          Gmod.fatal<"unable to satisfy alignment of more then 16bytes">();
+          std::abort();
+        }
         ext_deallocate(ptr);
       }
 
@@ -301,6 +378,8 @@ namespace std::pmr
 
   auto monotonic_buffer_resource::_M_new_buffer(std::size_t, std::size_t) -> void
   {
-    std::__throw_bad_alloc();
+    Gmod.trace(__func__);
+    Gmod.fatal<"monotonic_buffer_resource::_M_new_buffer not implemented">();
+    std::abort();
   }
 }

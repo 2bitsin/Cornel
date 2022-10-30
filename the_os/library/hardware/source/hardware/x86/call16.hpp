@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <call16_thunk/call16_thunk.hpp>
+#include <call16_thunk.hpp>
 
 namespace x86arch
 {
@@ -14,4 +14,4 @@ namespace x86arch
   std::uint32_t call16_invoke (call16_context& ctx, std::uint8_t number);
 }
 
-#include <hardware/x86call16_stack.hpp>
+#include <hardware/x86/call16_stack.hpp>

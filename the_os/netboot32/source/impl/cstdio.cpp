@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cerrno>
 
-#include <hardware/console.hpp>
+#include <hardware/ibm/console.hpp>
 #include <utils/debug.hpp>
 #include <utils/macros.hpp>
 

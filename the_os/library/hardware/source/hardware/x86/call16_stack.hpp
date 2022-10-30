@@ -6,8 +6,8 @@
 #include <cstring>
 #include <memory_resource>
 
-#include <hardware/x86call16.hpp>
-#include <hardware/x86address16.hpp>
+#include <hardware/x86/call16.hpp>
+#include <hardware/x86/address16.hpp>
 
 #include <memory/buffer.hpp>  
 

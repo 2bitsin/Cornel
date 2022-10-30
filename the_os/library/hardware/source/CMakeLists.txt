@@ -1,16 +1,6 @@
-add_subdirectory(call16_thunk)
-add_library(hardware 
-  hardware.cpp 
-  pic8259.cpp 
-  console.cpp 
-  kbdctrl.cpp 
-  atwenty.cpp 
-  x86call16.cpp
-  x86call16_stack.cpp
-  x86address16.cpp
-  x86bios.cpp
-)
-
+add_subdirectory(x86)
+add_subdirectory(ibm)
+add_library(hardware hardware.cpp)
 target_include_directories(hardware PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(hardware PUBLIC cimpl utils textio memory call16_thunk)
+target_link_libraries(hardware PUBLIC hardware.x86 hardware.ibm utils textio memory)
 set_target_properties(hardware PROPERTIES CXX_STANDARD 23)
