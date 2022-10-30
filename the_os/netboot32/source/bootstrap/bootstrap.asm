@@ -34,28 +34,10 @@ gdtr_bits:
     include "console.asi"
 
 preamble:
-    add     sp,     4     
-    pop     eax                   ; Grab pointer to !PXE structure
 
     xor     sp,     sp
     mov     ss,     sp
     mov     sp,     LOAD_ADDRESS  ; Reset stack pointer
-
-  macro comment
-  {
-    movzx   edx,    ax            ; edx = offset of !PXE structure
-    shr     eax,    16            ; eax = segment of !PXE structure
-    shl     eax,    4             ; eax = segment of !PXE structure * 16
-    add     eax,    edx           ; eax = linear address of !PXE structure
-    push    eax                   ; push pointer to !PXE structure
-
-    mov     ax,     es            ; ax = segment of PXENV+ structure
-    movzx   eax,    ax            ; eax = segment PXENV+ structure
-    shl     eax,    4             ; eax = PXENV+ structure * 16
-    movzx   ebx,    bx            ; ebx = offset PXENV+ structure
-    add     eax,    ebx           ; eax = linear address PXENV+ structure
-    push    eax                   ; push pointer to PXENV+ structure
-  }
 
     mov     ax,     cs            ; ax = segment of PXENV+ structure
     mov     ds,     ax            ; 
@@ -101,6 +83,6 @@ use32
 
     include "reboot.asi"
 
-;   times ((($ + 0xf) and not 0xf) - $) nop
+    times ((($ + 0xf) and not 0xf) - $) nop
 
 start_32bit_code:
