@@ -46,7 +46,7 @@ namespace textio
         return meta::empty_string_v<char>;
     }
     
-    static constexpr auto level_as_string(level_type value) noexcept
+    static constexpr auto level_as_string(level_type value) 
       -> std::string_view
     {
 
@@ -121,12 +121,12 @@ namespace textio
   {
     using output_type = Output_type;
 
-    logger_module(Output_type output_handle = Output_type{ }) noexcept
+    logger_module(Output_type output_handle = Output_type{ }) 
     : m_output { output_handle }
     { }
     
     template<logger_base::level_type Level, meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>    
-    auto log(Args&& ... args) noexcept -> logger_module&
+    auto log(Args&& ... args)  -> logger_module&
     {
       using textio::fmt::format_to;
       
@@ -163,14 +163,14 @@ namespace textio
  
       return *this;
     }
-
-    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto fatal (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::fatal,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
-    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto error (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::error,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
-    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto warn  (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::warning, Format_string, Append_new_line>(std::forward<Args>(args)...); }
-    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto info  (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::info,    Format_string, Append_new_line>(std::forward<Args>(args)...); }
-    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto debug (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::debug,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
-    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto trace (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::trace,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
-    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto write (Args&& ... args) noexcept -> logger_module& { return log<logger_base::level_type::none,    Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    // TODO: Instead of using boot Append_new_line, add an selectable line ending, e.g. "\n", "\r\n", "\r", etc. that defaults to "\n"
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto fatal (Args&& ... args)  -> logger_module& { return log<logger_base::level_type::fatal,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto error (Args&& ... args)  -> logger_module& { return log<logger_base::level_type::error,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto warn  (Args&& ... args)  -> logger_module& { return log<logger_base::level_type::warning, Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto info  (Args&& ... args)  -> logger_module& { return log<logger_base::level_type::info,    Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto debug (Args&& ... args)  -> logger_module& { return log<logger_base::level_type::debug,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto trace (Args&& ... args)  -> logger_module& { return log<logger_base::level_type::trace,   Format_string, Append_new_line>(std::forward<Args>(args)...); }
+    template<meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>  auto write (Args&& ... args)  -> logger_module& { return log<logger_base::level_type::none,    Format_string, Append_new_line>(std::forward<Args>(args)...); }
             
   private:
     output_type m_output;

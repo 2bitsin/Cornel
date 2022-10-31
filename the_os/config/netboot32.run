@@ -1,2 +1,2 @@
-say "Hello World!\n"
-say "This is ME!\n"
+echo "Starting netboot32.run ..."
+

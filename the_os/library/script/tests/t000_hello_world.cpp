@@ -64,15 +64,15 @@ struct executor: script
 {
 	O out_i;
 	
-	executor(O out_i) noexcept: out_i(out_i) {}
+	executor(O out_i) : out_i(out_i) {}
 
-	auto stdout_handle() const noexcept
+	auto stdout_handle() const 
 	{
 		return out_i;
 	}
 
 	template <meta::string Format_string>
-	auto log(auto&& ... what) noexcept
+	auto log(auto&& ... what) 
 	{
 		using textio::fmt::format_to;
 		format_to<Format_string>(stdout_handle(), std::forward<decltype(what)>(what)...);

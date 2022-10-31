@@ -36,7 +36,7 @@ namespace pxenv::dhcp
        );
     }
 
-    auto value () const noexcept -> std::uint32_t { return m_value; }
+    auto value () const  -> std::uint32_t { return m_value; }
 
   private:
     std::uint32_t const& m_value;    
@@ -57,7 +57,7 @@ namespace pxenv::dhcp
       return out;
     }
 
-    auto value () const noexcept -> std::span<const std::uint8_t> { return m_value; }
+    auto value () const  -> std::span<const std::uint8_t> { return m_value; }
 
   private:
     std::span<const std::uint8_t> m_value;
@@ -68,22 +68,22 @@ namespace pxenv::dhcp
     auto        data() const -> layout const*;
     auto        size() const -> std::size_t;
     
-    auto    is_valid() const noexcept -> bool;
+    auto    is_valid() const  -> bool;
  
-    auto   client_ip() const noexcept -> ip_address_v4;
-    auto     your_ip() const noexcept -> ip_address_v4;
-    auto   server_ip() const noexcept -> ip_address_v4;
-    auto  gateway_ip() const noexcept -> ip_address_v4;
+    auto   client_ip() const  -> ip_address_v4;
+    auto     your_ip() const  -> ip_address_v4;
+    auto   server_ip() const  -> ip_address_v4;
+    auto  gateway_ip() const  -> ip_address_v4;
 
-    auto client_addr() const noexcept -> client_address;
+    auto client_addr() const  -> client_address;
 
-    auto tftp_server() const noexcept -> pxenv::tftp::params;
+    auto tftp_server() const  -> pxenv::tftp::params;
 
     static auto cached (packet_type_id packet_type = packet_type_id::cached_reply) -> std::tuple<pxenv_status, dhcp::info>;
 
   protected:
-    info(layout const* data, std::size_t size) noexcept;
-    info() noexcept;
+    info(layout const* data, std::size_t size) ;
+    info() ;
 
   private:
     std::size_t m_size { 0 };

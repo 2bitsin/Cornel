@@ -11,7 +11,7 @@ namespace keyboard
   static volatile std::uint8_t G_last_scancode = 0x00u;
   static volatile bool G_keyboard_state [256];
     
-  bool is_pressed(std::uint16_t value) noexcept
+  bool is_pressed(std::uint16_t value) 
   {
     switch (value)
     {
@@ -28,7 +28,7 @@ namespace keyboard
     return G_keyboard_state[value];
   }
 
-  void irq() noexcept
+  void irq() 
   {
     auto curr_scancode = kbdctrl::read_data(kbdctrl::dont_wait);
     if (curr_scancode != 0xE0u) 

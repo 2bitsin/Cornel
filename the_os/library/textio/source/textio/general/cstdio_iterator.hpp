@@ -31,13 +31,13 @@ namespace textio::detail
 			return *this; 
 		}
 
-    auto operator * () noexcept -> cstdio_iterator&
+    auto operator * ()  -> cstdio_iterator&
 		{ return *this; }
 		
-    auto operator ++ () noexcept -> cstdio_iterator&
+    auto operator ++ ()  -> cstdio_iterator&
 		{ return *this; }
 
-    auto operator ++ (int) noexcept -> cstdio_iterator
+    auto operator ++ (int)  -> cstdio_iterator
 		{ return *this; }
 
 		cstdio_iterator(std::FILE* file = stdout)
@@ -50,7 +50,7 @@ namespace textio::detail
 		cstdio_iterator& operator = (const cstdio_iterator&) = default;
 		cstdio_iterator& operator = (cstdio_iterator&&) = default;
 
-		auto status() const noexcept -> int
+		auto status() const  -> int
 		{
 			return m_errno;
 		}

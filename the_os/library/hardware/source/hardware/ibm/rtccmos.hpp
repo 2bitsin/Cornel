@@ -5,9 +5,9 @@
 
 namespace rtccmos
 {
-  void nmi_enable() noexcept;
-  void nmi_disable() noexcept;
-  auto read_byte(std::uint8_t addr) noexcept -> std::uint8_t;
+  void nmi_enable() ;
+  void nmi_disable() ;
+  auto read_byte(std::uint8_t addr)  -> std::uint8_t;
 
   static inline constexpr auto ADDR_SECONDS_REG           = 0x00u;
   static inline constexpr auto ADDR_ALARM_SECONDS_REG     = 0x01u;

@@ -67,7 +67,7 @@ namespace memory
     using allocator_type = Allocator;
     using value_type = T;
 
-    inline buffer() noexcept 
+    inline buffer()  
     : m_allocator { nullptr }
     , m_buffer_sp { }
     {}
@@ -83,7 +83,7 @@ namespace memory
       std::copy(prev.begin(), prev.end(), begin());
     }
 
-    inline buffer(buffer&& prev) noexcept
+    inline buffer(buffer&& prev) 
 		: m_allocator { std::exchange (prev.m_allocator, nullptr) }
     , m_buffer_sp { std::exchange (prev.m_buffer_sp, std::span<T>{ }) }
     {
@@ -110,7 +110,7 @@ namespace memory
       return *this;
     }
 
-    inline void swap(buffer& other) noexcept
+    inline void swap(buffer& other) 
     {
       std::swap(m_allocator, other.m_allocator);
       std::swap(m_buffer_sp, other.m_buffer_sp);
@@ -132,40 +132,40 @@ namespace memory
       std::construct_at(this, allocator, size);
     }
 
-    inline auto size () const noexcept -> std::size_t { return m_buffer_sp.size(); }  
-    inline auto empty() const noexcept -> bool { return m_buffer_sp.empty(); }
+    inline auto size () const  -> std::size_t { return m_buffer_sp.size(); }  
+    inline auto empty() const  -> bool { return m_buffer_sp.empty(); }
     
-    inline auto data () const noexcept { return m_buffer_sp.data(); }
-    inline auto begin() const noexcept { return m_buffer_sp.begin(); }
-    inline auto end  () const noexcept { return m_buffer_sp.end(); }
+    inline auto data () const  { return m_buffer_sp.data(); }
+    inline auto begin() const  { return m_buffer_sp.begin(); }
+    inline auto end  () const  { return m_buffer_sp.end(); }
 
-    inline auto data () noexcept { return m_buffer_sp.data(); }
-    inline auto begin() noexcept { return m_buffer_sp.begin(); }
-    inline auto end  () noexcept { return m_buffer_sp.end(); }
+    inline auto data ()  { return m_buffer_sp.data(); }
+    inline auto begin()  { return m_buffer_sp.begin(); }
+    inline auto end  ()  { return m_buffer_sp.end(); }
 
     template <typename... Args>
-    inline auto subspan(Args&&... args) const noexcept -> std::span<const T>
+    inline auto subspan(Args&&... args) const  -> std::span<const T>
     { return m_buffer_sp.subspan(std::forward<Args>(args)...); }
 
     template <typename... Args>
-    inline auto subspan(Args&&... args) noexcept -> std::span<T>
+    inline auto subspan(Args&&... args)  -> std::span<T>
     { return m_buffer_sp.subspan(std::forward<Args>(args)...); }
 
-    inline operator std::span<const value_type> () const noexcept
+    inline operator std::span<const value_type> () const 
     { return m_buffer_sp; }
 
-    inline operator std::span<value_type> () noexcept
+    inline operator std::span<value_type> () 
     { return m_buffer_sp; }
 
     template <typename Q>
     requires (sizeof(Q) == sizeof(value_type))  
-    inline operator std::basic_string_view<Q> () const noexcept
+    inline operator std::basic_string_view<Q> () const 
     { return std::basic_string_view<Q> { (Q const*)m_buffer_sp.data(), m_buffer_sp.size() }; }
 
-    inline auto operator [] (std::size_t index) const noexcept -> const value_type&
+    inline auto operator [] (std::size_t index) const  -> const value_type&
     { return m_buffer_sp[index]; }
 
-    inline auto operator [] (std::size_t index) noexcept -> value_type&
+    inline auto operator [] (std::size_t index)  -> value_type&
     { return m_buffer_sp[index]; }
 
   private:

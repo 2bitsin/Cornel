@@ -49,11 +49,11 @@ namespace pxenv::dhcp
   };
 #pragma pack(pop)
 
-  info::info() noexcept
+  info::info() 
   : info(nullptr, 0u)
   {}
 
-  info::info(layout const* data, std::size_t size) noexcept
+  info::info(layout const* data, std::size_t size) 
   : m_size { size }
   , m_data { data }     
   {}
@@ -64,37 +64,37 @@ namespace pxenv::dhcp
   auto info::size() const -> std::size_t
   { return m_size; }
 
-  auto info::is_valid() const noexcept -> bool
+  auto info::is_valid() const  -> bool
   {
     return sizeof(layout) <= m_size && nullptr != m_data;
   }
   
-  auto info::client_ip() const noexcept -> ip_address_v4
+  auto info::client_ip() const  -> ip_address_v4
   {
     return m_data->ciaddr;
   }
 
-  auto info::your_ip() const noexcept -> ip_address_v4
+  auto info::your_ip() const  -> ip_address_v4
   {
     return m_data->yiaddr;
   }
 
-  auto info::server_ip() const noexcept -> ip_address_v4
+  auto info::server_ip() const  -> ip_address_v4
   {
     return m_data->siaddr;
   }
 
-  auto info::gateway_ip() const noexcept -> ip_address_v4
+  auto info::gateway_ip() const  -> ip_address_v4
   {
     return m_data->giaddr;
   }
 
-  auto info::client_addr() const noexcept -> client_address
+  auto info::client_addr() const  -> client_address
   {
     return client_address({&m_data->chaddr[0], m_data->hlen});
   }
 
-  auto info::tftp_server() const noexcept -> ::pxenv::tftp::params
+  auto info::tftp_server() const  -> ::pxenv::tftp::params
   {
     return ::pxenv::tftp::params 
     {

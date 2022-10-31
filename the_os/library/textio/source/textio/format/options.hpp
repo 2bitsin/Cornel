@@ -230,7 +230,7 @@ namespace textio::fmt::detail
         ::textio::detail::throw_invalid_argument("Invalid format string: garbage at the end of options string");
       }
     }   
-    inline constexpr auto base() const noexcept 
+    inline constexpr auto base() const  
       -> std::size_t
     { 
       switch (format_type)
@@ -250,7 +250,7 @@ namespace textio::fmt::detail
       }
     }
 
-    inline constexpr auto prefix_string() const noexcept 
+    inline constexpr auto prefix_string() const  
       -> std::basic_string_view<char_type>
     {
       switch (format_type)
@@ -270,12 +270,12 @@ namespace textio::fmt::detail
       }     
     }
 
-    inline constexpr auto is_upper() const noexcept
+    inline constexpr auto is_upper() const 
     {
       return format_type == fmt_type::upper_hexadecimal 
           || format_type == fmt_type::upper_pointer ;
     }
-    inline constexpr auto is_lower() const noexcept
+    inline constexpr auto is_lower() const 
     {
       return format_type == fmt_type::lower_hexadecimal 
           || format_type == fmt_type::lower_pointer ;

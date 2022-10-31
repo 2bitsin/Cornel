@@ -3,6 +3,9 @@
 #include <string_view>
 #include <string>
 #include <utility>
+#include <optional>
+
+
 namespace script
 {
   
@@ -13,7 +16,7 @@ namespace script
   {     
     static inline constexpr auto G_white_space = " \t\r\n"sv;
     
-    static inline constexpr auto is_white_space(char char_v) noexcept -> bool
+    static inline constexpr auto is_white_space(char char_v)  -> bool
     {
       return G_white_space.find(char_v) != std::string_view::npos;
     }
@@ -34,8 +37,8 @@ namespace script
       if(pos != std::string_view::npos)
         string_v.remove_suffix(string_v.size() - pos);
     }
-      
-    auto execute(auto&& executor_v, std::string_view text_v) noexcept -> interpreter&
+    
+    auto execute(auto&& executor_v, std::string_view text_v, bool halt_after_error_v = true) -> interpreter&
     {
       std::string_view line;
       while (!text_v.empty())
@@ -61,13 +64,23 @@ namespace script
         // Otherwise tokenize and execute the line
         tokenize(std::forward<decltype(executor_v)>(executor_v), line);
         executor_v.end();
-        
+        m_last_status = executor_v.status();
+        if (halt_after_error_v) {
+          if (!m_last_status || *m_last_status != 0)
+            break;
+        }
       }
       return *this;
     }
 
+    auto last_status() const 
+      -> std::optional<int>
+    {
+      return m_last_status;
+    }
+
   protected:        
-    auto tokenize(auto&& executor_v, std::string_view line_v) noexcept -> interpreter&
+    auto tokenize(auto&& executor_v, std::string_view line_v)  -> interpreter&
     {     
       if (line_v.empty())
         return *this;
@@ -104,6 +117,8 @@ namespace script
         }
       }
       return *this;
-    }     
+    }
+  private:
+    std::optional<int> m_last_status;
   };  
 }

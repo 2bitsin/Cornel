@@ -3,7 +3,7 @@
 
 #include <hardware/x86/address16.hpp>
 
-auto x86arch::address16::from(void const* value) noexcept -> x86arch::address16
+auto x86arch::address16::from(void const* value)  -> x86arch::address16
 { 
   using namespace std;
 
@@ -17,7 +17,7 @@ auto x86arch::address16::from(void const* value) noexcept -> x86arch::address16
   };
 }
 
-auto x86arch::address16::as_void_p() const noexcept -> void*
+auto x86arch::address16::as_void_p() const  -> void*
 { 
   return (void*)(seg*0x10u + off); 
 }

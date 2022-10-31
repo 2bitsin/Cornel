@@ -13,7 +13,7 @@ namespace x86arch
   #pragma pack(push, 1)
   struct address16
   {
-    static auto from (void const* value) noexcept -> x86arch::address16;
+    static auto from (void const* value)  -> x86arch::address16;
 
     template <typename T>
     requires requires (T const& so)
@@ -31,21 +31,21 @@ namespace x86arch
     { 
       { what.data() } -> std::convertible_to<void const*>; 
     } 
-    static auto from (T&& what) noexcept -> x86arch::address16
+    static auto from (T&& what)  -> x86arch::address16
     {
       return from(what.data());
     }
 
-    auto as_void_p() const noexcept -> void*;
+    auto as_void_p() const  -> void*;
 
     template <typename T>
-    auto as() const noexcept -> T
+    auto as() const  -> T
     { 
       return std::launder((T)as_void_p()); 
     }
 
     template <std::uintmax_t N>
-    inline auto get() const noexcept
+    inline auto get() const 
     {  
       static_assert(N < 2u);
       if constexpr (N == 0u) 

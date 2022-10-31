@@ -89,7 +89,7 @@ namespace pxenv
     invalid_status                    = 0xFFFFu
   };
 
-  static inline constexpr auto operator ! (const pxenv_status& status) noexcept -> bool
+  static inline constexpr auto operator ! (const pxenv_status& status)  -> bool
   {
     return pxenv_status::success != status;
   }

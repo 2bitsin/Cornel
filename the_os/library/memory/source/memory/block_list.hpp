@@ -37,25 +37,25 @@ struct block_list
 
   block_list();
   
-  auto insert_range(range_type) noexcept -> bool;
+  auto insert_range(range_type)  -> bool;
   
-  auto allocate(std::size_t) noexcept -> void*;
+  auto allocate(std::size_t)  -> void*;
 
-  auto deallocate(void*, std::size_t) noexcept -> bool;
-  auto deallocate(void*) noexcept -> bool;
+  auto deallocate(void*, std::size_t)  -> bool;
+  auto deallocate(void*)  -> bool;
 
-  auto size(void const* ptr) const noexcept -> std::size_t;
+  auto size(void const* ptr) const  -> std::size_t;
 
-  auto reallocate(void*, std::size_t) noexcept -> void*;
+  auto reallocate(void*, std::size_t)  -> void*;
 
-  auto contains(void const* ptr) const noexcept -> bool;
-  auto is_valid(void const* ptr) const noexcept -> bool;
+  auto contains(void const* ptr) const  -> bool;
+  auto is_valid(void const* ptr) const  -> bool;
 
   template <typename Anything>   
-  friend auto pretty_print(block_list const& blist, Anything&& oi) noexcept -> void;
+  friend auto pretty_print(block_list const& blist, Anything&& oi)  -> void;
 
   template <std::output_iterator<char> OIterator>
-  auto format (OIterator out_i) const noexcept -> OIterator
+  auto format (OIterator out_i) const  -> OIterator
   {
     pretty_print(*this, out_i);
     return out_i;
@@ -96,7 +96,7 @@ private:
 
 
 template <typename Anything>
-auto pretty_print(block_list const& blist, Anything&& oss) noexcept -> void
+auto pretty_print(block_list const& blist, Anything&& oss)  -> void
 {
   auto status = [](block_list::block_type const& head) -> std::string_view    
   {

@@ -23,7 +23,7 @@ public:
 
   logged_memory_resource(output_iterator_type& out): m_out(out) {}
 
-  void* do_allocate(std::size_t size, std::size_t align) noexcept override
+  void* do_allocate(std::size_t size, std::size_t align)  override
   {
     using textio::simple::fmt::hex;
     auto ptr = std::pmr::get_default_resource()->allocate(size, align);
@@ -33,7 +33,7 @@ public:
     return ptr;
   }
 
-  void do_deallocate(void* ptr, std::size_t size, std::size_t align) noexcept override 
+  void do_deallocate(void* ptr, std::size_t size, std::size_t align)  override 
   {   
     using textio::simple::fmt::hex;
     m_out = textio::simple::writeln(m_out, "do_deallocate", std::tuple(hex<'&'>(m_ptrs[ptr]), size, align));    
@@ -42,7 +42,7 @@ public:
     std::pmr::get_default_resource()->deallocate(ptr, size, align);
   }
 
-  bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override 
+  bool do_is_equal(const std::pmr::memory_resource& other) const  override 
   { return this == &other; }
 
   template <std::output_iterator<char> I>

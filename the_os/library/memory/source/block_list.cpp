@@ -128,7 +128,7 @@ auto block_list::block_status(block_type const& block) -> block_status_type
   return block_invalid;
 }
 
-auto block_list::insert_range(range_type init) noexcept -> bool
+auto block_list::insert_range(range_type init)  -> bool
 {
   init = block_list::align_range(init);
   
@@ -222,7 +222,7 @@ auto block_list::try_mege_blocks(block_type* lower, block_type* upper) -> block_
   return lower;
 }
 
-auto block_list::allocate(std::size_t size) noexcept -> void*
+auto block_list::allocate(std::size_t size)  -> void*
 { 
   static constexpr const auto Q = sizeof(block_type);
   size = ((size + Q - 1) / Q) * Q + Q;
@@ -245,7 +245,7 @@ auto block_list::defragmentate(block_type* curr) -> void
   while((curr = curr->prev) && try_mege_blocks(curr, curr->next));  
 }
 
-auto block_list::deallocate(void* what) noexcept -> bool
+auto block_list::deallocate(void* what)  -> bool
 {
   auto curr = block_from_pointer(what);
   if (!is_block_allocated(*curr))
@@ -255,7 +255,7 @@ auto block_list::deallocate(void* what) noexcept -> bool
   return true;
 }
 
-auto block_list::size(void const* what) const noexcept -> std::size_t
+auto block_list::size(void const* what) const  -> std::size_t
 {
   auto curr = block_list::block_from_pointer(what);
 
@@ -268,18 +268,18 @@ auto block_list::size(void const* what) const noexcept -> std::size_t
   return curr->size - sizeof(block_type);
 }
 
-auto block_list::deallocate(void* what,[[maybe_unused]] std::size_t size) noexcept -> bool
+auto block_list::deallocate(void* what,[[maybe_unused]] std::size_t size)  -> bool
 {
   return deallocate(what);
 }
 
-auto block_list::contains(void const* ptr) const noexcept -> bool
+auto block_list::contains(void const* ptr) const  -> bool
 {
   auto const b_ptr = (std::byte const*)ptr;
   return m_bits.data() <= b_ptr && b_ptr < (m_bits.data() + m_bits.size());
 }
 
-auto block_list::is_valid(void const* ptr) const noexcept -> bool
+auto block_list::is_valid(void const* ptr) const  -> bool
 {
   auto const b_ptr = block_list::block_from_pointer(ptr);    
   if (nullptr == b_ptr || !block_list::contains(b_ptr))
@@ -298,7 +298,7 @@ auto block_list::probe_available(block_type const* node) -> std::size_t
   return available;
 }
 
-auto block_list::reallocate(void* what, std::size_t a_size) noexcept -> void*
+auto block_list::reallocate(void* what, std::size_t a_size)  -> void*
 {
   static constexpr const auto Q = sizeof(block_type);
   auto size = ((a_size + Q - 1) / Q) * Q + Q;

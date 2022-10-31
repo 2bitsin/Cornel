@@ -7,18 +7,18 @@ namespace keyboard
   void initialize(bool first_time);
   void finalize(bool last_time);
 
-  void irq() noexcept;
+  void irq() ;
 
-  bool is_pressed(std::uint16_t scancode) noexcept;
+  bool is_pressed(std::uint16_t scancode) ;
 
   template <std::convertible_to<std::uint16_t>... Scan_code>
-  bool is_pressed_all(Scan_code... value) noexcept
+  bool is_pressed_all(Scan_code... value) 
   {
     return (is_pressed(value) && ...);
   }
 
   template <std::convertible_to<std::uint16_t>... Scan_code>
-  bool is_pressed_any(Scan_code... value) noexcept
+  bool is_pressed_any(Scan_code... value) 
   {
     return (is_pressed(value) || ...);
   }

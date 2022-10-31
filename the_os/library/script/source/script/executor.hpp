@@ -15,6 +15,7 @@
 
 namespace script::detail
 {     
+  // TODO : instead of std::optional<int> create an "std::expected" like thingy to indicate weather the operation failed to parse/execute etc
 
   static inline auto bounce_string(auto& value_o, auto const& value_i)
   {
@@ -145,7 +146,7 @@ namespace script
        =std::is_same_v<argsv_vec, std::tuple_element_t<last_arg_index, args_tuple>> 
       ||std::is_same_v<argss_vec, std::tuple_element_t<last_arg_index, args_tuple>> ;
      
-    command_base() noexcept
+    command_base() 
     {
       if constexpr (is_variadic) {
         m_args.resize(last_arg_index);
@@ -232,13 +233,13 @@ namespace script
 
     using base = executor<Implementation, Command...>;
 
-    auto self() noexcept 
+    auto self()  
       -> Implementation&
     {
       return (Implementation&)*this;
     }
     
-    auto begin() noexcept
+    auto begin() 
       -> Implementation&
     {     
       m_line += 1u;
@@ -248,7 +249,7 @@ namespace script
       return self();
     }   
 
-    auto end() noexcept
+    auto end() 
       -> Implementation&
     { 
       m_exit_v = std::visit([this]<typename T>(T&& cmd_v) 
@@ -262,6 +263,11 @@ namespace script
         }
       }, m_cmd_v);
       return self();
+    }
+
+    auto status () -> std::optional<status_type>
+    {
+      return m_exit_v;
     }
       
     auto emit(std::string_view value) 
@@ -312,18 +318,26 @@ namespace script
             
       return self();
     }
-        
-    auto error(std::string_view what) noexcept 
+
+    auto error(std::string_view what)  
       -> Implementation&
     { 
       using namespace textio::fmt;
-      format_to<"{} (on line {}), error: {}\n">(self().stdout_handle(), m_cmd_s, m_line, what);
+      self().template format_error<"{} (on line {}), error: {}\n">(m_cmd_s, m_line, what);
       return self();
     }
 
-    auto stdout_handle() const noexcept 
+    auto&& logger() const
     {
-      return stdout;
+      return Glog;
+    }
+
+    template <meta::string Format_string, typename... Args>
+    auto format_error(Args&& ... args) 
+      -> Implementation&
+    {
+      self().logger().template error<Format_string>(std::forward<Args>(args)...);
+      return self();
     }
       
   private:    

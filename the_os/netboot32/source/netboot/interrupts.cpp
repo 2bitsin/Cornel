@@ -55,14 +55,14 @@ static inline constexpr std::string_view G_exception_string [] =
   ""
 };
 
-static constexpr auto GDT_base(std::uint64_t entry) noexcept -> std::uint32_t
+static constexpr auto GDT_base(std::uint64_t entry)  -> std::uint32_t
 {
   const auto base0 = ((entry >> 16u) & 0xffffffu) ;
   const auto base1 = ((entry >> 56u) & 0xffu);
   return base0 | (base1 << 24u);
 }
 
-static constexpr auto GDT_limit(std::uint64_t entry) noexcept -> std::uint32_t
+static constexpr auto GDT_limit(std::uint64_t entry)  -> std::uint32_t
 {
   const auto limit0 = ((entry >> 0u) & 0xffffu);
   const auto limit1 = ((entry >> 48u) & 0xfu);
@@ -71,12 +71,12 @@ static constexpr auto GDT_limit(std::uint64_t entry) noexcept -> std::uint32_t
   return ((limit + 1u) * (is_4k ? 4096u : 1u)) - 1u;
 }
 
-static constexpr auto GDT_dpl(std::uint64_t entry) noexcept -> std::uint8_t
+static constexpr auto GDT_dpl(std::uint64_t entry)  -> std::uint8_t
 {
   return (entry >> 45u) & 0x3u;
 }
 
-static constexpr auto GDT_type_s(std::uint64_t entry) noexcept 
+static constexpr auto GDT_type_s(std::uint64_t entry)  
   -> std::string_view
 {
   const bool is_32bit = (entry >> 54u) & 1u;
@@ -115,7 +115,30 @@ static auto ISR_segment_info(std::string_view register_v, std::span<std::uint64_
 
 static auto ISR_eflags_info(std::uint32_t value_v)
 {
-  Glog.info<"{}{}{}{}">();
+  Glog.info<"{}{}{}{}{}{}{}{}{}IOPL={} {}{}{}{}{}{}{}">(
+    value_v&0x000001u?"CF ":"", 
+    //      0x000002u
+    value_v&0x000004u?"PF ":"",     
+    //      0x000008u
+    value_v&0x000010u?"AF ":"", 
+    //      0x000020u 
+    value_v&0x000040u?"ZF ":"",
+    value_v&0x000080u?"SF ":"",
+    value_v&0x000100u?"TF ":"",
+    value_v&0x000200u?"IF ":"",
+    value_v&0x000400u?"DF ":"",
+    value_v&0x000800u?"OF ":"",
+    //      0x001000u
+    (value_v>>12u)&0x3u,
+    value_v&0x004000u?"NT ":"",
+    //      0x008000u
+    value_v&0x010000u?"RF ":"",
+    value_v&0x020000u?"VM ":"",
+    value_v&0x040000u?"AC ":"",
+    value_v&0x080000u?"VIF ":"",
+    value_v&0x100000u?"VIP ":"",
+    value_v&0x200000u?"ID ":""
+    );
 }
 
 static auto ISR_display_crash_info(interrupts::stack_frame const& state) -> void
@@ -131,6 +154,7 @@ static auto ISR_display_crash_info(interrupts::stack_frame const& state) -> void
   Glog.info<" EAX={:08x} EBX={:08x} ECX={:08x} EDX={:08x}">(state.eax, state.ebx, state.ecx, state.edx);
   Glog.info<" ESI={:08x} EDI={:08x} EBP={:08x} ESP={:08x}">(state.esi, state.edi, state.ebp, state.esp);  
   Glog.info<" EIP={:08x} EFL={:08x}">(state.eip, state.eflags);
+  ISR_eflags_info(state.eflags);
  
   ISR_segment_info("CS", gdt_s, state.cs);
   ISR_segment_info("DS", gdt_s, state.ds);

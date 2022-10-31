@@ -163,7 +163,7 @@ void* realloc(void* old_ptr, std::size_t new_size)
 }
 
 CO_NOINLINE
-void operator delete(void* ptr) noexcept
+void operator delete(void* ptr) 
 {
   if(!G_base_heap.deallocate(ptr))
   { 
@@ -175,7 +175,7 @@ void operator delete(void* ptr) noexcept
 }
 
 CO_NOINLINE
-void operator delete[](void* ptr) noexcept
+void operator delete[](void* ptr) 
 {
   if(!G_base_heap.deallocate(ptr))
   { 
@@ -187,7 +187,7 @@ void operator delete[](void* ptr) noexcept
 }
 
 CO_NOINLINE
-void operator delete(void* ptr, [[maybe_unused]] std::size_t size) noexcept
+void operator delete(void* ptr, [[maybe_unused]] std::size_t size) 
 {
   if(!G_base_heap.deallocate(ptr))
   { 
@@ -199,7 +199,7 @@ void operator delete(void* ptr, [[maybe_unused]] std::size_t size) noexcept
 }
 
 CO_NOINLINE
-void operator delete[](void* ptr, [[maybe_unused]] std::size_t size) noexcept
+void operator delete[](void* ptr, [[maybe_unused]] std::size_t size) 
 {
   if(!G_base_heap.deallocate(ptr))
   { 
@@ -211,7 +211,7 @@ void operator delete[](void* ptr, [[maybe_unused]] std::size_t size) noexcept
 }
 
 CO_NOINLINE
-void* operator new[](std::size_t size) noexcept
+void* operator new[](std::size_t size) 
 {
   auto ptr = G_base_heap.allocate(size);
   if (nullptr == ptr) 
@@ -225,7 +225,7 @@ void* operator new[](std::size_t size) noexcept
 }
 
 CO_NOINLINE
-void* operator new(std::size_t size) noexcept
+void* operator new(std::size_t size) 
 {
   auto ptr = G_base_heap.allocate(size);
   if (nullptr == ptr) 
@@ -284,7 +284,7 @@ namespace memory
   }
 
   
-  auto get_base_heap() noexcept -> std::pmr::memory_resource&
+  auto get_base_heap()  -> std::pmr::memory_resource&
   {    
     class resource_impl
     : public std::pmr::memory_resource
@@ -319,7 +319,7 @@ namespace memory
     return resource;
   }
 
-  auto get_extended_heap() noexcept -> std::pmr::memory_resource&
+  auto get_extended_heap()  -> std::pmr::memory_resource&
   {
     class resource_impl
     : public std::pmr::memory_resource
@@ -361,17 +361,17 @@ namespace std::pmr
 {
   memory_resource::~memory_resource() {}
 
-  auto set_default_resource(memory_resource* resource) noexcept -> memory_resource*
+  auto set_default_resource(memory_resource* resource)  -> memory_resource*
   {
     return std::exchange(G_default_resource, resource);
   }
 
-  auto get_default_resource() noexcept -> memory_resource*
+  auto get_default_resource()  -> memory_resource*
   {
     return G_default_resource;
   }
 
-  auto new_delete_resource() noexcept -> memory_resource*
+  auto new_delete_resource()  -> memory_resource*
   {
     return &memory::get_base_heap();
   }

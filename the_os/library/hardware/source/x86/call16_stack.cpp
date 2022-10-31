@@ -3,11 +3,11 @@
 #include <hardware/x86/call16_stack.hpp>
 
 
-x86arch::call16_stack::call16_stack(call16_context& context, std::size_t size) noexcept
+x86arch::call16_stack::call16_stack(call16_context& context, std::size_t size) 
 : call16_stack(*std::pmr::new_delete_resource(), context, size)
 {}
 
-x86arch::call16_stack::call16_stack(std::pmr::memory_resource& allocator, call16_context& context, std::size_t size) noexcept
+x86arch::call16_stack::call16_stack(std::pmr::memory_resource& allocator, call16_context& context, std::size_t size) 
 : m_context { context }
 , m_buffer  { allocator, size }
 {
@@ -16,7 +16,7 @@ x86arch::call16_stack::call16_stack(std::pmr::memory_resource& allocator, call16
   m_context.esp = stack_address.off + size;      
 }
 
-x86arch::call16_stack::call16_stack(call16_stack&& other) noexcept
+x86arch::call16_stack::call16_stack(call16_stack&& other) 
 : m_context { other.m_context }
 , m_buffer  { std::exchange(other.m_buffer, memory::buffer<std::byte>{}) }
 {
@@ -27,12 +27,12 @@ x86arch::call16_stack::call16_stack(call16_stack&& other) noexcept
   }
 }
 
-auto x86arch::call16_stack::operator = (call16_stack&& other) noexcept -> call16_stack&
+auto x86arch::call16_stack::operator = (call16_stack&& other)  -> call16_stack&
 {
   call16_stack tmp { std::move(other) };
   std::swap(*this, tmp);
   return *this;
 }
     
-x86arch::call16_stack::~call16_stack() noexcept
+x86arch::call16_stack::~call16_stack() 
 {}
