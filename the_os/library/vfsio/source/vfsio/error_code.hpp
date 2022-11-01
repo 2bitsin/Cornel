@@ -15,7 +15,8 @@ namespace vfsio
     path_not_found    = -3,
     access_denied     = -4,
     invalid_argument  = -5,    
-    invalid_mode      = -6
+    invalid_mode      = -6,
+		out_of_bounds			= -7
   }; 
 }
 

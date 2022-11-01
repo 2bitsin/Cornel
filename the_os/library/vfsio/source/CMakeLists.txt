@@ -3,7 +3,7 @@ add_library(vfsio
 	Ibase.cpp
 	Ivolume.cpp
   Iblock.cpp
-)
+  memory_block.cpp)
 
 target_include_directories(vfsio PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 #target_compile_definitions(vfsio PUBLIC _CONTAINER_DEBUG_LEVEL=0 _ITERATOR_DEBUG_LEVEL=0)
