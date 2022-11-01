@@ -9,63 +9,67 @@
 #include <textio/general/cstdio_iterator.hpp>
 #include <textio/format.hpp>
 
+namespace textio::detail
+{
+  enum class level_type: int
+  {
+    none      = -1,
+    fatal     = 0,
+    error     = 1,
+    warning   = 2,
+    info      = 3,
+    debug     = 4,
+    trace     = 5,
+    all       = 6
+  };
+
+  template <level_type Value>
+  struct level_as_string_impl;
+
+  template <> struct level_as_string_impl<level_type::none>    { static constexpr auto value = meta::string_truncate_v< "NONE"    >; };
+  template <> struct level_as_string_impl<level_type::fatal>   { static constexpr auto value = meta::string_truncate_v< "FATAL"   >; };
+  template <> struct level_as_string_impl<level_type::error>   { static constexpr auto value = meta::string_truncate_v< "ERROR"   >; };
+  template <> struct level_as_string_impl<level_type::warning> { static constexpr auto value = meta::string_truncate_v< "WARNING" >; };
+  template <> struct level_as_string_impl<level_type::info>    { static constexpr auto value = meta::string_truncate_v< "INFO"    >; };
+  template <> struct level_as_string_impl<level_type::debug>   { static constexpr auto value = meta::string_truncate_v< "DEBUG"   >; };
+  template <> struct level_as_string_impl<level_type::trace>   { static constexpr auto value = meta::string_truncate_v< "TRACE"   >; };
+  template <> struct level_as_string_impl<level_type::all>     { static constexpr auto value = meta::string_truncate_v< "ALL"     >; };
+
+  template <level_type Value>
+  static inline constexpr auto level_as_string_v = level_as_string_impl<Value>::value;
+}
+
 namespace textio
 {
   struct logger_base
   {
-    enum class level_type: int
-    {
-      none      = -1,
-      fatal     = 0,
-      error     = 1,
-      warning   = 2,
-      info      = 3,
-      debug     = 4,
-      trace     = 5,
-      all       = 6
-    };
+    using level_type = textio::detail::level_type;
 
-    template <level_type Value>
-    static constexpr const auto& level_as_string()
+    template <level_type Level>
+    static constexpr auto level_as_string()
     {
-      if constexpr (Value == level_type::none) 
-        return meta::string_truncate_v<"NONE">;     
-      else if constexpr (Value == level_type::fatal)
-        return meta::string_truncate_v<"FATAL">;      
-      else if constexpr (Value == level_type::error)
-        return meta::string_truncate_v<"ERROR">;              
-      else if constexpr (Value == level_type::warning)
-        return meta::string_truncate_v<"WARNING">;            
-      else if constexpr (Value == level_type::info)
-        return meta::string_truncate_v<"INFO">;           
-      else if constexpr (Value == level_type::debug)
-        return meta::string_truncate_v<"DEBUG">;      
-      else if constexpr (Value == level_type::trace)
-        return meta::string_truncate_v<"TRACE">;      
-      else
-        return meta::empty_string_v<char>;
+      return detail::level_as_string_v<Level>;
     }
-    
+
     static constexpr auto level_as_string(level_type value) 
       -> std::string_view
     {
-
       switch (value)
       {
-      case level_type::none:    
-        return level_as_string<level_type::none>();
+      case level_type::none:  
+        return detail::level_as_string_v<level_type::none>;
       case level_type::fatal:   
-        return level_as_string<level_type::fatal>();
+        return detail::level_as_string_v<level_type::fatal>;
       case level_type::error:   
-        return level_as_string<level_type::error>();
+        return detail::level_as_string_v<level_type::error>;
       case level_type::warning: 
-        return level_as_string<level_type::warning>();
+        return detail::level_as_string_v<level_type::warning>;
       case level_type::info:    
-        return level_as_string<level_type::info>();
+        return detail::level_as_string_v<level_type::info>;
       case level_type::debug:   
-        return level_as_string<level_type::debug>();
+        return detail::level_as_string_v<level_type::debug>;
       case level_type::trace:   
-        return level_as_string<level_type::trace>();
+        return detail::level_as_string_v<level_type::trace>;
       default: return {};     
       }
     }   
@@ -140,25 +144,27 @@ namespace textio
 
       if constexpr (!Module.empty())
       {
-        static constexpr std::string_view module_s { meta::string_truncate_v<Module> };
-        m_output = format_to<"({}) ">(m_output, module_s);
+        constexpr meta::string format_s { meta::string_truncate_v<"(">, 
+                                          meta::string_truncate_v<Module>, 
+                                          meta::string_truncate_v<") "> };
+        m_output = format_to<format_s>(m_output);
       }
 
       if constexpr (logger_base::level_type::none != Level
                  && logger_base::level_type::info != Level)
       {
-        static constexpr std::string_view level_s { logger_base::level_as_string(Level) };
-        m_output = format_to<"{:s}: ">(m_output, level_s);
+        
+        constexpr meta::string format_s { detail::level_as_string_v<Level>, 
+                                          meta::string_truncate_v<": "> };
+
+        m_output = format_to<format_s>(m_output);
       }
       
+      m_output = format_to<Format_string>(m_output, std::forward<Args>(args)...);
+
       if constexpr (Append_new_line)
       {
-        static constexpr meta::string format_s { meta::string_truncate_v<Format_string>, meta::string_truncate_v<"\n"> };     
-        m_output = format_to<format_s>(m_output, std::forward<Args>(args)...);
-      }
-      else
-      {
-        m_output = format_to<Format_string>(m_output, std::forward<Args>(args)...);
+        m_output = format_to<meta::string_truncate_v<"\n">>(m_output);
       }
  
       return *this;

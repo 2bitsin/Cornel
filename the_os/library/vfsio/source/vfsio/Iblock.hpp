@@ -16,24 +16,24 @@ namespace vfsio
   };
 
 
-	enum class device_type
-	{
-		undefined,
-		block,
-		stream,
-		directory
-	};
+  enum class device_type
+  {
+    undefined,
+    block,
+    stream,
+    directory
+  };
 
   struct Iblock: public Ibase
   {    
-		virtual auto type() const -> device_type;
-		virtual auto sector_size () const -> std::size_t;
+    virtual auto type() const -> device_type;
+    virtual auto aligment () const -> std::size_t;
 
     virtual auto read (std::span<std::byte> buffer_v, std::uintmax_t offset_v = 0) -> std::size_t;
     virtual auto write (std::span<const std::byte> buffer_v, std::uintmax_t offset_v = 0) -> std::size_t;
-    virtual auto size () -> std::uintmax_t;
-		virtual auto flush () -> void;
-		
+    virtual auto size () const -> std::uintmax_t;
+
+    virtual auto flush () -> bool;    
     virtual auto read (std::span<std::byte> buffer) -> std::size_t;
     virtual auto write (std::span<const std::byte> buffer) -> std::size_t;
     virtual auto seek (std::uintmax_t offset_v, relative_to relative_to_v = relative_to::start) -> std::uintmax_t;

@@ -10,13 +10,13 @@ namespace vfsio
   enum class error: int
   {
     success           =  0,
-		not_implemented   = -1,
-		not_supported			= -2,
+    not_implemented   = -1,
+    not_supported     = -2,
     path_not_found    = -3,
     access_denied     = -4,
     invalid_argument  = -5,    
     invalid_mode      = -6,
-		out_of_bounds			= -7
+    out_of_bounds     = -7    
   }; 
 }
 
@@ -30,8 +30,8 @@ namespace textio::fmt
     {
       switch (value_v) {
       case vfsio::error::success:           return format_to<"{}({})">(out_i, "error::success",          (int)value_v);
-			case vfsio::error::not_implemented:   return format_to<"{}({})">(out_i, "error::not_implemented",  (int)value_v);
-			case vfsio::error::not_supported:     return format_to<"{}({})">(out_i, "error::not_supported",    (int)value_v);
+      case vfsio::error::not_implemented:   return format_to<"{}({})">(out_i, "error::not_implemented",  (int)value_v);
+      case vfsio::error::not_supported:     return format_to<"{}({})">(out_i, "error::not_supported",    (int)value_v);
       case vfsio::error::path_not_found:    return format_to<"{}({})">(out_i, "error::path_not_found",   (int)value_v);
       case vfsio::error::access_denied:     return format_to<"{}({})">(out_i, "error::access_denied",    (int)value_v);
       case vfsio::error::invalid_argument:  return format_to<"{}({})">(out_i, "error::invalid_argument", (int)value_v);

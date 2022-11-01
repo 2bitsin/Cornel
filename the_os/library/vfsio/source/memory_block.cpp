@@ -39,6 +39,10 @@ auto memory_block::write(std::span<const std::byte> buffer_v, std::uintmax_t off
   return bytes_to_write;
 }
 
+auto memory_block::size() const -> std::uintmax_t
+{
+  return m_block_bytes.size();
+}
 
 memory_block::memory_block(std::span<std::byte> block_bytes_v, bool read_only_v)
 : m_block_bytes(block_bytes_v),
