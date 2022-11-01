@@ -36,5 +36,5 @@ auto x86arch::bios_acpi_memory_map_read(bios_acpi_memory_map_entry_t& entry, std
 
 auto x86arch::read_bios_data_area(std::uint8_t offset_i, void* value_o, std::size_t size_i) -> void
 {
-  __builtin_memcpy(value_o, (const void*)(0x400u + offset_i), size_i);
+  std::memcpy(value_o, (const void*)(0x400u + offset_i), size_i);
 }

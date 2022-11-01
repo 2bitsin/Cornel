@@ -1,5 +1,5 @@
 set (TEST_SOURCES 
-  t000_vfsio_hello_world.cpp
+  t000_vfsio_memory_block.cpp
 )
 
 set (TEST_PREFIX vfsio)

@@ -3,11 +3,10 @@
 #include <textio/format.hpp>
 #include "expect.hpp"
 
-#include <vfsio/Iblock.hpp>
-#include <vfsio/Ivolume.hpp>
+#include <vfsio/memory_block.hpp>
 
 #ifdef TESTING
-#define main t000_vfsio_hello_world
+#define main t000_vfsio_memory_block
 #endif
 
 
@@ -24,7 +23,10 @@ int main(int,char** const)
 
   auto out_i = std::back_inserter(buffer);
 
+	std::vector<std::byte> data(0x100000u, std::byte(0xFFu));
+	vfsio::memory_block block(data);
 
+	
 
   return 0;
 }  

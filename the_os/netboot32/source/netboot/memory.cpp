@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include <utils/macros.hpp>
 #include <utils/debug.hpp>
 
@@ -150,7 +152,7 @@ void* realloc(void* old_ptr, std::size_t new_size)
     // Get old block size
     auto old_size = G_base_heap.size(old_ptr);
     // Copy data
-    __builtin_memcpy(new_ptr, old_ptr,std::min(new_size, old_size));
+    std::memcpy(new_ptr, old_ptr,std::min(new_size, old_size));
     // Free old block
     G_base_heap.deallocate(old_ptr);
     return new_ptr;

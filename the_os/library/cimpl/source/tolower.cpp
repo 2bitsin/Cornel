@@ -3,8 +3,8 @@
 #include <cctype>
 
 extern "C"
-int toupper(int value)
+int tolower(int value)
 {
-  return __builtin_toupper(value);
+  return __builtin_tolower(value);
 }
 

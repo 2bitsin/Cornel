@@ -2,6 +2,7 @@ add_library(cimpl
   memmove.cpp 
   strlen.cpp 
   toupper.cpp 
+  tolower.cpp 
   memcmp.cpp
   memchr.cpp
   sprintf_lite.cpp)
