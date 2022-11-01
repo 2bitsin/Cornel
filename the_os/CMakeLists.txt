@@ -10,6 +10,7 @@ add_subdirectory(library/textio)
 add_subdirectory(library/memory)
 add_subdirectory(library/utils)
 add_subdirectory(library/script)
+add_subdirectory(library/vfsio)
 add_subdirectory(config)
 add_subdirectory(netboot32)
 

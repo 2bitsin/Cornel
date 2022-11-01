@@ -59,7 +59,7 @@ int Netboot::cmd_echo(std::vector<std::string> const& what_v)
   return 0;
 }
 
-int Netboot::cmd_fetch(std::string_view designator_v, std::string_view path_v)
+int Netboot::cmd_fetch([[maybe_unused]] std::string_view designator_v, std::string_view path_v)
 { 
   auto const [success_v, buffer_v] = download(path_v);
   if (!success_v) {    

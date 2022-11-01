@@ -44,6 +44,7 @@ namespace netboot
   protected:
     friend DownloadNotify<Netboot>;
     friend cmd::echo;
+    friend cmd::fetch;
  
     auto download (std::string_view path_v) -> std::tuple<bool, memory::buffer<std::byte>>;
     auto execute (std::string_view script_v) -> std::optional<int>;
