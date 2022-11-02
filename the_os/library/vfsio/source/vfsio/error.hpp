@@ -24,6 +24,7 @@ namespace vfsio
 		name_too_long			= -12,
 		already_exists		= -13,
 		too_large					= -14,	
+		bad_volume				= -15
 		
   }; 
 
@@ -64,6 +65,7 @@ namespace textio::fmt
       case vfsio::error::invalid_mode:      return format_to<"{}({})">(out_i, "error::invalid_mode",     (int)value_v);
 			case vfsio::error::out_of_bounds:     return format_to<"{}({})">(out_i, "error::out_of_bounds",    (int)value_v);
 			case vfsio::error::is_not_open:       return format_to<"{}({})">(out_i, "error::is_not_open",      (int)value_v);
+			case vfsio::error::bad_volume:        return format_to<"{}({})">(out_i, "error::bad_volume",       (int)value_v);
       default:                              return format_to<"error({})">(out_i, (int)value_v);
       }      
     }

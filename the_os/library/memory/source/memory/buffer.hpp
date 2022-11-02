@@ -8,11 +8,26 @@
 #include <memory_resource>
 #include <algorithm>
 #include <utility>
+#include <new>
 
 #include <memory/detail.hpp>
+#include <textio/logger.hpp>
 
 namespace memory
 {
+  declare_module(Memory);
+	[[no_return]]
+  static inline auto throw_bad_cast(std::string_view what)
+  {
+		Gmod.fatal<"Bad cast ({})">(what);
+#if defined(__cpp_exceptions)
+    throw std::bad_cast{};
+#else    
+    std::abort();
+#endif
+  }
+
+
   template <typename T, detail::memory_resource_like A>
   static inline auto allocate_buffer_of(A&& a, std::size_t size) -> std::span<T>
   {
@@ -84,11 +99,9 @@ namespace memory
     }
 
     inline buffer(buffer&& prev) 
-		: m_allocator { std::exchange (prev.m_allocator, nullptr) }
+    : m_allocator { std::exchange (prev.m_allocator, nullptr) }
     , m_buffer_sp { std::exchange (prev.m_buffer_sp, std::span<T>{ }) }
-    {
-		
-		}
+    { }
 
     inline auto operator = (buffer&& prev) -> buffer& 
     {
@@ -122,7 +135,7 @@ namespace memory
       {
         ::memory::deallocate_buffer(*m_allocator, m_buffer_sp);
         m_buffer_sp = std::span<T>{ };
-				m_allocator = nullptr;
+        m_allocator = nullptr;
       }
     }
 
@@ -142,6 +155,42 @@ namespace memory
     inline auto data ()  { return m_buffer_sp.data(); }
     inline auto begin()  { return m_buffer_sp.begin(); }
     inline auto end  ()  { return m_buffer_sp.end(); }
+
+    template <typename T>
+    requires (std::is_trivial_v<T>)
+    inline auto as () -> T&
+    {
+      if (sizeof(T) > size() * sizeof (value_type))
+        throw_bad_cast(__func__);
+      return *std::launder((T*)data());
+    }
+
+    template <typename T>
+    requires (std::is_trivial_v<T>)
+    inline auto as () const -> T const&
+    {
+      if (sizeof(T) > size() * sizeof (value_type))
+        throw_bad_cast(__func__);
+      return *std::launder((T const*)data());
+    }
+
+    template <typename T>
+    requires (std::is_trivial_v<T>)
+    inline auto as_array (std::size_t count_v) const -> std::span<const T>
+    {
+      if (sizeof(T) * count_v > size() * sizeof (value_type))
+        throw_bad_cast(__func__);
+      return std::span<const T>(std::launder((T const*)data()), count_v);
+    }
+
+    template <typename T>
+    requires (std::is_trivial_v<T>)
+    inline auto as_array (std::size_t count_v) -> std::span<T>
+    {
+      if (sizeof(T) * count_v > size() * sizeof (value_type))
+        throw_bad_cast(__func__);
+      return std::span<const T>(std::launder((T*)data()), count_v);
+    }
 
     template <typename... Args>
     inline auto subspan(Args&&... args) const  -> std::span<const T>
