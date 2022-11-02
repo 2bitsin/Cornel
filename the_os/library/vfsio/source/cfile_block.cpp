@@ -102,17 +102,22 @@ auto cfile_block::read(std::span<std::byte> buffer_v, std::uintmax_t offset_v) -
     return 0u;
   }
 
-  auto const read_count_v = std::fread(buffer_v.data(), sizeof(std::byte), buffer_v.size(), m_file.get());
-  if (0u == read_count_v) {
-    set_error(from_errno(errno));
-    return 0u;
-  }
+	std::size_t bytes_read_v = 0u;
+	while (bytes_read_v < buffer_v.size())
+	{
+		const auto result_v = std::fread(buffer_v.data() + bytes_read_v, sizeof(std::byte), buffer_v.size() - bytes_read_v, m_file.get());
+		if (0u == result_v) {
+		  set_error(from_errno(errno));
+		  return bytes_read_v;
+		}
+		bytes_read_v += result_v;
+	}
 
   if (0u != std::fseek(m_file.get(), position_save_v, SEEK_SET)) {
     set_error(from_errno(errno));   
   }
 
-  return read_count_v;
+  return bytes_read_v;
 }
 
 auto cfile_block::write(std::span<const std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t
