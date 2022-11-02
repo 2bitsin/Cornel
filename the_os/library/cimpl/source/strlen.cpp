@@ -6,5 +6,8 @@ extern "C"
 auto strlen (const char *string) 
   -> std::size_t
 {   
-  return __builtin_strlen(string);
+  auto len = 0u;
+  while (*string++)
+    len++;
+  return len;
 }

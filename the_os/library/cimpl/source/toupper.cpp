@@ -5,6 +5,8 @@
 extern "C"
 int toupper(int value)
 {
-  return __builtin_toupper(value);
+  if (value >= 'a' && value <= 'z')
+    return value - 'a' + 'A';
+  return value;
 }
 

@@ -5,6 +5,8 @@
 extern "C"
 int tolower(int value)
 {
-  return __builtin_tolower(value);
+  if (value >= 'A' && value <= 'Z')
+    return value - 'A' + 'a';
+  return value;
 }
 
