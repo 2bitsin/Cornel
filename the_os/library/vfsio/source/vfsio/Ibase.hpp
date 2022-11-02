@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <vfsio/error_code.hpp>
+#include <vfsio/error.hpp>
 
 namespace vfsio
 {

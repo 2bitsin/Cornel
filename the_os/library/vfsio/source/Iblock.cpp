@@ -1,4 +1,4 @@
-#include <vfsio/Iblock.hpp>
+#include <vfsio/iblock.hpp>
 
 using vfsio::Iblock;
 
@@ -32,7 +32,7 @@ auto Iblock::seek (std::uintmax_t offset_v, relative_to relative_to_v) -> std::u
   return m_offset;
 }
 
-auto Iblock::tell () -> std::uintmax_t
+auto Iblock::tell () const -> std::uintmax_t
 {
   clear_error();
   return m_offset;
@@ -86,4 +86,10 @@ auto Iblock::size() const -> std::uintmax_t
     return 0u;
   }
   return 0u;
+}
+
+auto Iblock::resize(std::size_t) -> bool
+{
+	set_error(error::not_supported);
+	return false;
 }

@@ -3,10 +3,11 @@
 #include <textio/format.hpp>
 #include "expect.hpp"
 
-#include <vfsio/memory_block.hpp>
+#include <vfsio/vfat_volume.hpp>
+#include <vfsio/cfile_block.hpp>
 
 #ifdef TESTING
-#define main t000_vfsio_memory_block
+#define main t000_vfsio_vfat_mount
 #endif
 
 
@@ -23,9 +24,10 @@ int main(int,char** const)
 
   auto out_i = std::back_inserter(buffer);
 
-	std::vector<std::byte> data(0x100000u, std::byte(0xFFu));
-	vfsio::memory_block block(data);
+	vfsio::cfile_block img("000_fat12.img", "r");
+	auto volume_p = vfsio::vfat_volume::mount (img);
 
+	
 	
 
   return 0;

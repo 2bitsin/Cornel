@@ -1,5 +1,5 @@
 #pragma once
 
-#include <vfsio/Ibase.hpp>
-#include <vfsio/Iblock.hpp>
-#include <vfsio/Ivolume.hpp>
+#include <vfsio/ibase.hpp>
+#include <vfsio/iblock.hpp>
+#include <vfsio/ivolume.hpp>

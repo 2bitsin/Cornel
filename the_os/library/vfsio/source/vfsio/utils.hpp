@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vfsio/Iblock.hpp>
+#include <vfsio/iblock.hpp>
 #include <type_traits>
 
 namespace vfsio

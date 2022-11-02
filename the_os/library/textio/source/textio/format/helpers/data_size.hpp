@@ -30,7 +30,7 @@ namespace textio::fmt::helpers::detail
       static constexpr auto sz_E = 1024ull * sz_P;
 
       static constexpr std::uint64_t sz[] = { sz_E, sz_P, sz_T, sz_G, sz_M, sz_K, 1u };
-      static constexpr char const* sx[] = { "E", "P", "T", "G", "M", "K", "" };
+      static constexpr std::string_view sx[] = { "E", "P", "T", "G", "M", "K", "" };
       
       if (value == 0) {
         return format_to(out_i, '0');

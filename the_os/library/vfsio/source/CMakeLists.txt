@@ -1,11 +1,13 @@
 add_library(vfsio 
   vfsio.cpp
-	Ibase.cpp
-	Ivolume.cpp
-  Iblock.cpp
-  memory_block.cpp)
+	ibase.cpp
+  iblock.cpp
+	ivolume.cpp
+  buffer_block.cpp 
+	vfat_volume.cpp
+  cfile_block.cpp)
 
 target_include_directories(vfsio PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 #target_compile_definitions(vfsio PUBLIC _CONTAINER_DEBUG_LEVEL=0 _ITERATOR_DEBUG_LEVEL=0)
 set_target_properties(vfsio PROPERTIES CXX_STANDARD 23)
-target_link_libraries(vfsio PUBLIC textio)
+target_link_libraries(vfsio PUBLIC textio memory)

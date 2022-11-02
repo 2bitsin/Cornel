@@ -1,10 +1,11 @@
 set (TEST_SOURCES 
-  t000_vfsio_memory_block.cpp
+  t000_vfsio_vfat_mount.cpp
 )
 
 set (TEST_PREFIX vfsio)
 
 add_subdirectory(../../textio ./textio)
+add_subdirectory(../../memory ./memory)
 
 foreach (test_item ${TEST_SOURCES})
   get_filename_component(test_name ${test_item} NAME_WE)

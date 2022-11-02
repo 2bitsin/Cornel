@@ -10,8 +10,6 @@ set (TEST_SOURCES
 
 set (TEST_PREFIX memory)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/../libtextio ${CMAKE_BINARY_DIR}/libtextio)
-
 foreach (test_item ${TEST_SOURCES})
   get_filename_component(test_name ${test_item} NAME_WE)
   set(TEST_TARGET ${TEST_PREFIX}.${test_name})

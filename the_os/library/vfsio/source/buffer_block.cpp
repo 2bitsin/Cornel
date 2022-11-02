@@ -1,9 +1,9 @@
-#include <vfsio/memory_block.hpp>
+#include <vfsio/buffer_block.hpp>
 
-using vfsio::memory_block;
+using vfsio::buffer_block;
 
 
-auto memory_block::read(std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t
+auto buffer_block::read(std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t
 {
   if (offset_v > m_block_bytes.size())
   {
@@ -18,7 +18,7 @@ auto memory_block::read(std::span<std::byte> buffer_v, std::uintmax_t offset_v) 
   return bytes_to_read; 
 }
 
-auto memory_block::write(std::span<const std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t
+auto buffer_block::write(std::span<const std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t
 {
   if (m_read_only)
   {
@@ -39,12 +39,12 @@ auto memory_block::write(std::span<const std::byte> buffer_v, std::uintmax_t off
   return bytes_to_write;
 }
 
-auto memory_block::size() const -> std::uintmax_t
+auto buffer_block::size() const -> std::uintmax_t
 {
   return m_block_bytes.size();
 }
 
-memory_block::memory_block(std::span<std::byte> block_bytes_v, bool read_only_v)
+buffer_block::buffer_block(std::span<std::byte> block_bytes_v, bool read_only_v)
 : m_block_bytes(block_bytes_v),
   m_read_only(read_only_v)
 {}

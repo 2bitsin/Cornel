@@ -1,13 +1,13 @@
 #pragma once
 
-#include <vfsio/Iblock.hpp>
+#include <vfsio/iblock.hpp>
 
 namespace vfsio
 {
-  struct memory_block
+  struct buffer_block final
   : public Iblock
   {
-    memory_block(std::span<std::byte> block_bytes_v, bool read_only_v = false);
+    buffer_block(std::span<std::byte> block_bytes_v, bool read_only_v = false);
 
     auto read(std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t override;
     auto write(std::span<const std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t override;   

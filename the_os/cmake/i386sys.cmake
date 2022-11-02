@@ -19,5 +19,5 @@ set(CMAKE_CXX_FLAGS               "${CMAKE_C_FLAGS} -fno-rtti -fno-exceptions -s
 set(CMAKE_ASM_FLAGS               "${COMMON_FLAGS} -x assembler-with-cpp")
 set(CMAKE_CXX_FLAGS_DEBUG_INIT    "-Os")
 set(CMAKE_CXX_FLAGS_RELEASE_INIT  "-Os")
-set(LIB_GCC_PATH                  "/usr/lib/gcc/x86_64-linux-gnu/11/32/libgcc.a")
+set(LIB_GCC_PATH                  "/usr/lib/gcc/x86_64-linux-gnu/12/32/libgcc.a")
 
