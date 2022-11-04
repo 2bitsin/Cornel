@@ -121,7 +121,7 @@ auto pretty_print(block_list const& blist, Anything&& oss)  -> void
 
   format_to<"{}head={:08x}, tail={:08x}\n">(oss, ">>> ", 0, byte_diff(blist.m_head, blist.m_tail));
 
-  std::uintptr_t total_sectors{ 0 }, allocated{ 0 }, available{ 0 }; 
+  std::uintptr_t m_total_sectors{ 0 }, allocated{ 0 }, available{ 0 }; 
   for (auto head = blist.m_head; head; head = head->next)
   {
 
@@ -132,7 +132,7 @@ auto pretty_print(block_list const& blist, Anything&& oss)  -> void
 
     format_to<"size={:08x} status={:<10s}\n">(oss, head->size, status(*head));
      
-    total_sectors += head->size;   
+    m_total_sectors += head->size;   
     if (block_list::is_block_available(*head))
       available += head->size;
     if (block_list::is_block_allocated(*head))

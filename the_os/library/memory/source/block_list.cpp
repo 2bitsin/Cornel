@@ -128,20 +128,20 @@ auto block_list::block_status(block_type const& block) -> block_status_type
   return block_invalid;
 }
 
-auto block_list::insert_range(range_type init)  -> bool
+auto block_list::insert_range(range_type initialize)  -> bool
 {
-  init = block_list::align_range(init);
+  initialize = block_list::align_range(initialize);
   
-  if (init.empty() || init.size() < block_threshold)    
+  if (initialize.empty() || initialize.size() < block_threshold)    
     return false;
 
   if (nullptr == m_head)
   {
-    m_head = m_tail = initialize_block(init);
+    m_head = m_tail = initialize_block(initialize);
     return true;
   }
 
-  auto node = initialize_block(init);
+  auto node = initialize_block(initialize);
   auto insert_here = m_head;
   
   while (node > insert_here && insert_here->next)

@@ -31,12 +31,12 @@ namespace vfsio
     virtual auto aligment () const -> std::size_t;
 		virtual auto resize(std::size_t) -> bool;
 
-    virtual auto load (std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t;
+    virtual auto read (std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t;
     virtual auto write (std::span<const std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t;
     virtual auto size () const -> std::uintmax_t;
 
     virtual auto flush () -> bool;    
-    virtual auto load (std::span<std::byte> buffer) -> std::size_t;
+    virtual auto read (std::span<std::byte> buffer) -> std::size_t;
     virtual auto write (std::span<const std::byte> buffer) -> std::size_t;
     virtual auto seek (std::uintmax_t offset_v, relative_to relative_to_v = relative_to::start) -> std::uintmax_t;
     virtual auto tell () const -> std::uintmax_t;

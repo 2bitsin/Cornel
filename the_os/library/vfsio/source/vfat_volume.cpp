@@ -5,42 +5,69 @@
 #include <cassert>
 #include <algorithm>
 #include <optional>
+#include <memory>
+#include <new>
+#include <bit>
 
 #include <vfat/defs.hpp>
 #include <vfat/utils.hpp>
-#include <vfat/block_loader.hpp>
 
-	
 namespace vfsio::vfat
 {
 	declare_module(VFAT);
 
-	struct context
+	struct volume_impl: 
+		public vfsio::vfat_volume
 	{
-		std::byte boot_sector[512];
-		vfsio::vfat_variant variant ;		
-		std::uint32_t root_sectors ;
-		std::uint32_t fat_sectors ;
-		std::uint32_t total_sectors ;
-		std::uint32_t data_sectors ;
-		std::uint32_t data_clusters ;
 		
-		auto initialize(memory::buffer<std::byte> const& boot_s) 
-			-> vfsio::error		
-		{	
-			if (boot_s.size() < 512)
-				return error::bad_volume;
+		Iblock* m_block { nullptr };
+
+		union
+		{
+			std::byte bytes[512];
+			small_bpb small;
+			large_bpb large;
+		} m_bpb;
+
+		vfsio::vfat_variant m_variant ;
+		
+		std::uint32_t m_root_sectors ;
+		std::uint32_t m_fat_sectors ;
+		std::uint32_t m_total_sectors ;
+		std::uint32_t m_data_sectors ;
+		std::uint32_t m_data_clusters ;
+
+		mutable memory::buffer<std::byte> m_buffer;
+		
+		auto initialize(Iblock& block_v) -> error					
+		{				
+			clear_error();
 			
-			auto const& small_v = boot_s.as<const small_bpb>();
-			auto const& large_v = boot_s.as<const large_bpb>();
-			
-			if (!small_v.BPB_BytsPerSec) {
-				Gmod.debug<"BPB_BytsPerSec is 0.">();
+			if (block_v.read(m_bpb.bytes, 0u) < sizeof(m_bpb.bytes)) {
 				return error::bad_volume;
 			}
 			
-			if (!small_v.BPB_SecPerClus) {
-				Gmod.debug<"BPB_SecPerClus is 0.">();
+			auto const& small_v = m_bpb.small;
+			auto const& large_v = m_bpb.large;
+			
+			/////////////////////////////////
+			//
+			//	VALIDATE BIOS PARAMETER BLOCK
+			//
+			/////////////////////////////////
+						
+			if (small_v.Signature != vfat::fat_bs_signature) {
+				Gmod.debug<"Signature is not 0xAA55.">();
+				return error::bad_volume;
+			}
+
+			if (!std::has_single_bit(small_v.BPB_BytsPerSec) || small_v.BPB_BytsPerSec < 512u || small_v.BPB_BytsPerSec > 4096u) {
+				Gmod.debug<"BPB_BytsPerSec is not a positive power of 2, between 512 and 4096">();
+				return error::bad_volume;
+			}
+			
+			if (!std::has_single_bit(small_v.BPB_SecPerClus) || small_v.BPB_SecPerClus < 1u) {
+				Gmod.debug<"BPB_SecPerClus is not a positive power of 2, betweem 1 and 128">();
 				return error::bad_volume;
 			}
 
@@ -58,69 +85,128 @@ namespace vfsio::vfat
 				Gmod.debug<"BPB_RsvdSecCnt is 0.">();			
 				return error::bad_volume;
 			}
-			
-			if (small_v.Signature != vfat::fat_bs_signature) {
-				Gmod.debug<"Signature is not 0xAA55.">();
-				return error::bad_volume;
-			}								
 
-			root_sectors = (small_v.BPB_RootEntCnt * 32u + (small_v.BPB_BytsPerSec - 1u)) / small_v.BPB_BytsPerSec;
-			fat_sectors = first_true_value(small_v.BPB_FATSz16, large_v.BPB_FATSz32);		
-			total_sectors = first_true_value(small_v.BPB_TotSec16, small_v.BPB_TotSec32);
-			data_sectors = total_sectors - (small_v.BPB_RsvdSecCnt + small_v.BPB_NumFATs*fat_sectors + root_sectors);
-			data_clusters = data_sectors / small_v.BPB_SecPerClus;
+			/////////////////////////////////////////////////////
+			//
+			//	CALCULATE VOLUME PARAMETERS AND DETERMINE VARIANT
+			//
+			/////////////////////////////////////////////////////
+						
+			m_root_sectors	= (small_v.BPB_RootEntCnt * 32u + (small_v.BPB_BytsPerSec - 1u)) / small_v.BPB_BytsPerSec;
+			m_fat_sectors		= first_true_value(small_v.BPB_FATSz16, large_v.BPB_FATSz32);		
+			m_total_sectors = first_true_value(small_v.BPB_TotSec16, small_v.BPB_TotSec32);
+			m_data_sectors	= m_total_sectors - (small_v.BPB_RsvdSecCnt + small_v.BPB_NumFATs*m_fat_sectors + m_root_sectors);
+			m_data_clusters = m_data_sectors / small_v.BPB_SecPerClus;
 
-			if (data_sectors >= total_sectors) {
+			if (m_data_sectors >= m_total_sectors) {
 				Gmod.debug<"BPB_TotSec16 and/or BPB_TotSec32 is invalid.">();
 				return error::bad_volume;
 			}
+						
+			m_variant = ([](auto value)
+			{			
+				if (value < 4085u) 
+					return vfsio::vfat_variant::fat12;				
+				else if (value < 65525u) 
+					return vfsio::vfat_variant::fat16;
+				else 
+					return vfsio::vfat_variant::fat32;				
+				
+			}) (m_data_clusters);
 			
-			std::memcpy(boot_sector, boot_s.data(), 
-				std::min(boot_s.size(), sizeof(boot_sector)));
+			////////////////////////////////
 
-			variant = vfsio::vfat_variant::_default;			
-			if (data_clusters < 4085 ) {			
-				variant = vfsio::vfat_variant::fat12;
-			}
-			else if (data_clusters < 65525) {
-				variant = vfsio::vfat_variant::fat16;
-			}		
-			else {
-				variant = vfsio::vfat_variant::fat32;				
-			}
-			
+			m_block = &block_v;
+
 			return error::success;
 		}
-	};	
-
-	template <vfsio::vfat_variant Variant>
-	struct volume_impl : public vfsio::vfat_volume
-	{
-		using bpb_type = std::conditional_t<Variant != vfat_variant::fat32, vfat::small_bpb,  vfat::large_bpb>;
-			
-		volume_impl(Iblock& block_v, context const& context_v, std::pmr::memory_resource* alloc_v = nullptr)
-		: m_alloc	        { alloc_v ? alloc_v : std::pmr::get_default_resource() }
-		, m_block	        { block_v }
-		, m_root_sectors  { context_v.root_sectors  }
-		, m_fat_sectors   { context_v.fat_sectors   }
-		, m_total_sectors { context_v.total_sectors }
-		, m_data_sectors  { context_v.data_sectors  }
-		, m_data_clusters { context_v.data_clusters }
+				
+		auto read_sectors(std::uintmax_t offset_v, std::size_t count_v) const
+			-> std::tuple<error, memory::buffer<std::byte>>
 		{
+			clear_error();
+
+			if (nullptr == m_block) {
+				Gmod.debug<"Volume not initialized.">();
+				set_error(error::invalid_handle);
+				return { error::invalid_handle, {} };
+			}
 			
+			count_v *= m_bpb.small.BPB_BytsPerSec;
+			if (count_v > m_buffer.size()) {
+				m_buffer.resize(count_v);
+			}
+
+			if (m_block->read(m_buffer, offset_v) < count_v) {
+				Gmod.debug<"Failed to read from block.">();
+				set_error(m_block->last_error());
+				return { m_block->last_error(), {} };
+			}
+
+			return { error::success, std::move (m_buffer) };
 		}
 
-	private:
-		std::pmr::memory_resource* m_alloc;
-		Iblock& m_block;
 
-		std::uint32_t m_root_sectors ;
-		std::uint32_t m_fat_sectors ;
-		std::uint32_t m_total_sectors ;
-		std::uint32_t m_data_sectors ;
-		std::uint32_t m_data_clusters ;
+		template <vfat_variant Variant>
+		auto next_cluster_impl(std::uint32_t cluster_v) const -> std::uint32_t
+		{
+			clear_error();
+			auto const& small_v = m_bpb.small;
+			auto const& large_v = m_bpb.large;			
+
+			auto const offset_v = ([] (auto cluster_v) -> std::uintmax_t {
+				if constexpr (Variant == vfat_variant::fat12)
+					return cluster_v + (cluster_v / 2u);
+				else if constexpr (Variant == vfat_variant::fat16)
+					return cluster_v * 2u;
+				else if constexpr (Variant == vfat_variant::fat32)
+					return cluster_v * 4u;
+				else
+					static_assert(sizeof(Variant)==0, "Invalid variant.");
+			})(cluster_v);
+
+			auto const sector_v = small_v.BPB_RsvdSecCnt + (offset_v / small_v.BPB_BytsPerSec);
+			auto const offset_in_sector_v = offset_v % small_v.BPB_BytsPerSec;
+			auto const [error_v, buffer_v] = read_sectors(sector_v, 1u + (Variant == vfat_variant::fat12 ? 1u : 0u));
+			if (error_v != error::success) {
+				set_error(error_v);
+				return 0xFFFFFFFFu;
+			}
+
+			if constexpr (Variant == vfat_variant::fat12) {				
+				auto const value = *(std::uint16_t const*)(buffer_v.data() + offset_in_sector_v);					 
+				return cluster_v & 1 ? value >> 4u : value & 0x0FFFu;
+			}
+			else if (Variant == vfat_variant::fat16)
+				return *(std::uint16_t const*)(buffer_v.data() + offset_in_sector_v);														
+			else if (Variant == vfat_variant::fat32)
+				return *(std::uint32_t const*)(buffer_v.data() + offset_in_sector_v) & 0x0FFFFFFFu;
+			else
+			{
+				Gmod.debug<"Invalid variant.">();
+				set_error(error::bad_volume);
+				return 0xFFFFFFFFu;
+			}
+		}
+
+		auto next_cluster(std::uint32_t cluster_v) const -> std::uint32_t
+		{
+			clear_error();
+			auto const& small_v = m_bpb.small;
+			auto const& large_v = m_bpb.large;
+
+			switch (m_variant)
+			{
+			using enum vfat_variant;
+			case fat12: return next_cluster_impl<vfat_variant::fat12>(cluster_v);				
+			case fat16: return next_cluster_impl<vfat_variant::fat16>(cluster_v);
+			case fat32: return next_cluster_impl<vfat_variant::fat32>(cluster_v);
+			}
+		}
+		
 
 	};	
+
 }
 
 namespace vfsio
@@ -132,30 +218,9 @@ namespace vfsio
 	
 	auto vfat_volume::mount([[maybe_unused]] Iblock& block_v, [[maybe_unused]] vfat_variant variant_v) -> std::tuple<error, std::unique_ptr<vfat_volume>>
 	{
-		using namespace vfat;
-
-		block_loader<0x200u> loader (block_v);
-		auto boot_o = loader.load(0, 1);
-		if (!boot_o.has_value()) {
-			return { block_v.last_error(), nullptr};
-		}
-		
-		auto context_p = std::make_unique<context>();
-		if (error::success != context_p->initialize(*boot_o)) {
-			Gmod.error<"Unable to mount volume, BPB corrupted.">();
-			return { error::bad_volume, nullptr };
-		}
-		
-		std::unique_ptr<vfat_volume> volume_p;
-		switch(context_p->variant)
-		{
-		using enum vfat_variant;
-		case fat12: volume_p.reset(new volume_impl<fat12> (block_v, *context_p)); break;
-		case fat16: volume_p.reset(new volume_impl<fat16> (block_v, *context_p)); break;
-		case fat32: volume_p.reset(new volume_impl<fat32> (block_v, *context_p)); break;
-		}
-
-		const auto error_v = volume_p->last_error();
-		return { error_v, std::move(volume_p) };
+		auto volume_p = std::make_unique<vfat::volume_impl>();
+		if (const auto error_v = volume_p->initialize(block_v); error_v != error::success) 
+			return { error_v, nullptr };
+		return { error::success, std::move(volume_p) };			
 	}
 }

@@ -2,10 +2,10 @@
 
 using vfsio::Iblock;
 
-auto Iblock::load (std::span<std::byte> buffer_v) -> std::size_t
+auto Iblock::read (std::span<std::byte> buffer_v) -> std::size_t
 {
   clear_error();
-  return load (buffer_v, m_offset);
+  return read (buffer_v, m_offset);
 }
 
 auto Iblock::write (std::span<const std::byte> buffer_v) -> std::size_t
@@ -59,7 +59,7 @@ auto Iblock::aligment() const -> std::size_t
 }
 
 
-auto Iblock::load(std::span<std::byte>, std::uintmax_t) -> std::size_t
+auto Iblock::read(std::span<std::byte>, std::uintmax_t) -> std::size_t
 {
   set_error(error::not_implemented);
   return 0u;

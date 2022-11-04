@@ -27,7 +27,7 @@ auto cfile_block::size() const -> std::uintmax_t
 {
   clear_error();
   if (nullptr == m_file) {
-    set_error(error::bad_file_handle);
+    set_error(error::invalid_handle);
     return 0;
   }
 
@@ -60,7 +60,7 @@ auto cfile_block::resize(std::size_t size_v) -> bool
 {
   clear_error();
   if (nullptr == m_file) {
-    set_error(error::bad_file_handle);
+    set_error(error::invalid_handle);
     return false;
   }
   
@@ -83,11 +83,11 @@ auto cfile_block::resize(std::size_t size_v) -> bool
   return true;
 }
 
-auto cfile_block::load(std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t
+auto cfile_block::read(std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t
 {
   clear_error();
   if (nullptr == m_file) {
-    set_error(error::bad_file_handle);
+    set_error(error::invalid_handle);
     return 0u;
   }
   
@@ -124,7 +124,7 @@ auto cfile_block::write(std::span<const std::byte> buffer_v, std::uintmax_t offs
 {
   clear_error();
   if (nullptr == m_file) {
-    set_error(error::bad_file_handle);
+    set_error(error::invalid_handle);
     return 0u;
   }
 
@@ -156,7 +156,7 @@ auto cfile_block::flush() -> bool
 {
   clear_error();
   if (nullptr == m_file) {
-    set_error(error::bad_file_handle);
+    set_error(error::invalid_handle);
     return false;
   }
 
@@ -168,11 +168,11 @@ auto cfile_block::flush() -> bool
   return true;
 }
 
-auto cfile_block::load(std::span<std::byte> buffer_v) -> std::size_t
+auto cfile_block::read(std::span<std::byte> buffer_v) -> std::size_t
 {
   clear_error();
   if (nullptr == m_file) {
-    set_error(error::bad_file_handle);
+    set_error(error::invalid_handle);
     return 0u;
   }
 
@@ -189,7 +189,7 @@ auto cfile_block::write(std::span<const std::byte> buffer_v) -> std::size_t
 {
   clear_error();
   if (nullptr == m_file) {
-    set_error(error::bad_file_handle);
+    set_error(error::invalid_handle);
     return 0u;
   }
 
@@ -206,7 +206,7 @@ auto cfile_block::seek(std::uintmax_t offset_v, relative_to relative_to_v) -> st
 {
   clear_error();
   if (nullptr == m_file) {
-    set_error(error::bad_file_handle);
+    set_error(error::invalid_handle);
     return 0u;
   }
 
@@ -241,7 +241,7 @@ auto cfile_block::tell() const -> std::uintmax_t
 {
   clear_error();
   if (nullptr == m_file) {
-    set_error(error::bad_file_handle);
+    set_error(error::invalid_handle);
     return 0u;
   }
 

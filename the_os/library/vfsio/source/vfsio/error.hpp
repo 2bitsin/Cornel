@@ -20,7 +20,7 @@ namespace vfsio
     invalid_mode      = -8,
     out_of_bounds     = -9,
 		is_not_open				= -10,
-		bad_file_handle		= -11,
+		invalid_handle		= -11,
 		name_too_long			= -12,
 		already_exists		= -13,
 		too_large					= -14,	
@@ -36,7 +36,7 @@ namespace vfsio
 		case ENOENT:       return error::path_not_found;
 		case EACCES:       return error::access_denied;
 		case EINVAL:       return error::invalid_argument;
-		case EBADF:        return error::bad_file_handle;
+		case EBADF:        return error::invalid_handle;
 		case ENAMETOOLONG: return error::name_too_long;
 		case EEXIST:       return error::already_exists;
 		case EFBIG:        return error::too_large;

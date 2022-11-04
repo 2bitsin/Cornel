@@ -16,10 +16,10 @@
 namespace memory
 {
   declare_module(Memory);
-	[[no_return]]
+  [[no_return]]
   static inline auto throw_bad_cast(std::string_view what)
   {
-		Gmod.fatal<"Bad cast ({})">(what);
+    Gmod.fatal<"Bad cast ({})">(what);
 #if defined(__cpp_exceptions)
     throw std::bad_cast{};
 #else    
@@ -102,6 +102,11 @@ namespace memory
     : m_allocator { std::exchange (prev.m_allocator, nullptr) }
     , m_buffer_sp { std::exchange (prev.m_buffer_sp, std::span<T>{ }) }
     { }
+
+    inline auto resize(std::size_t new_size, T const& defval = T()) -> void
+    {
+      m_buffer_sp = reallocate_buffer(*m_allocator, m_buffer_sp, new_size, defval);
+    }
 
     inline auto operator = (buffer&& prev) -> buffer& 
     {
