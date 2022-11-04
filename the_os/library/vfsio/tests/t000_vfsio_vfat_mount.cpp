@@ -28,7 +28,7 @@ try
 
   auto out_i = std::back_inserter(buffer);
 
-	vfsio::cfile_block img("000_fat12.img", "r");
+	vfsio::cfile_block img("000_fat12.img", "rb");
 	auto volume_p = vfsio::vfat_volume::mount (img);
 
 	

@@ -17,7 +17,7 @@ namespace vfsio
 	requires (std::is_trivially_copyable_v<std::remove_cvref_t<What>>)
 	static inline auto block_read(Iblock& block, What const (&what)[Count]) -> bool
 	{
-		return sizeof(What) == block.read({(std::byte*)&what, sizeof(what)});
+		return sizeof(What) == block.load({(std::byte*)&what, sizeof(what)});
 	}
 	
 }

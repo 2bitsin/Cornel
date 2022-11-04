@@ -3,7 +3,7 @@
 using vfsio::buffer_block;
 
 
-auto buffer_block::read(std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t
+auto buffer_block::load(std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t
 {
   if (offset_v > m_block_bytes.size())
   {

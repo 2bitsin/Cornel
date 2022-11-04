@@ -83,7 +83,7 @@ auto cfile_block::resize(std::size_t size_v) -> bool
   return true;
 }
 
-auto cfile_block::read(std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t
+auto cfile_block::load(std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t
 {
   clear_error();
   if (nullptr == m_file) {
@@ -168,7 +168,7 @@ auto cfile_block::flush() -> bool
   return true;
 }
 
-auto cfile_block::read(std::span<std::byte> buffer_v) -> std::size_t
+auto cfile_block::load(std::span<std::byte> buffer_v) -> std::size_t
 {
   clear_error();
   if (nullptr == m_file) {

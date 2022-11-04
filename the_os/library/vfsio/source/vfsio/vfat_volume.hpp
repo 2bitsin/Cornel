@@ -42,7 +42,7 @@ namespace vfsio
     static auto mount (Iblock& block_v, variant_t variant_v = variant_t::_default) -> std::tuple<error, std::unique_ptr<vfat_volume>>;
 
     virtual auto label() const -> std::string_view = 0;
-    virtual auto size_free() const -> std::size_t = 0;
+    virtual auto bytes_free() const -> std::size_t = 0;
 
   protected:
     vfat_volume() = default;
