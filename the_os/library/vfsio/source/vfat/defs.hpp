@@ -8,7 +8,7 @@ namespace vfsio::vfat
 {
 #pragma pack(push, 1)
 	
-	struct smallfat_bpb
+	struct small_bpb
 	{
 	  std::uint8_t  BS_jmpBoot[3];
 	  char8_t       BS_OEMName[8];
@@ -34,7 +34,7 @@ namespace vfsio::vfat
 	  std::uint16_t Signature;
 	};
 	
-	struct largefat_bpb
+	struct large_bpb
 	{
 	  std::uint8_t  BS_jmpBoot[3];
 	  char8_t       BS_OEMName[8];
@@ -67,12 +67,6 @@ namespace vfsio::vfat
 	  std::uint16_t Signature;
 	};
 	
-	union bpb
-	{
-	  smallfat_bpb smallfat;
-	  largefat_bpb largefat;
-	};
-	
 	struct directory_entry
 	{
 	  char8_t       DIR_Name[11];
@@ -103,4 +97,5 @@ namespace vfsio::vfat
 	static inline constexpr const auto fat12_filsystype      = "FAT12   "sv;
 	static inline constexpr const auto fat16_filsystype      = "FAT16   "sv;
 	static inline constexpr const auto fat32_filsystype      = "FAT32   "sv;	
+
 }

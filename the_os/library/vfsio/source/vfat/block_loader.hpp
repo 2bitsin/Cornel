@@ -3,8 +3,8 @@ namespace vfsio::vfat
 	template <std::size_t Block_size>
 	struct block_loader
 	{
-		block_loader(Iblock& block_v, std::pmr::memory_resource* allocator_v)
-		: m_allocator(allocator_v)
+		block_loader(Iblock& block_v, std::pmr::memory_resource* alloc_v = nullptr)
+		: m_alloc(alloc_v ? alloc_v : std::pmr::get_default_resource())
 		,	m_block(block_v)		
 		{}
 
@@ -14,7 +14,7 @@ namespace vfsio::vfat
 			auto const count_v = block_count_v * Block_size;
 			auto const start_v = block_start_v * Block_size;
 			
-			auto buffer_v = memory::buffer<std::byte>(*m_allocator, count_v);
+			auto buffer_v = memory::buffer<std::byte>(*m_alloc, count_v);
 			
 			auto const read_bytes_v = m_block.load(buffer_v, start_v);
 			
@@ -25,7 +25,7 @@ namespace vfsio::vfat
 		}
 				
 	private:
-		std::pmr::memory_resource* m_allocator{ get_allocator() };
+		std::pmr::memory_resource* m_alloc;
 		Iblock& m_block;	
 
 	};

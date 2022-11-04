@@ -130,7 +130,7 @@ namespace textio
     { }
     
     template<logger_base::level_type Level, meta::string Format_string = "{}", bool Append_new_line = true, typename... Args>    
-    auto log(Args&& ... args)  -> logger_module&
+    auto log(Args&& ... args) -> logger_module&
     {
       using textio::fmt::format_to;
       
@@ -186,6 +186,6 @@ namespace textio
   logger_module(Output_type output_i)->logger_module<Module, Output_type>;
 }
 
-#define declare_module(Module) static  auto Gmod = textio::logger_module<#Module, textio::detail::cstdio_iterator>{stdout}
+#define declare_module(Module) static inline auto Gmod = textio::logger_module<#Module, textio::detail::cstdio_iterator>{stdout}
 
 extern textio::logger_module<meta::empty_string_v<char>, textio::detail::cstdio_iterator> Glog;
