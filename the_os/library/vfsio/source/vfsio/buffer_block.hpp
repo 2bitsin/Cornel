@@ -1,11 +1,13 @@
 #pragma once
 
+#include <vfsio/ibase.hpp>
 #include <vfsio/iblock.hpp>
+#include <vfsio/iblock_seekable.hpp>
 
 namespace vfsio
 {
   struct buffer_block final
-  : public Iblock
+  : public Iblock_seekable
   {
     buffer_block(std::span<std::byte> block_bytes_v, bool read_only_v = false);
 

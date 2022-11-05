@@ -11,7 +11,7 @@ namespace vfsio::vfat
 	struct small_bpb
 	{
 	  std::uint8_t  BS_jmpBoot[3];
-	  char8_t       BS_OEMName[8];
+	  std::uint8_t  BS_OEMName[8];
 	  std::uint16_t BPB_BytsPerSec;
 	  std::uint8_t  BPB_SecPerClus;
 	  std::uint16_t BPB_RsvdSecCnt;
@@ -28,8 +28,8 @@ namespace vfsio::vfat
 	  std::uint8_t  BS_Reserved1;
 	  std::uint8_t  BS_BootSig;
 	  std::uint32_t BS_VolID;
-	  char8_t       BS_VolLab[11];
-	  char8_t       BS_FilSysType[8];
+	  std::uint8_t  BS_VolLab[11];
+	  std::uint8_t  BS_FilSysType[8];
 	  std::uint8_t  Reserved[448];
 	  std::uint16_t Signature;
 	};
@@ -37,7 +37,7 @@ namespace vfsio::vfat
 	struct large_bpb
 	{
 	  std::uint8_t  BS_jmpBoot[3];
-	  char8_t       BS_OEMName[8];
+	  std::uint8_t  BS_OEMName[8];
 	  std::uint16_t BPB_BytsPerSec;
 	  std::uint8_t  BPB_SecPerClus;
 	  std::uint16_t BPB_RsvdSecCnt;
@@ -61,15 +61,15 @@ namespace vfsio::vfat
 	  std::uint8_t  BS_Reserved1;
 	  std::uint8_t  BS_BootSig;
 	  std::uint32_t BS_VolID;
-	  char8_t       BS_VolLab[11];
-	  char8_t       BS_FilSysType[8];
+	  std::uint8_t  BS_VolLab[11];
+	  std::uint8_t  BS_FilSysType[8];
 	  std::uint8_t  Reserved[420];
 	  std::uint16_t Signature;
 	};
 	
 	struct directory_entry
 	{
-	  char8_t       DIR_Name[11];
+	  std::uint8_t  DIR_Name[11];
 	  std::uint8_t  DIR_Attr;
 	  std::uint8_t  DIR_NTRes;
 	  std::uint8_t  DIR_CrtTimeTenth;

@@ -9,6 +9,7 @@
 #include <vfsio/error.hpp>
 #include <vfsio/ibase.hpp>
 #include <vfsio/iblock.hpp>
+#include <vfsio/iblock_seekable.hpp>
 
 namespace vfsio
 {
@@ -19,7 +20,8 @@ namespace vfsio
 		};
 	}
 
-	struct cfile_block: public vfsio::Iblock
+	struct cfile_block final: 
+		public vfsio::Iblock_seekable
 	{
 		cfile_block(std::string_view path_v, std::string_view mode_v = "r+b");
 
@@ -35,7 +37,7 @@ namespace vfsio
     auto flush () -> bool override;   
     auto read (std::span<std::byte> buffer) -> std::size_t override;
     auto write (std::span<const std::byte> buffer) -> std::size_t override;
-    auto seek (std::uintmax_t offset_v, relative_to relative_to_v = relative_to::start) -> std::uintmax_t override;
+    auto seek (std::intmax_t offset_v, relative_to relative_to_v = relative_to::start) -> std::uintmax_t override;
     auto tell () const -> std::uintmax_t override;
 		
 		std::unique_ptr<FILE, detail::cfile_close> m_file;

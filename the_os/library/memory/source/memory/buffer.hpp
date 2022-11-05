@@ -87,6 +87,10 @@ namespace memory
     , m_buffer_sp { }
     {}
 
+    inline buffer(std::size_t size)
+    : buffer (*std::pmr::get_default_resource(), size)
+    {}
+
     inline buffer(allocator_type& allocator, std::size_t size)
     : m_allocator { &allocator }
     , m_buffer_sp { allocate_buffer_of<T>(*m_allocator, size) }
@@ -195,6 +199,20 @@ namespace memory
       if (sizeof(T) * count_v > size() * sizeof (value_type))
         throw_bad_cast(__func__);
       return std::span<const T>(std::launder((T*)data()), count_v);
+    }
+		
+    template <typename T>
+    requires (std::is_trivial_v<T>)
+    inline auto as_array () const -> std::span<const T>
+    {
+			return as_array<T>((sizeof(value_type) * size()) / sizeof(T));
+    }
+
+    template <typename T>
+    requires (std::is_trivial_v<T>)
+    inline auto as_array () -> std::span<T>
+    {
+			return as_array<T>((sizeof(value_type) * size()) / sizeof(T));
     }
 
     template <typename... Args>

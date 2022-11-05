@@ -202,7 +202,7 @@ auto cfile_block::write(std::span<const std::byte> buffer_v) -> std::size_t
   return write_count_v;
 }
 
-auto cfile_block::seek(std::uintmax_t offset_v, relative_to relative_to_v) -> std::uintmax_t
+auto cfile_block::seek(std::intmax_t offset_v, relative_to relative_to_v) -> std::uintmax_t
 {
   clear_error();
   if (nullptr == m_file) {

@@ -1,6 +1,3 @@
-#include <vfsio/vfat_volume.hpp>
-#include <memory/buffer.hpp>
-#include <textio/logger.hpp>
 
 #include <cassert>
 #include <algorithm>
@@ -9,13 +6,18 @@
 #include <new>
 #include <bit>
 
+#include <textio/logger.hpp>
+#include <memory/buffer.hpp>
+
+#include <vfsio/vfat_volume.hpp>
+#include <vfsio/idirectory.hpp>
 #include <vfat/defs.hpp>
 #include <vfat/utils.hpp>
 
 namespace vfsio::vfat
 {
 	declare_module(VFAT);
-
+			
 	struct volume_impl: 
 		public vfsio::vfat_volume
 	{
@@ -36,8 +38,6 @@ namespace vfsio::vfat
 		std::uint32_t m_total_sectors ;
 		std::uint32_t m_data_sectors ;
 		std::uint32_t m_data_clusters ;
-
-		mutable memory::buffer<std::byte> m_buffer;
 		
 		auto initialize(Iblock& block_v) -> error					
 		{				
@@ -132,23 +132,23 @@ namespace vfsio::vfat
 				return { error::invalid_handle, {} };
 			}
 			
+			offset_v *= m_bpb.small.BPB_BytsPerSec;
 			count_v *= m_bpb.small.BPB_BytsPerSec;
-			if (count_v > m_buffer.size()) {
-				m_buffer.resize(count_v);
-			}
 
-			if (m_block->read(m_buffer, offset_v) < count_v) {
+			memory::buffer<std::byte> buffer_v (count_v);
+			
+			if (m_block->read(buffer_v, offset_v) < count_v) {
 				Gmod.debug<"Failed to read from block.">();
 				set_error(m_block->last_error());
 				return { m_block->last_error(), {} };
 			}
 
-			return { error::success, std::move (m_buffer) };
+			return { error::success, std::move (buffer_v) };
 		}
 
 
 		template <vfat_variant Variant>
-		auto next_cluster_impl(std::uint32_t cluster_v) const -> std::uint32_t
+		auto next_cluster_index_impl(std::uint32_t cluster_v) const -> std::uint32_t
 		{
 			clear_error();
 			auto const& small_v = m_bpb.small;
@@ -167,20 +167,20 @@ namespace vfsio::vfat
 
 			auto const sector_v = small_v.BPB_RsvdSecCnt + (offset_v / small_v.BPB_BytsPerSec);
 			auto const offset_in_sector_v = offset_v % small_v.BPB_BytsPerSec;
-			auto const [error_v, buffer_v] = read_sectors(sector_v, 1u + (Variant == vfat_variant::fat12 ? 1u : 0u));
+			auto const [error_v, buffer_v] = read_sectors(sector_v, (Variant == vfat_variant::fat12 ? 2u : 1u));
 			if (error_v != error::success) {
 				set_error(error_v);
 				return 0xFFFFFFFFu;
 			}
-
-			if constexpr (Variant == vfat_variant::fat12) {				
-				auto const value = *(std::uint16_t const*)(buffer_v.data() + offset_in_sector_v);					 
+			
+			if constexpr (Variant == vfat_variant::fat32)
+				return *(std::uint32_t const*)(buffer_v.data() + offset_in_sector_v) & 0x0FFFFFFFu;
+			else if constexpr (Variant == vfat_variant::fat16)
+				return *(std::uint16_t const*)(buffer_v.data() + offset_in_sector_v);
+			else if constexpr (Variant == vfat_variant::fat12) {				
+				auto const value = *(std::uint16_t const*)(buffer_v.data() + offset_in_sector_v);
 				return cluster_v & 1 ? value >> 4u : value & 0x0FFFu;
 			}
-			else if (Variant == vfat_variant::fat16)
-				return *(std::uint16_t const*)(buffer_v.data() + offset_in_sector_v);														
-			else if (Variant == vfat_variant::fat32)
-				return *(std::uint32_t const*)(buffer_v.data() + offset_in_sector_v) & 0x0FFFFFFFu;
 			else
 			{
 				Gmod.debug<"Invalid variant.">();
@@ -189,7 +189,7 @@ namespace vfsio::vfat
 			}
 		}
 
-		auto next_cluster(std::uint32_t cluster_v) const -> std::uint32_t
+		auto next_cluster_index(std::uint32_t cluster_v) const -> std::uint32_t
 		{
 			clear_error();
 			auto const& small_v = m_bpb.small;
@@ -198,14 +198,112 @@ namespace vfsio::vfat
 			switch (m_variant)
 			{
 			using enum vfat_variant;
-			case fat12: return next_cluster_impl<vfat_variant::fat12>(cluster_v);				
-			case fat16: return next_cluster_impl<vfat_variant::fat16>(cluster_v);
-			case fat32: return next_cluster_impl<vfat_variant::fat32>(cluster_v);
+			case fat12: return next_cluster_index_impl<vfat_variant::fat12>(cluster_v);				
+			case fat16: return next_cluster_index_impl<vfat_variant::fat16>(cluster_v);
+			case fat32: return next_cluster_index_impl<vfat_variant::fat32>(cluster_v);
 			}
 		}
-		
 
+		auto const& small_bpb() const { return m_bpb.small; }
+		auto const& large_bpb() const { return m_bpb.large; }
+
+		auto open(std::string_view path_v, std::string_view mode_v = "") -> std::unique_ptr<Iblock> override; 
 	};	
+
+	
+	struct small_directory_impl: 
+		public Idirectory
+	{
+		small_directory_impl(volume_impl& volume_v, std::uintmax_t first_v, std::uintmax_t count_v)
+		:	m_volume (volume_v)
+		, m_first  (first_v)
+		, m_count  (count_v)
+		,	m_sector (first_v)
+		, m_offset (0)
+		, m_buffer ()
+		, m_current {}
+		{
+			clear_error();
+			auto [error_v, buffer_v] = volume_v.read_sectors(first_v, 1u);
+			if (error::success != error_v) {
+				set_error(error_v);
+				return;
+			}
+			m_buffer = std::move(buffer_v);
+		}						
+		
+		auto read(std::span<std::byte> buffer_v) -> std::size_t
+		{			
+			clear_error();
+			const auto entry_count_v =  m_volume.small_bpb().BPB_BytsPerSec / 32u;			
+			while (true)
+			{	
+				if (m_offset >= entry_count_v)
+				{
+					m_sector += 1u;
+					m_offset = 0u;
+					auto [error_v, buffer_v] = m_volume.read_sectors(m_sector, 1u);
+					if (error::success != error_v) {
+						set_error(m_volume.last_error());
+						return 0u;
+					}
+					m_buffer = std::move (buffer_v);
+					m_offset = 0u;					
+				}				
+				auto entries_v = m_buffer.as_array<const directory_entry>();
+				std::memcpy(&m_current, &entries_v[m_offset], sizeof(directory_entry));
+				++m_offset;
+				if (m_current.DIR_Name[0] == 0xE5u)
+					continue;
+				if (m_current.DIR_Name[0] == 0x00u)
+					return 0u;				
+				return copy_name(buffer_v, m_current.DIR_Name);
+			}			
+		}
+		
+		auto copy_name(std::span<std::byte> buffer_v, std::uint8_t (&name_v) [11u]) const -> std::size_t
+		{
+			auto i = 0u;
+			while (name_v[i] != ' ' && i < 8u && i < buffer_v.size())
+				buffer_v[i++] = (std::byte)name_v[i];
+			
+			if (name_v[8] != ' ' && i < buffer_v.size())
+			{
+				buffer_v[i++] = (std::byte)'.';
+				auto j = 0u;
+				while (name_v[8 + j] != ' ' && j < 3u && i < buffer_v.size())
+					buffer_v[i++] = (std::byte)name_v[8 + j++];
+			}			
+			return i;
+		}
+
+	private:
+		volume_impl &  m_volume;
+		std::uintmax_t m_first;
+		std::uintmax_t m_count;
+		std::uintmax_t m_sector;
+		std::uintmax_t m_offset;		
+		memory::buffer<std::byte> m_buffer;
+		directory_entry m_current;
+	};
+
+	auto volume_impl::open(std::string_view path_v, std::string_view mode_v) -> std::unique_ptr<Iblock>
+	{
+		clear_error();
+		const auto& small_v = m_bpb.small;
+		const auto& large_v = m_bpb.large;
+		if (path_v == "/" || path_v.empty()) 
+		{
+			if (m_variant != vfat_variant::fat32)
+			{
+				const auto first_v = small_v.BPB_RsvdSecCnt + (small_v.BPB_NumFATs * small_v.BPB_FATSz16);
+				const auto count_v = small_v.BPB_RootEntCnt * 32u / small_v.BPB_BytsPerSec;
+				return std::make_unique<small_directory_impl>(*this, first_v, count_v);
+			}			
+		}
+		set_error(error::not_implemented);
+		return nullptr;
+	}	
 
 }
 

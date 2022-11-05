@@ -15,7 +15,6 @@ namespace vfsio
     end
   };
 
-
   enum class device_type
   {
     undefined,
@@ -35,12 +34,11 @@ namespace vfsio
     virtual auto write (std::span<const std::byte> buffer_v, std::uintmax_t offset_v) -> std::size_t;
     virtual auto size () const -> std::uintmax_t;
 
-    virtual auto flush () -> bool;    
     virtual auto read (std::span<std::byte> buffer) -> std::size_t;
     virtual auto write (std::span<const std::byte> buffer) -> std::size_t;
-    virtual auto seek (std::uintmax_t offset_v, relative_to relative_to_v = relative_to::start) -> std::uintmax_t;
+    virtual auto flush () -> bool; 
+		
+    virtual auto seek (std::intmax_t offset_v, relative_to relative_to_v = relative_to::start) -> std::uintmax_t;
     virtual auto tell () const -> std::uintmax_t;
-  private:
-    std::uintmax_t m_offset { 0u };
   };
 }
