@@ -93,3 +93,8 @@ ISR_prologue_and_epilogue:
 ISR_table_begin:
   ISR_emit_n_table_entries 0,48
 ISR_table_end:
+
+  .global G_idtr
+G_idtr:
+  .short ISR_table_end - ISR_table_begin
+  .long  ISR_table_begin

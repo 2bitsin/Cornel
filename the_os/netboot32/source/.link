@@ -20,10 +20,6 @@ SECTIONS
   . = ALIGN(16);
   .data :
   {  
-  G_idtr = .;
-    SHORT(ISR_table_end - ISR_table_begin);
-    LONG(ISR_table_begin);
-
   G_init_array_begin = .;
     LONG(ADDR(.init_array));
   G_init_array_end = .;
@@ -37,6 +33,7 @@ SECTIONS
   G_heap_begin = .;
     LONG(ADDR(.heap))
 
+    *(.rodata.options)
     *(.rodata.*)
     *(.rodata)
     *(.data.*)

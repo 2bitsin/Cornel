@@ -20,12 +20,19 @@ namespace textio::fmt
 
 namespace textio::fmt::detail
 { 
+  ////////////////////  
+  // Base case
+  ////////////////////
+
   template <typename Value_type, typename Char_type, meta::string Options>
   struct format_convert
   {
     static_assert(sizeof(Value_type*) == 0, "Unimplemented");
   };
   
+  ////////////////////////////////////////
+  // Case for when user_convert is defined
+  ////////////////////////////////////////
   
   template <typename Value_type, typename Char_type, meta::string Options>
   requires requires (Value_type&& value, Char_type* o_i) { 
@@ -35,7 +42,6 @@ namespace textio::fmt::detail
   {
     using value_type = Value_type;
     using char_type = Char_type;
-    static inline constexpr auto options = format_options<Value_type, Char_type>(Options);
     
     template <std::output_iterator<char> OIterator>
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
@@ -45,6 +51,10 @@ namespace textio::fmt::detail
     }       
   };
   
+  ///////////////////////////////////////////////
+  // Case for when .format<Options>(o) is defined
+  ///////////////////////////////////////////////
+
   template <typename Value_type, typename Char_type, meta::string Options>
   requires requires (Value_type const& value, Char_type* o_i) { 
     { value.template format<Options> (o_i) } -> std::convertible_to<Char_type*>;
@@ -53,7 +63,6 @@ namespace textio::fmt::detail
   {
     using value_type = Value_type;
     using char_type = Char_type;
-    static inline constexpr auto options = format_options<Value_type, Char_type>(Options);
     
     template <std::output_iterator<char> OIterator>
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
@@ -61,6 +70,10 @@ namespace textio::fmt::detail
       return value.template format<Options>(o_iterator);
     }       
   };
+
+  //////////////////////////////////////
+  // Case for when .format(o) is defined
+  //////////////////////////////////////
 
   template <typename Value_type, typename Char_type, meta::string Options>
   requires requires (Value_type const& value, Char_type* o_i) { 
@@ -70,14 +83,17 @@ namespace textio::fmt::detail
   {
     using value_type = Value_type;
     using char_type = Char_type;
-    static inline constexpr auto options = format_options<Value_type, Char_type>(Options);
-    
+        
     template <std::output_iterator<char> OIterator>
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
     {     
       return value.format(o_iterator);
     }       
   };
+
+  ///////////////////////////////////////////////
+  // Case for when .format(o, options) is defined
+  ///////////////////////////////////////////////
 
   template <typename Value_type, typename Char_type, meta::string Options>
   requires requires (Value_type const& value, Char_type* o_i) { 
@@ -87,8 +103,7 @@ namespace textio::fmt::detail
   {
     using value_type = Value_type;
     using char_type = Char_type;
-    static inline constexpr auto options = format_options<Value_type, Char_type>(Options);
-    
+        
     template <std::output_iterator<char> OIterator>
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
     {     
@@ -96,17 +111,21 @@ namespace textio::fmt::detail
     }       
   };   
 
+  ////////////////////////////////////////
+  // Case for basic_string_view<Char_type>
+  ////////////////////////////////////////
+
   template <typename Char_type, meta::string Options, typename... Q>  
   struct format_convert<std::basic_string_view<Char_type, Q...>, Char_type, Options>
   {   
     using char_type   = Char_type;
-    using value_type  = std::basic_string_view<char_type, Q...>;
-        
-    static inline constexpr auto options = format_options<value_type, char_type>{ Options };
+    using value_type  = std::basic_string_view<char_type, Q...>;           
     
     template <std::output_iterator<char> OIterator>
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
     {
+      [[maybe_unused]]
+      constexpr auto options = format_options<value_type, char_type>{ Options };
       //////////////////////////////////////
       // String larger then aligment width ?
       //////////////////////////////////////
@@ -141,17 +160,22 @@ namespace textio::fmt::detail
     }     
   };   
 
+  ////////////////////////
+  // Case for for pointers
+  ////////////////////////
+
   template <typename Value_type, typename Char_type, meta::string Options>  
   struct format_convert<Value_type*, Char_type, Options>
   {   
     using char_type   = Char_type;
     using value_type  = Value_type*;
-
-    static inline constexpr auto options = format_options<value_type, char_type>{ Options };
-
+    
     template <std::output_iterator<char> OIterator>
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
     {
+      [[maybe_unused]]
+      constexpr auto options = format_options<value_type, char_type>{ Options };
+
       static constexpr bool is_integral_format = (
           options.format_type == fmt_type::lower_pointer 
         ||options.format_type == fmt_type::upper_pointer
@@ -190,6 +214,10 @@ namespace textio::fmt::detail
     } 
   }; 
 
+  ///////////////////////////////////
+  // Case for basic_string<Char_type>
+  ///////////////////////////////////
+
   template <typename Char_type, meta::string Options, typename... Q>  
   struct format_convert<std::basic_string<Char_type, Q...>, Char_type, Options>
   {   
@@ -203,6 +231,10 @@ namespace textio::fmt::detail
       return format_sv::apply(o_iterator, value);
     }     
   }; 
+
+  ////////////////////////
+  // Case for Char_type[N]
+  ////////////////////////
 
   template <typename Char_type, meta::string Options, size_t N>  
   struct format_convert<Char_type[N], Char_type, Options>
@@ -218,6 +250,10 @@ namespace textio::fmt::detail
     }     
   }; 
 
+  //////////////////////////////////////
+  // Case for meta::string<N, Char_type>
+  //////////////////////////////////////
+
   template <typename Char_type, meta::string Options, size_t N>  
   struct format_convert<meta::string<N, Char_type>, Char_type, Options>
   {   
@@ -232,6 +268,10 @@ namespace textio::fmt::detail
     }     
   }; 
   
+  /////////////////////////////
+  // Case for all integer types
+  /////////////////////////////
+
   template <typename Value_type, typename Char_type, meta::string Options>
   requires (std::is_integral_v<Value_type>)
   struct format_convert<Value_type, Char_type, Options>
@@ -239,15 +279,14 @@ namespace textio::fmt::detail
     using value_type  = Value_type;
     using char_type   = Char_type;
     
-    static inline constexpr auto options = format_options<value_type, char_type>{ Options };        
-    static inline constexpr auto min_number_buffer_size = sizeof(value_type) * 8u * 2u;
-    static inline constexpr auto min_string_buffer_size = std::max<std::size_t>(options.pad_zeros * options.width + options.prefix_base * 2u + 1u, min_number_buffer_size);
-
     template <std::output_iterator<char> OIterator>
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
     {   
       using format_sv = format_convert<std::basic_string_view<char_type>, char_type, Options>;
 
+      constexpr auto options = format_options<value_type, char_type>{ Options };
+      constexpr auto min_number_buffer_size = sizeof(value_type) * 8u * 2u;
+      constexpr auto min_string_buffer_size = std::max<std::size_t>(options.pad_zeros * options.width + options.prefix_base * 2u + 1u, min_number_buffer_size);
       ///////////////////////////////
       // Take care of 'c' format type
       ///////////////////////////////
@@ -343,19 +382,20 @@ namespace textio::fmt::detail
     }
   }; 
 
+  ////////////////
+  // Case for bool
+  ////////////////
+
   template <typename Char_type, meta::string Options>
   struct format_convert<bool, Char_type, Options>
   {   
     using value_type  = bool;
     using char_type   = Char_type;
-    
-    static inline constexpr auto options = format_options<value_type, char_type>{ Options };        
-    static inline constexpr auto min_number_buffer_size = sizeof(value_type) * 8u * 2u;
-    static inline constexpr auto min_string_buffer_size = std::max<std::size_t>(options.pad_zeros * options.width + options.prefix_base * 2u + 1u, min_number_buffer_size);
-    
+        
     template <std::output_iterator<char> OIterator>
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
     {
+      constexpr auto options = format_options<value_type, char_type>{ Options };        
       ///////////////////////////////////////////////
       // Take care of 's' format in the case of bool
       ///////////////////////////////////////////////
@@ -363,11 +403,11 @@ namespace textio::fmt::detail
       {                 
         using format_sv = format_convert<std::basic_string_view<char_type>, char_type, Options>;
         if (value == true) {
-          constexpr auto true_s = meta::string{ "true"  };
+          static constexpr auto true_s = meta::string{ "true"  };
           return format_sv::apply(o_iterator, true_s);
         }
 
-        constexpr auto false_s = meta::string{ "false" };
+        static constexpr auto false_s = meta::string{ "false" };
         return format_sv::apply(o_iterator, false_s);
       }
       else
