@@ -16,7 +16,8 @@
 namespace memory
 {
   declare_module(Memory);
-  [[no_return]]
+  
+  [[noreturn]]
   static inline auto throw_bad_cast(std::string_view what)
   {
     Gmod.fatal<"Bad cast ({})">(what);
@@ -165,54 +166,54 @@ namespace memory
     inline auto begin()  { return m_buffer_sp.begin(); }
     inline auto end  ()  { return m_buffer_sp.end(); }
 
-    template <typename T>
-    requires (std::is_trivial_v<T>)
-    inline auto as () -> T&
+    template <typename Q>
+    requires (std::is_trivial_v<Q>)
+    inline auto as () -> Q&
     {
-      if (sizeof(T) > size() * sizeof (value_type))
+      if (sizeof(Q) > size() * sizeof (value_type))
         throw_bad_cast(__func__);
-      return *std::launder((T*)data());
+      return *std::launder((Q *)data());
     }
 
-    template <typename T>
-    requires (std::is_trivial_v<T>)
-    inline auto as () const -> T const&
+    template <typename Q>
+    requires (std::is_trivial_v<Q>)
+    inline auto as () const -> Q const&
     {
-      if (sizeof(T) > size() * sizeof (value_type))
+      if (sizeof(Q) > size() * sizeof (value_type))
         throw_bad_cast(__func__);
-      return *std::launder((T const*)data());
+      return *std::launder((Q const*)data());
     }
 
-    template <typename T>
-    requires (std::is_trivial_v<T>)
-    inline auto as_array (std::size_t count_v) const -> std::span<const T>
+    template <typename Q>
+    requires (std::is_trivial_v<Q>)
+    inline auto as_array (std::size_t count_v) const -> std::span<const Q>
     {
-      if (sizeof(T) * count_v > size() * sizeof (value_type))
+      if (sizeof(Q) * count_v > size() * sizeof (value_type))
         throw_bad_cast(__func__);
-      return std::span<const T>(std::launder((T const*)data()), count_v);
+      return std::span<const Q>(std::launder((Q const*)data()), count_v);
     }
 
-    template <typename T>
-    requires (std::is_trivial_v<T>)
-    inline auto as_array (std::size_t count_v) -> std::span<T>
+    template <typename Q>
+    requires (std::is_trivial_v<Q>)
+    inline auto as_array (std::size_t count_v) -> std::span<Q>
     {
-      if (sizeof(T) * count_v > size() * sizeof (value_type))
+      if (sizeof(Q) * count_v > size() * sizeof (value_type))
         throw_bad_cast(__func__);
-      return std::span<const T>(std::launder((T*)data()), count_v);
+      return std::span<const Q>(std::launder((Q *)data()), count_v);
     }
-		
-    template <typename T>
-    requires (std::is_trivial_v<T>)
-    inline auto as_array () const -> std::span<const T>
+    
+    template <typename Q>
+    requires (std::is_trivial_v<Q>)
+    inline auto as_array () const -> std::span<const Q>
     {
-			return as_array<T>((sizeof(value_type) * size()) / sizeof(T));
+      return as_array<Q>((sizeof(value_type) * size()) / sizeof(Q));
     }
 
-    template <typename T>
-    requires (std::is_trivial_v<T>)
-    inline auto as_array () -> std::span<T>
+    template <typename Q>
+    requires (std::is_trivial_v<Q>)
+    inline auto as_array () -> std::span<Q>
     {
-			return as_array<T>((sizeof(value_type) * size()) / sizeof(T));
+      return as_array<Q>((sizeof(value_type) * size()) / sizeof(Q));
     }
 
     template <typename... Args>

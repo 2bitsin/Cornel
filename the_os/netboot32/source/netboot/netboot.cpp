@@ -53,7 +53,7 @@ int Netboot::cmd_echo(std::vector<std::string> const& what_v)
 {      
   std::for_each(what_v.begin(), what_v.begin() + what_v.size() - 1u, 
   [](auto const& value_v) {
-    Gmod.info<"{} ", false>(value_v);
+    Gmod.info<"{} ", "">(value_v);
   });
   Gmod.info<"{}">(what_v.back());
   return 0;
@@ -83,7 +83,7 @@ bool Netboot::download_update_sizes ([[maybe_unused]] std::size_t total_size_v, 
 
 bool Netboot::download_progress ([[maybe_unused]] std::span<const std::byte> buffer_s, [[maybe_unused]] std::size_t packet_number_v, [[maybe_unused]] std::size_t offset_v) 
 { 
-  Gmod.info<"Downloading {} ... {}/{} bytes\r", false>(m_download_file_name, offset_v + buffer_s.size(), m_download_total_size);
+  Gmod.info<"Downloading {} ... {}/{} bytes", "\r">(m_download_file_name, offset_v + buffer_s.size(), m_download_total_size);
   return true; 
 }
 
