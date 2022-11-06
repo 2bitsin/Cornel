@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef __GNUC__
 #include <bits/functexcept.h>
 
 #include <utils/macros.hpp>
@@ -39,3 +40,4 @@ static inline auto __debug_assert_impl(bool condition, char const* message)
 }
 
 #define __debug_assert(X) __debug_assert_impl((X), "ASSERTION FAILED : " #X)
+#endif

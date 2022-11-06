@@ -69,7 +69,7 @@ namespace vfsio::vfat
 	
 	struct directory_entry
 	{
-	  std::uint8_t  DIR_Name[11];
+	  char					DIR_Name[11];
 	  std::uint8_t  DIR_Attr;
 	  std::uint8_t  DIR_NTRes;
 	  std::uint8_t  DIR_CrtTimeTenth;
