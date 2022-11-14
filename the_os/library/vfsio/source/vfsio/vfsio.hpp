@@ -14,9 +14,20 @@ namespace vfsio
 		none,
 		not_implemented,
 		not_supported,
-		bad_cast
+		bad_cast,
+		invalid_file,
+		invalid_argument,
+		invalid_operation,
+		name_too_long,
+		not_found,
+		io_error,
+		access_denied,
+		out_of_memory,
+		other
 	};
-	
+
+	error from_errno(int error_v);
+		
 	enum class relative_to
 	{
 		beginning,
@@ -107,35 +118,48 @@ namespace vfsio
 			return nullptr;		
 		return node_p.release()->as<What_type>();
 	}
-
-	template <auto What_type>
-	static inline auto node_cast(error& error_v, std::shared_ptr<INode const>&& node_p)
-		-> std::unique_ptr<decltype(*node_p->as<What_type>())>
-	{
-		node_p.re
-		if (node_p->type() != What_type)
-			return nullptr;		
-		return node_p.release()->as<What_type>();
-	}
-
-	
+		
 	struct IStream: 
 		public INode
 	{		
 		virtual auto type    (error& error_v) const -> node_type override;
 		virtual auto read    (error& error_v, std::span<std::byte> buffer_v) -> std::span<std::byte>;
 		virtual auto write   (error& error_v, std::span<std::byte const> buffer_v) -> std::span<std::byte const>;
+		virtual auto flush	 (error& error_v) -> bool;
 	};
 
 	struct IFile :
 		public IStream
 	{
+		virtual auto read    (error& error_v, std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::span<std::byte>;
+		virtual auto write   (error& error_v, std::span<std::byte const> buffer_v, std::uintmax_t offset_v) -> std::span<std::byte const>;
+		using IStream::read;
+		using IStream::write;
+		
 		virtual auto type    (error& error_v) const -> node_type override;
-		virtual auto seek    (error& error_v, std::int64_t offset_v, relative_to origin_v) -> std::uint64_t;
-		virtual auto tell    (error& error_v) -> std::uint64_t;
-		virtual auto size    (error& error_v) -> std::uint64_t;
-		virtual auto resize  (error& error_v, std::uint64_t new_size_v) -> std::uint64_t;
+		virtual auto seek    (error& error_v, std::intmax_t offset_v, relative_to origin_v) -> std::uintmax_t;
+		virtual auto tell    (error& error_v) -> std::uintmax_t;
+		virtual auto size    (error& error_v) -> std::uintmax_t;
+		virtual auto resize  (error& error_v, std::uintmax_t new_size_v) -> std::uintmax_t;
 	};
+
+	namespace helper
+	{
+		struct IFile :
+			public ::vfsio::IFile
+		{
+			using vfsio::IFile::read;
+			using vfsio::IFile::write;
+			
+			auto read    (error& error_v, std::span<std::byte> buffer_v) -> std::span<std::byte> override;
+			auto write   (error& error_v, std::span<std::byte const> buffer_v) -> std::span<std::byte const> override;
+			auto seek    (error& error_v, std::intmax_t offset_v, relative_to origin_v) -> std::uintmax_t override;
+			auto tell    (error& error_v) -> std::uintmax_t override;
+
+		private:
+			std::uintmax_t m_offset { 0 };
+		};
+	}
 
 
 	struct IDirectoryEntry:

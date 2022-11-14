@@ -6,7 +6,7 @@
 			"configurationType": "Debug",
 			"inheritEnvironments": [ "msvc_x64_x64" ],
 			"buildRoot": "${projectDir}\\build\\${name}",
-			"installRoot": "${projectDir}\\workspace\\${name}",
+			"installRoot": "${projectDir}\\workspace",
 			"cmakeCommandArgs": "",
 			"buildCommandArgs": "",
 			"ctestCommandArgs": ""
@@ -17,7 +17,7 @@
 			"configurationType": "Debug",
 			"inheritEnvironments": [ "msvc_x86_x64" ],
 			"buildRoot": "${projectDir}\\build\\${name}",
-			"installRoot": "${projectDir}\\workspace\\${name}",
+			"installRoot": "${projectDir}\\workspace",
 			"cmakeCommandArgs": "",
 			"buildCommandArgs": "",
 			"ctestCommandArgs": ""

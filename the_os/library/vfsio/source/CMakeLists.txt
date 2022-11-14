@@ -1,6 +1,6 @@
 add_library(vfsio 
 	vfsio.cpp 
-	womfs.cpp)
+	archive.cpp "cstdfile.cpp")
 
 target_include_directories(vfsio PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 #target_compile_definitions(vfsio PUBLIC _CONTAINER_DEBUG_LEVEL=0 _ITERATOR_DEBUG_LEVEL=0)
