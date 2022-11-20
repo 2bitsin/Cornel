@@ -42,7 +42,7 @@ namespace vfsio
     auto read  (error& error_v, std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::span<std::byte> override;
     auto size  (error& error_v) const -> std::uintmax_t override;
 
-    auto load  (error& error_v, std::string_view path_v) const -> memory::buffer<std::byte>;
+    auto load  (error& error_v, std::string_view path_v, memory::buffer<std::byte>& buffer_v) const -> bool;
 
   protected:
     static auto header_size(header_type const& header_v) -> std::size_t;

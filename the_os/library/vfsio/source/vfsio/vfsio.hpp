@@ -23,6 +23,7 @@ namespace vfsio
     io_error,
     access_denied,
     out_of_memory,
+		internal_error,
     other
   };
 
