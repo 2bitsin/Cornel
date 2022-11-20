@@ -3,6 +3,8 @@
 
 #include <memory/block_list.hpp>
 
+using memory::block_list;
+
 static const constexpr std::hash<void const*> ptr_hash{ };
 
 auto allocated(void const* ptr) -> std::size_t

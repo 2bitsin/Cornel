@@ -28,8 +28,8 @@ extern "C"
   std::byte* volatile G_heap_begin;  
 }
 
-static block_list G_base_heap;
-static block_list G_extended_heap;
+static memory::block_list G_base_heap;
+static memory::block_list G_extended_heap;
 
 static void initialize_extended_heap() 
 {
@@ -285,8 +285,10 @@ namespace memory
     }
   }
 
+  auto get_base_heap_blist() -> block_list& { return G_base_heap; }
+  auto get_extended_heap_blist() -> block_list& { return G_extended_heap; }
   
-  auto get_base_heap()  -> std::pmr::memory_resource&
+  auto get_base_heap() -> std::pmr::memory_resource&
   {    
     class resource_impl
     : public std::pmr::memory_resource

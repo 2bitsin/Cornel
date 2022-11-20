@@ -1,9 +1,10 @@
 #pragma once
 
 #include <pxenv/core.hpp>
-#include <pxenv/tftp_notify.hpp>
 
 #include <memory/buffer.hpp>
+
+#include <vfsio/vfsio.hpp>
 
 namespace pxenv::tftp
 {
@@ -24,6 +25,6 @@ namespace pxenv::tftp
 
   // --------------------------------------- utility functions --------------------------------------
 
-  auto download    (std::string_view file_name, params options, Inotify& notify = Inotify::null()) -> std::tuple<pxenv_status, memory::buffer<std::byte>>; 
-  auto download    (std::string_view file_name, Inotify& notify = Inotify::null()) -> std::tuple<pxenv_status, memory::buffer<std::byte>>; 
+  auto download    (vfsio::IFile& write_file_v, std::string_view file_name, params options) -> pxenv_status; 
+  auto download    (vfsio::IFile& write_file_v, std::string_view file_name) -> pxenv_status;
 }

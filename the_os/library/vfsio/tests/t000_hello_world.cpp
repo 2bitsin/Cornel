@@ -12,10 +12,14 @@
 
 #include <textio/logger.hpp>
 #include <utils/utils.hpp>
+#include <memory/block_list.hpp>
 
 #include <vfsio/vfsio.hpp>
 #include <vfsio/archive.hpp>
 #include <vfsio/cstdfile.hpp>
+#include <vfsio/heapfile.hpp>
+
+#include <utils/utils.hpp>
 
 using namespace std::string_literals;
 
@@ -35,7 +39,7 @@ try
 	using namespace std::filesystem;
 
 	current_path(path(argv[0]).parent_path());
-
+/*
 	error	error_v { error::none };
 	cstdfile output_v { error_v, "output.v"s, "w+b"s } ;	
 	check_error(error_v);
@@ -43,7 +47,7 @@ try
 	archive archive_v { error_v, &output_v };
 	check_error(error_v);	
 
-	archive_v.open(error_v, archive::directory, "root"s);
+	archive_v.open(error_v, archive::directory, "this_is_a_very_long_directory_name"s);
 	check_error(error_v);	
 	archive_v.open(error_v, archive::file, "test.txt"s);
 	check_error(error_v);	
@@ -57,7 +61,7 @@ try
 		check_error(error_v);
 	}	
 
-	archive_v.close(error_v, archive::file);
+	archive_v.close(error_v);
 	check_error(error_v);
 
 	archive_v.open(error_v, archive::file, "test2.txt"s);
@@ -68,12 +72,29 @@ try
 		archive_v.write(error_v, utils::as_bytes(txet));
 		check_error(error_v);
 	}	
+*/
 
-	archive_v.close(error_v, archive::file);
-	check_error(error_v);	
-	archive_v.close(error_v, archive::directory);
-	check_error(error_v);	
-  return 0;
+	::memory::block_list bl;
+	bl.insert_range(std::span<std::byte>(new std::byte[16*1024*1024], 16*1024*1024));
+	::memory::pretty_print(bl, stdout);
+
+	
+	vfsio::error error_v{ vfsio::error::none };
+	
+	heapfile hfl(error_v, bl, 16 * 1024 * 1024);
+	check_error(error_v);
+
+	for (auto i = 0u; i < 1000; ++i)
+	{
+		hfl.write(error_v, utils::as_bytes("Hello World!!!!"));
+		check_error(error_v);
+	}
+
+	::memory::pretty_print(bl, stdout);
+	
+	__debugbreak();
+	
+	return 0;
 }  
 catch (std::exception const& ex)
 {

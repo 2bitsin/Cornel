@@ -86,6 +86,8 @@ namespace pxenv
     tftp_request_cancelled            = 0xF003u,
     bad_pxenvplus_structure           = 0xF004u,
     bad_bangpxe_structure             = 0xF005u,
+    not_enough_memory                 = 0xF006u,
+    write_failed                      = 0xF007u,
     invalid_status                    = 0xFFFFu
   };
 

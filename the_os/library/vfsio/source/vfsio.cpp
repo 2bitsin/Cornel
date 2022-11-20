@@ -42,7 +42,7 @@ auto IStream::write(error& error_v, std::span<std::byte const> buffer_v) -> std:
 
 auto vfsio::IStream::flush(error& error_v) -> bool
 {
-	error_v = error::not_implemented;	
+	error_v = error::none;	
 	return true;
 }
 
@@ -61,12 +61,13 @@ auto IFile::seek(error& error_v, std::intmax_t offset_v, relative_to origin_v) -
 	return 0;
 }
 
-auto IFile::tell(error& error_v) -> std::uintmax_t
+auto IFile::tell(error& error_v) const -> std::uintmax_t
 {	
-	return seek(error_v, 0, relative_to::current);
+	error_v = error::not_implemented;
+	return 0;
 }
 
-auto IFile::size(error& error_v) -> std::uintmax_t
+auto IFile::size(error& error_v) const -> std::uintmax_t
 {
 	error_v = error::not_implemented;
 	return 0;
@@ -211,10 +212,10 @@ auto helper::IFile::write(error& error_v, std::span<std::byte const> buffer_v) -
 	return result_v;
 }
 
-auto helper::IFile::tell(error& error_v) -> std::uintmax_t
+auto helper::IFile::tell(error& error_v) const -> std::uintmax_t
 {
 	error_v = error::none;
-	return seek(error_v, 0, relative_to::current);
+	return m_offset;
 }
 
 auto helper::IFile::seek(error& error_v, std::intmax_t offset_v, relative_to origin_v) -> std::uintmax_t
