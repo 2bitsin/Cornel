@@ -44,24 +44,13 @@ void Netboot::main()
     std::abort();
   }
 
-  const auto success_v = download("netboot32.run");
-  if (!success_v) {
-    Gmod.fatal<"Failed to download netboot32.run">();
-    std::abort();
-  }
-  /*
-  vfsio::error error_v { vfsio::error::none };
-  const auto buffer_v = m_archive->load(error_v, "netboot32.run");
-  if (error_v != vfsio::error::none) {
-    Gmod.fatal<"Failed to load netboot32.run: {}">((int)error_v);
-    std::abort();
-  }
+  if (!download_and_execute("netboot32.run"))
+    std::abort();   
+}
 
-  if (auto const result_v = execute(); !result_v || *result_v) {
-    Gmod.fatal<"Failed to execute netboot32.run">();
-    std::abort();
-  }
-  */
+auto Netboot::download_and_execute(std::string_view path_v) -> bool
+{
+  return download(path_v) && execute(path_v);
 }
 
 auto Netboot::download(std::string_view path_v) -> bool
@@ -72,7 +61,7 @@ auto Netboot::download(std::string_view path_v) -> bool
   WPNotify<Netboot, std::string_view> outfile_v (*m_archive, *this, path_v); 
   const auto status_v = tftp::download(outfile_v, path_v);
   if (status_v != ::pxenv::pxenv_status::success) {
-    Gmod.error<"Failed to download {}: {}"> (path_v, (int)status_v);
+    Gmod.error<"Failed to download {}: {:04x}"> (path_v, (unsigned)status_v);
     return false;
   }
   m_archive->close(error_v);
@@ -91,19 +80,39 @@ int Netboot::cmd_echo(std::vector<std::string> const& what_v)
 
 int Netboot::cmd_fetch([[maybe_unused]] std::string_view designator_v, std::string_view path_v)
 { 
-  const auto success_v = download(path_v);
-  if (!success_v) {    
-    return -1;
-  }  
-  return 0;
+  return download(path_v) ? 0 : -1;
 }
 
-auto Netboot::execute(std::string_view script_v) -> std::optional<int>
+auto Netboot::execute(std::string_view script_path_v) -> bool
 {
   // TODO: figure out what's the best way to indicate failure of script execution
+  vfsio::archive_view archive_view_v { m_heapfile->view() };  
+  vfsio::error error_v { vfsio::error::none };
+  auto script_bytes_v = archive_view_v.find(error_v, archive_view_v.file, script_path_v);
+  if (error_v != vfsio::error::none) {
+    Gmod.error<"Failed to find {}: {}"> (script_path_v, (int)error_v);
+    return false;
+  }
+  std::string script_v { (char const*)script_bytes_v.data(), script_bytes_v.size() };
   script::interpreter interpreter_v;
   interpreter_v.execute(*this, script_v);
-  return interpreter_v.last_status();
+  auto result_v = interpreter_v.last_status();
+  if (!result_v || *result_v != 0) {
+    Gmod.error<"Failed to execute {}: {}"> (script_path_v, result_v ? *result_v : -1);    ;
+    return false;
+  }
+  return true;
 }
+
+auto Netboot::notify_write(std::string_view path_v, vfsio::error const& error_v, std::size_t bytes_written_v) -> void
+{
+  Gmod.info<"Downloading {} ({} bytes) ...", "\r"> (path_v, bytes_written_v);
+}
+
+auto Netboot::notify_resize(std::string_view path_v, vfsio::error const& error_v, std::size_t size_v) -> void
+{
+  
+}
+
 
 

@@ -17,6 +17,7 @@
 #include <memory/buffer.hpp>
 
 #include <vfsio/archive.hpp>
+#include <vfsio/archive_view.hpp>
 #include <vfsio/heapfile.hpp>
 
 namespace netboot
@@ -51,7 +52,8 @@ namespace netboot
     friend cmd::fetch;
  
     auto download (std::string_view path_v) -> bool;
-    auto execute (std::string_view script_v) -> std::optional<int>;
+    auto execute (std::string_view path_v) ->bool;
+    auto download_and_execute (std::string_view path_v) -> bool;
 
     auto cmd_echo (std::vector<std::string> const& what_v) -> int;
     auto cmd_fetch (std::string_view designator_v, std::string_view path_v) -> int;

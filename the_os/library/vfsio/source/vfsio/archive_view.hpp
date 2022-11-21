@@ -21,6 +21,10 @@ namespace vfsio
 		archive_view(std::span<std::byte const> bytes_v);
 		
 		auto find (error& error_v, std::string_view path_v) const -> std::tuple<std::span<std::byte const>, type_id_enum>;
+		static auto find(error& error_v, std::string_view path_v, std::span<std::byte const> bytes_v) -> std::tuple<std::span<std::byte const>, type_id_enum>;
+
+		auto find (error& error_v, type_id_enum type_v, std::string_view path_v) const -> std::span<std::byte const>;
+		static auto find(error& error_v, type_id_enum type_v, std::string_view path_v, std::span<std::byte const> bytes_v) -> std::span<std::byte const>;
 		
 	protected:
 		static auto header_from_bytes(std::span<std::byte const> bytes_v) -> header_type const*;
@@ -28,7 +32,6 @@ namespace vfsio
 			return (value_v + 0xfu) & ~(decltype(value_v))0xfu; 
 		}
 		
-		static auto find(error& error_v, std::string_view path_v, std::span<std::byte const> bytes_v) -> std::tuple<std::span<std::byte const>, type_id_enum>;
 
 	private:
 		std::span<std::byte const> m_bytes;	
