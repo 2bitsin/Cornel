@@ -1,5 +1,6 @@
 set (TEST_SOURCES 
   t000_hello_world.cpp
+  t001_extract.cpp
 )
 
 set (TEST_PREFIX vfsio)

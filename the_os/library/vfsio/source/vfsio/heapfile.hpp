@@ -94,6 +94,9 @@ namespace vfsio
     auto resize(error& error_v, std::uintmax_t size_v) -> std::uintmax_t override;
     auto size(error& error_v) const -> std::uintmax_t override;
 
+		inline auto writable_view() noexcept -> std::span<std::byte> { return m_data_s; }
+		inline auto view() const noexcept -> std::span<std::byte const> { return m_data_s; }
+
   private:
     std::aligned_union_t<0, detail::Heap_wrapper<detail::DummyHeap>> m_wstore;
     detail::IHeap& m_heap_w;

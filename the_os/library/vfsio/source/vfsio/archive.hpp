@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vfsio.hpp"
+#include "detail/archive.hpp"
 
 #include <memory/buffer.hpp>
 
@@ -11,23 +12,13 @@ namespace vfsio
 {
   struct archive final: vfsio::helper::IFile
   {
-    enum type_id_enum: std::uint8_t
-    {
-      directory = 0x00,
-      file      = 0x01
-    };
-  protected:
-  #pragma pack(push, 1)
-    struct header_type
-    {
-      std::uint32_t size;
-      type_id_enum type_id;
-      std::uint8_t name_len;
-      char name[250];
-    };
+		using header_type = detail::archive_entry_header;
+		using type_id_enum = detail::archive_entry_type_enum;
+
+		static inline auto constexpr file = type_id_enum::file;
+		static inline auto constexpr directory = type_id_enum::directory;		
 
     static constexpr inline auto offset_of_name = offsetof(header_type, name);
-  #pragma pack(pop) 
   public:
     
     archive(error& error_v, ::vfsio::IFile* file_v);
@@ -37,9 +28,11 @@ namespace vfsio
     auto close (error& error_v) -> bool;    
     
     auto write (error& error_v, std::span<std::byte const> data_v) -> std::span<std::byte const> override ;
-    auto read  (error& error_v, std::span<std::byte> data_v) -> std::span<std::byte> override ;
     auto write (error& error_v, std::span<std::byte const> buffer_v, std::uintmax_t offset_v) -> std::span<std::byte const> override;
+
+    auto read  (error& error_v, std::span<std::byte> data_v) -> std::span<std::byte> override ;
     auto read  (error& error_v, std::span<std::byte> buffer_v, std::uintmax_t offset_v) -> std::span<std::byte> override;
+
     auto size  (error& error_v) const -> std::uintmax_t override;
 
     auto load  (error& error_v, std::string_view path_v, memory::buffer<std::byte>& buffer_v) const -> bool;
@@ -69,5 +62,5 @@ namespace vfsio
     template<typename...T> using stack = std::stack<T...>;
     stack<tuple<uintmax_t, header_type>> m_stack;
   };
-  
+
 }
