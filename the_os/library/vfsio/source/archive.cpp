@@ -142,7 +142,8 @@ auto vfsio::archive::close(error& error_v) -> bool
   if (!result_v.empty() || error_v != error::none)
     return false;
   
-  m_block->seek(error_v, 0, relative_to::ending);
+  offset_v = align (offset_v + header_v.size);  
+  m_block->seek(error_v, offset_v, relative_to::beginning);
   if (error_v != error::none)
     return false;
 
@@ -153,82 +154,129 @@ auto vfsio::archive::close(error& error_v) -> bool
 auto vfsio::archive::load(error& error_v, std::string_view path_v, memory::buffer<std::byte>& buffer_v) const -> bool
 {
   header_type header_v;
-	std::string_view pcomp_v;	
-	std::uintmax_t offset_v { 0 };
-	std::uintmax_t ending_v { 0 };
-	auto header_bytes_v = utils::as_writable_bytes(header_v);	
+  std::string_view pcomp_v; 
+  std::uintmax_t offset_v { 0 };
+  std::uintmax_t ending_v { 0 };
+  auto header_bytes_v = utils::as_writable_bytes(header_v); 
 
-	error_v = vfsio::error::none;
-	ending_v = m_block->size(error_v);
-	if (error_v != vfsio::error::none) {
-		return false;
-	}
-	
-	while(!path_v.empty())
-	{
-		auto it = path_v.find('/');
-		if (it == std::string_view::npos) {
-			pcomp_v = std::exchange(path_v, std::string_view());
-		}
-		else {
-			pcomp_v = path_v.substr(0, it);
-			path_v = path_v.substr(it + 1);
-		}
-		
-		if (pcomp_v.empty()) {
-			break;
-		}
-		
-		while(true) 
-		{
-			const auto read_bytes_v = m_block->read(error_v, header_bytes_v, offset_v);
-			if (error_v != vfsio::error::none || 
-				read_bytes_v.size() <= offsetof(header_type, name) ||
-				read_bytes_v.size() < header_size(header_v)) 				 
-			{
-				return {};
-			}
-					
-			std::string_view curr_name_v (header_v.name, header_v.name_len);
-			curr_name_v = curr_name_v.substr(0, curr_name_v.find_last_not_of('\0') + 1);
-			if (pcomp_v == curr_name_v) 
-			{
-				if (header_v.type_id == type_id_enum::directory) 
-				{
-					ending_v = offset_v + header_v.size;
-					offset_v += header_size(header_v);
-					offset_v = align(offset_v);
-				}
-				break;
-			}
-			
-			offset_v += header_v.size;		
-			offset_v = align(offset_v);
-			if (offset_v >= ending_v) {
-				error_v = vfsio::error::not_found;
-				return false;
-			}
-		}		
-		
-		if (path_v.empty()) {
-			const auto data_size_v = header_v.size - header_size(header_v);
-			offset_v += header_size(header_v);
-			if (buffer_v.size() != data_size_v) {
-				buffer_v.resize(data_size_v);
-			}
-			const auto bytes_read_v = m_block->read(error_v, buffer_v, offset_v);
-			if (error_v != vfsio::error::none) {
-				return false;
-			}
-			if (bytes_read_v.size() != buffer_v.size()) {
-				error_v = vfsio::error::io_error;
-				return false;
-			}
-			return true;
-		}		
-	}
-	error_v = vfsio::error::internal_error;	
+  error_v = vfsio::error::none;
+  ending_v = m_block->size(error_v);
+  if (error_v != vfsio::error::none) {
+    return false;
+  }
+  
+  while(!path_v.empty())
+  {
+    auto it = path_v.find('/');
+    if (it == std::string_view::npos) {
+      pcomp_v = std::exchange(path_v, std::string_view());
+    }
+    else {
+      pcomp_v = path_v.substr(0, it);
+      path_v = path_v.substr(it + 1);
+    }
+    
+    if (pcomp_v.empty()) {
+      break;
+    }
+    
+    while(true) 
+    {
+      const auto read_bytes_v = m_block->read(error_v, header_bytes_v, offset_v);
+      if (error_v != vfsio::error::none || 
+        read_bytes_v.size() <= offsetof(header_type, name) ||
+        read_bytes_v.size() < header_size(header_v))         
+      {
+        return {};
+      }
+          
+      std::string_view curr_name_v (header_v.name, header_v.name_len);
+      curr_name_v = curr_name_v.substr(0, curr_name_v.find_last_not_of('\0') + 1);
+      if (pcomp_v == curr_name_v) 
+      {
+        if (header_v.type_id == type_id_enum::directory) 
+        {
+          ending_v = offset_v + header_v.size;
+          offset_v += header_size(header_v);
+          offset_v = align(offset_v);
+        }
+        break;
+      }
+      
+      offset_v += header_v.size;    
+      offset_v = align(offset_v);
+      if (offset_v >= ending_v) {
+        error_v = vfsio::error::not_found;
+        return false;
+      }
+    }   
+    
+    if (path_v.empty()) {
+      const auto data_size_v = header_v.size - header_size(header_v);
+      offset_v += header_size(header_v);
+      if (buffer_v.size() != data_size_v) {
+        buffer_v.resize(data_size_v);
+      }
+      const auto bytes_read_v = m_block->read(error_v, buffer_v, offset_v);
+      if (error_v != vfsio::error::none) {
+        return false;
+      }
+      if (bytes_read_v.size() != buffer_v.size()) {
+        error_v = vfsio::error::io_error;
+        return false;
+      }
+      return true;
+    }   
+  }
+  error_v = vfsio::error::internal_error; 
   return false;
+}
+
+auto vfsio::archive::resize(error& error_v, std::uintmax_t new_size_v) -> std::uintmax_t
+{
+  error_v = vfsio::error::none;
+  if (m_stack.empty()) {
+    error_v = vfsio::error::invalid_operation;
+    return 0;
+  }
+  
+  auto [offset_v, header_v] = m_stack.top();
+  
+  if (header_v.type_id == type_id_enum::directory) {
+    error_v = vfsio::error::invalid_operation;
+    return 0;
+  }
+
+  offset_v += header_size(header_v);
+
+  auto const curr_offset_v = m_block->tell(error_v);
+  
+  if (error_v != vfsio::error::none) 
+    return 0;
+  
+  auto const curr_size_v = curr_offset_v - offset_v;
+  
+  if (new_size_v == curr_size_v)
+    return new_size_v;
+    
+  if (new_size_v < curr_size_v) 
+  {
+    m_block->seek(error_v, offset_v + new_size_v, relative_to::beginning);
+    if (error_v != vfsio::error::none)
+      return 0;   
+  }
+
+  auto const actual_size_v = m_block->resize(error_v, offset_v + new_size_v);
+  if (error_v != vfsio::error::none)
+    return 0;
+  
+  return actual_size_v - offset_v;  
+}
+
+auto vfsio::archive::flush(error& error_v) -> bool
+{
+  error_v = error::none;
+  return m_block->flush(error_v);
 }
 
 auto vfsio::archive::write(error& error_v, std::span<std::byte const> data_v) -> std::span<std::byte const>

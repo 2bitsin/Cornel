@@ -60,6 +60,7 @@ namespace netboot
 
     void notify_resize(std::string_view path_v, vfsio::error const& error_v, std::size_t size_v);
     void notify_write(std::string_view path_v, vfsio::error const& error_v, std::size_t bytes_written_v);
+    void notify_flush(std::string_view path_v, vfsio::error const& error_v, bool flush_succeeded_v);
 
   private:
     std::unique_ptr<vfsio::heapfile> m_heapfile;

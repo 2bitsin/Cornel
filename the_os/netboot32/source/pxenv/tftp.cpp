@@ -131,7 +131,7 @@ auto pxenv::tftp::download (vfsio::IFile& write_file_v, std::string_view file_na
       return pxenv_status::tftp_invalid_packet_number;
 
     auto unwritten_bytes_v = write_file_v.write(error_v, out_packet_buffer);
-    if (unwritten_bytes_v.empty() || error_v != vfsio::error::none)
+    if (!unwritten_bytes_v.empty() || error_v != vfsio::error::none)
       return pxenv_status::write_failed;    
 
     last_packet = curr_packet;
@@ -139,6 +139,8 @@ auto pxenv::tftp::download (vfsio::IFile& write_file_v, std::string_view file_na
     if (out_packet_buffer.size () < packet_size)
       break;
   }
-
+  write_file_v.flush(error_v);
+  if (error_v != vfsio::error::none)
+    return pxenv_status::flush_failed;
   return pxenv::tftp::close();
 }

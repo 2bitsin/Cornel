@@ -18,7 +18,6 @@ struct WPNotify:
   {}
 
   auto type (error& error_v) const -> node_type override { return m_file.type(error_v); }
-  auto flush (error& error_v) -> bool override { return m_file.flush(error_v); }
   auto seek (error& error_v, std::intmax_t offset_v, relative_to origin_v) -> std::uintmax_t override { return m_file.seek(error_v, offset_v, origin_v); }
   auto tell (error& error_v) const -> std::uintmax_t override { return m_file.tell(error_v); }
   auto size (error& error_v) const -> std::uintmax_t override { return m_file.size(error_v); }
@@ -47,6 +46,13 @@ struct WPNotify:
     const auto unwritten_bytes_v = m_file.write(error_v, buffer_v, offset_v);
     m_target.notify_write(m_context, error_v, offset_v + buffer_v.size() - unwritten_bytes_v.size());
     return unwritten_bytes_v;
+  }
+  
+  auto flush (error& error_v) -> bool override 
+  { 
+    const auto result_v = m_file.flush(error_v); 
+    m_target.notify_flush(m_context, error_v, result_v);
+    return result_v;
   }
 
 private:

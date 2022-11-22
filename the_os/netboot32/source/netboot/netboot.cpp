@@ -109,10 +109,10 @@ auto Netboot::notify_write(std::string_view path_v, vfsio::error const& error_v,
   Gmod.info<"Downloading {} ({} bytes) ...", "\r"> (path_v, bytes_written_v);
 }
 
-auto Netboot::notify_resize(std::string_view path_v, vfsio::error const& error_v, std::size_t size_v) -> void
+auto Netboot::notify_flush(std::string_view path_v, vfsio::error const& error_v, bool flush_succeeded_v) -> void
 {
-  
+  Gmod.info<"Completeded downloading {}."> (path_v);
 }
 
-
-
+auto Netboot::notify_resize(std::string_view path_v, vfsio::error const& error_v, std::size_t size_v) -> void
+{}
