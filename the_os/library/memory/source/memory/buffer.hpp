@@ -84,7 +84,7 @@ namespace memory
     using value_type = T;
 
     inline buffer()  
-    : m_allocator { nullptr }
+    : m_allocator { std::pmr::get_default_resource() }
     , m_buffer_sp { }
     {}
 

@@ -1,11 +1,15 @@
 #pragma once
 
 #include <memory_resource>
+#include <memory/block_list.hpp>
 
 namespace memory
 {
   auto initialize(bool first_time) -> void;
   auto finalize(bool last_time) -> void;
+
+  auto get_base_heap_blist() -> block_list&;
+  auto get_extended_heap_blist() -> block_list&;
 
   auto get_base_heap()  -> std::pmr::memory_resource&;
   auto get_extended_heap()  -> std::pmr::memory_resource&;

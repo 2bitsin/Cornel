@@ -4,6 +4,9 @@
 #include <string_view>
 #include <string>
 #include <tuple>
+#include <memory>
+
+#include <netboot/wpnotify.hpp>
 
 #include <script/interpreter.hpp>
 #include <script/executor.hpp>
@@ -13,7 +16,9 @@
 
 #include <memory/buffer.hpp>
 
-#include <netboot/download_notify.hpp>
+#include <vfsio/archive.hpp>
+#include <vfsio/archive_view.hpp>
+#include <vfsio/heapfile.hpp>
 
 namespace netboot
 {
@@ -42,25 +47,23 @@ namespace netboot
     void main();
 
   protected:
-    friend DownloadNotify<Netboot>;
+    friend WPNotify<Netboot, std::string_view>;
     friend cmd::echo;
     friend cmd::fetch;
  
-    auto download (std::string_view path_v) -> std::tuple<bool, memory::buffer<std::byte>>;
-    auto execute (std::string_view script_v) -> std::optional<int>;
-    auto register_resource (std::string_view designator_v, memory::buffer<std::byte> buffer_v) -> bool;
+    auto download (std::string_view path_v) -> bool;
+    auto execute (std::string_view path_v) ->bool;
+    auto download_and_execute (std::string_view path_v) -> bool;
 
     auto cmd_echo (std::vector<std::string> const& what_v) -> int;
     auto cmd_fetch (std::string_view designator_v, std::string_view path_v) -> int;
-  
-    bool download_initialize (std::string_view& file_name_v, ::pxenv::tftp::params& params_v);
-    bool download_update_sizes (std::size_t total_size_v, std::size_t packet_size_v);
-    bool download_progress (std::span<const std::byte> buffer_s, std::size_t packet_number_v, std::size_t offset_v);
-    bool download_finalize (std::size_t total_bytes_v);
-    auto download_failure (::pxenv::pxenv_status status) -> ::pxenv::pxenv_status;
+
+    void notify_resize(std::string_view path_v, vfsio::error const& error_v, std::size_t size_v);
+    void notify_write(std::string_view path_v, vfsio::error const& error_v, std::size_t bytes_written_v);
+    void notify_flush(std::string_view path_v, vfsio::error const& error_v, bool flush_succeeded_v);
 
   private:
-    std::string_view m_download_file_name;
-    std::size_t      m_download_total_size;
+    std::unique_ptr<vfsio::heapfile> m_heapfile;
+    std::unique_ptr<vfsio::archive> m_archive;
   };
 }

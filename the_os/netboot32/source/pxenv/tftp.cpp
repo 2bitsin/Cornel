@@ -83,17 +83,17 @@ auto pxenv::tftp::read (std::span<std::byte>& o_buffer, std::uint16_t& o_packet_
   return params.status;
 }
 
-auto pxenv::tftp::download (std::string_view file_name, Inotify& notify_i) 
-  -> std::tuple<::pxenv::pxenv_status, ::memory::buffer<std::byte>>
+auto pxenv::tftp::download (vfsio::IFile& write_file_v, std::string_view file_name) 
+  -> ::pxenv::pxenv_status
 {
   auto [status, dhcp_info] = dhcp::info::cached(dhcp::packet_type_id::cached_reply);
   if (status != pxenv_status::success)
-    return { status, {} };
-  return pxenv::tftp::download(file_name, dhcp_info.tftp_server(), notify_i);
+    return status;
+  return pxenv::tftp::download(write_file_v, file_name, dhcp_info.tftp_server());
 }
 
-auto pxenv::tftp::download (std::string_view file_name, pxenv::tftp::params options, Inotify& notify_i) 
-  -> std::tuple<::pxenv::pxenv_status, ::memory::buffer<std::byte>>
+auto pxenv::tftp::download (vfsio::IFile& write_file_v, std::string_view file_name, pxenv::tftp::params options) 
+  -> ::pxenv::pxenv_status
 {
   pxenv_status  status      { pxenv_status::invalid_status };
   std::uint32_t bytes_read  { 0u };
@@ -102,25 +102,22 @@ auto pxenv::tftp::download (std::string_view file_name, pxenv::tftp::params opti
   std::uint32_t file_size   { 0u };  
   std::uint16_t packet_size { 4096u };
 
-  if (!notify_i.initialize(file_name, options)) {
-    return { pxenv_status::tftp_request_cancelled, {} };
-  }
-
-  memory::buffer<std::byte> entire_buffer {};
   memory::buffer<std::byte> packet_buffer {};
 
   status = pxenv::tftp::get_fsize(file_name, file_size, options);
   if (status != pxenv_status::success)
-    return { notify_i.failure(status), {} };
+    return status;
+
+  vfsio::error error_v { vfsio::error::none };
 
   status = pxenv::tftp::open(file_name, packet_size, options);
   if (status != pxenv_status::success)
-    return { notify_i.failure(status), {} };
+    return status;  
 
-  if (!notify_i.update_sizes(file_size, packet_size)) 
-    return { pxenv_status::tftp_request_cancelled, {} };
+  write_file_v.resize(error_v, file_size);
+  if (error_v != vfsio::error::none)
+    return pxenv_status::not_enough_memory;
 
-  entire_buffer.allocate(memory::get_extended_heap(), file_size);    
   packet_buffer.allocate(memory::get_base_heap(), packet_size);  
 
   for (bytes_read = 0u; bytes_read < file_size; ) 
@@ -129,25 +126,21 @@ auto pxenv::tftp::download (std::string_view file_name, pxenv::tftp::params opti
 
     status = pxenv::tftp::read(out_packet_buffer, curr_packet);    
     if (status != pxenv_status::success)
-      return { notify_i.failure(status), {} };
+      return status;
     if (curr_packet != last_packet + 1u) 
-      return { notify_i.failure(pxenv_status::tftp_invalid_packet_number), {} };
+      return pxenv_status::tftp_invalid_packet_number;
 
-    if (!notify_i.progress(out_packet_buffer, curr_packet, bytes_read))
-      return { pxenv_status::tftp_request_cancelled, {} };
+    auto unwritten_bytes_v = write_file_v.write(error_v, out_packet_buffer);
+    if (!unwritten_bytes_v.empty() || error_v != vfsio::error::none)
+      return pxenv_status::write_failed;    
 
-    auto dest_buffer_range = entire_buffer.subspan(bytes_read, out_packet_buffer.size());
-    std::ranges::copy(out_packet_buffer, std::begin(dest_buffer_range));
     last_packet = curr_packet;
     bytes_read += out_packet_buffer.size();
     if (out_packet_buffer.size () < packet_size)
       break;
   }
-
-  if (!notify_i.finalize(bytes_read)) {
-    return { pxenv_status::tftp_request_cancelled, {} };
-  }
-
-  pxenv::tftp::close();  
-  return { status, std::move(entire_buffer) };
+  write_file_v.flush(error_v);
+  if (error_v != vfsio::error::none)
+    return pxenv_status::flush_failed;
+  return pxenv::tftp::close();
 }

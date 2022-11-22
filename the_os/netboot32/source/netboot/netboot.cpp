@@ -1,7 +1,8 @@
 #include <algorithm>
 
-#include <netboot/download_notify.hpp>
+#include <netboot/wpnotify.hpp>
 #include <netboot/netboot.hpp>
+#include <netboot/memory.hpp>
 
 #include <textio/logger.hpp>
 #include <textio/format/helpers/repeat_value.hpp>
@@ -10,6 +11,8 @@
 
 #include <pxenv/core.hpp>
 #include <pxenv/tftp.hpp>
+
+#include <vfsio/vfsio.hpp>
 
 declare_module(NETBOOT32);
 
@@ -29,24 +32,40 @@ void Netboot::main()
 {
   Gmod.info<"Starting NETBOOT32 ...">();
 
-  auto const [success_v, buffer_v] = download("netboot32.run");
-  if (!success_v || buffer_v.empty()) {
-    Gmod.fatal<"Nothing to do.">();
-    std::abort();  
-  }
-    
-  if (auto const result_v = execute(buffer_v); !result_v || *result_v) {
-    Gmod.fatal<"Failed to execute netboot32.run">();
+  vfsio::error error_v { vfsio::error::none };
+  m_heapfile = std::make_unique<vfsio::heapfile>(error_v, memory::get_extended_heap_blist());
+  if (error_v != vfsio::error::none) {
+    Gmod.fatal<"Failed to initialize {}: {}"> ("ramdisk", (int)error_v);
     std::abort();
   }
+  m_archive = std::make_unique<vfsio::archive>(error_v, m_heapfile.get());
+  if (error_v != vfsio::error::none) {
+    Gmod.fatal<"Failed to initialize {}: {}"> ("ramfs", (int)error_v);
+    std::abort();
+  }
+
+  if (!download_and_execute("netboot32.run"))
+    std::abort();   
 }
 
-auto Netboot::download(std::string_view path_v) -> std::tuple<bool, memory::buffer<std::byte>>
+auto Netboot::download_and_execute(std::string_view path_v) -> bool
+{
+  return download(path_v) && execute(path_v);
+}
+
+auto Netboot::download(std::string_view path_v) -> bool
 {
   using namespace pxenv;
-  DownloadNotify<Netboot> notify_v (*this);
-  auto[status_v, buffer_v] = tftp::download(path_v, notify_v);
-  return { status_v == pxenv_status::success, std::move(buffer_v) };  
+  vfsio::error error_v { vfsio::error::none };
+  m_archive->open(error_v, m_archive->file, path_v);
+  WPNotify<Netboot, std::string_view> outfile_v (*m_archive, *this, path_v); 
+  const auto status_v = tftp::download(outfile_v, path_v);
+  if (status_v != ::pxenv::pxenv_status::success) {
+    Gmod.error<"Failed to download {}: {:04x}"> (path_v, (unsigned)status_v);
+    return false;
+  }
+  m_archive->close(error_v);
+  return true;  
 }
 
 int Netboot::cmd_echo(std::vector<std::string> const& what_v) 
@@ -61,53 +80,39 @@ int Netboot::cmd_echo(std::vector<std::string> const& what_v)
 
 int Netboot::cmd_fetch([[maybe_unused]] std::string_view designator_v, std::string_view path_v)
 { 
-  auto const [success_v, buffer_v] = download(path_v);
-  if (!success_v) {    
-    return -1;
-  }
-  
-  return 0;
+  return download(path_v) ? 0 : -1;
 }
 
-bool Netboot::download_initialize ([[maybe_unused]] std::string_view& file_name_v, [[maybe_unused]] ::pxenv::tftp::params& params_v) 
-{ 
-  m_download_file_name = file_name_v;
-  return true; 
-}
-
-bool Netboot::download_update_sizes ([[maybe_unused]] std::size_t total_size_v, [[maybe_unused]] std::size_t packet_size_v) 
-{ 
-  m_download_total_size = total_size_v;
-  return true; 
-}
-
-bool Netboot::download_progress ([[maybe_unused]] std::span<const std::byte> buffer_s, [[maybe_unused]] std::size_t packet_number_v, [[maybe_unused]] std::size_t offset_v) 
-{ 
-  Gmod.info<"Downloading {} ... {}/{} bytes", "\r">(m_download_file_name, offset_v + buffer_s.size(), m_download_total_size);
-  return true; 
-}
-
-bool Netboot::download_finalize ([[maybe_unused]] std::size_t total_bytes_v) 
-{ 
-  using textio::fmt::helpers::repeat_value;
-  Gmod.info<"Downloading {} ... finished.{}">(m_download_file_name, 
-    repeat_value<10, char>(' '));
-  return true; 
-}
-
-auto Netboot::download_failure (::pxenv::pxenv_status status) -> ::pxenv::pxenv_status 
-{ 
-  Gmod.error<"Download failed with status {:04x}.">((std::uint16_t)status);
-  return status; 
-}
-
-
-auto Netboot::execute(std::string_view script_v) -> std::optional<int>
+auto Netboot::execute(std::string_view script_path_v) -> bool
 {
   // TODO: figure out what's the best way to indicate failure of script execution
+  vfsio::archive_view archive_view_v { m_heapfile->view() };  
+  vfsio::error error_v { vfsio::error::none };
+  auto script_bytes_v = archive_view_v.find(error_v, archive_view_v.file, script_path_v);
+  if (error_v != vfsio::error::none) {
+    Gmod.error<"Failed to find {}: {}"> (script_path_v, (int)error_v);
+    return false;
+  }
+  std::string script_v { (char const*)script_bytes_v.data(), script_bytes_v.size() };
   script::interpreter interpreter_v;
   interpreter_v.execute(*this, script_v);
-  return interpreter_v.last_status();
+  auto result_v = interpreter_v.last_status();
+  if (!result_v || *result_v != 0) {
+    Gmod.error<"Failed to execute {}: {}"> (script_path_v, result_v ? *result_v : -1);    ;
+    return false;
+  }
+  return true;
 }
 
+auto Netboot::notify_write(std::string_view path_v, vfsio::error const& error_v, std::size_t bytes_written_v) -> void
+{
+  Gmod.info<"Downloading {} ({} bytes) ...", "\r"> (path_v, bytes_written_v);
+}
 
+auto Netboot::notify_flush(std::string_view path_v, vfsio::error const& error_v, bool flush_succeeded_v) -> void
+{
+  Gmod.info<"Completeded downloading {}."> (path_v);
+}
+
+auto Netboot::notify_resize(std::string_view path_v, vfsio::error const& error_v, std::size_t size_v) -> void
+{}
