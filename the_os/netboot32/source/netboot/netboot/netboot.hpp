@@ -67,5 +67,7 @@ namespace netboot
   private:
     std::unique_ptr<vfsio::heapfile> m_heapfile;
     std::unique_ptr<vfsio::archive> m_archive;
+    std::stack<std::string> m_current_script;
+    
   };
 }

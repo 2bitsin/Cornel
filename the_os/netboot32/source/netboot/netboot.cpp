@@ -88,9 +88,14 @@ auto Netboot::download(std::string_view path_v) -> bool
 }
 
 int Netboot::cmd_echo(std::vector<std::string> const& what_v) 
-{      
-  std::for_each(what_v.begin(), what_v.begin() + what_v.size() - 1u, 
-  [](auto const& value_v) { Glog.info<"{} ", "">(value_v); });
+{   
+  if (!m_current_script.empty()) {
+    Glog.info<"({}) ", "">(m_current_script.top());
+  }
+  std::for_each(what_v.begin(), what_v.begin() + what_v.size() - 1u,   
+    [](auto const& value_v) { 
+      Glog.info<"{} ", "">(value_v); 
+    });
   Glog.info<"{}">(what_v.back());
   return 0;
 }
@@ -129,8 +134,10 @@ auto Netboot::execute(std::string_view script_path_v) -> bool
   }
   std::string script_v { utils::as_chars<char>(script_bytes_v) };
   script::interpreter interpreter_v;
+  m_current_script.push(std::string(script_path_v));
   interpreter_v.execute(*this, script_v);
   auto result_v = interpreter_v.last_status();
+  m_current_script.pop();
   if (!result_v || *result_v != 0) {
     Gmod.error<"Failed to execute {}: {}"> (script_path_v, result_v ? *result_v : -1);    ;
     return false;
@@ -140,12 +147,22 @@ auto Netboot::execute(std::string_view script_path_v) -> bool
 
 auto Netboot::notify_write(std::string_view path_v, vfsio::error const& error_v, std::size_t bytes_written_v) -> void
 {
-  Gmod.info<"Downloading {} ({} bytes) ...", "\r"> (path_v, bytes_written_v);
+  if (!m_current_script.empty()) {
+    Glog.info<"({}) Downloading {} ({} bytes) ...", "\r"> (m_current_script.top(), path_v, bytes_written_v);
+  }
+  else {    
+    Gmod.info<"Downloading {} ({} bytes) ...", "\r"> (path_v, bytes_written_v);
+  }
 }
 
 auto Netboot::notify_flush(std::string_view path_v, vfsio::error const& error_v, bool flush_succeeded_v) -> void
 {
-  Gmod.info<"Completeded downloading {}."> (path_v);
+  if (!m_current_script.empty()) {
+    Glog.info<"({}) Completeded downloading {}."> (m_current_script.top(), path_v);
+  }
+  else {
+    Gmod.info<"Completeded downloading {}."> (path_v);
+  }
 }
 
 auto Netboot::notify_resize(std::string_view path_v, vfsio::error const& error_v, std::size_t size_v) -> void
