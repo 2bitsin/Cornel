@@ -99,4 +99,18 @@ namespace utils
     return std::as_writable_bytes(std::span{ what });
   }
 
+  template <typename T, typename U>
+  requires (std::is_trivial_v<T> && std::is_trivial_v<U> && sizeof (T) == sizeof (U))
+  constexpr inline auto as_chars(std::span<U const> what_v) noexcept -> std::basic_string_view<T>
+  {
+    return { (T const *)what_v.data(), what_v.size() };
+  }
+
+  template <typename T, typename U>
+  requires (std::is_trivial_v<T> && std::is_trivial_v<U> && sizeof (T) == sizeof (U))
+  constexpr inline auto as_chars(std::span<U> what_v) noexcept -> std::basic_string_view<T>
+  {
+    return { (T *)what_v.data(), what_v.size() };
+  }
+
 }

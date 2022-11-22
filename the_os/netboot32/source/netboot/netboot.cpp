@@ -13,6 +13,7 @@
 #include <pxenv/tftp.hpp>
 
 #include <vfsio/vfsio.hpp>
+#include <utils/utils.hpp>
 
 declare_module(NETBOOT32);
 
@@ -44,14 +45,32 @@ void Netboot::main()
     std::abort();
   }
 
-  if (!download_and_execute("netboot32.run"))
+  if (!execute(G_autoexec)) 
+  {
     std::abort();   
+  }
 }
 
-auto Netboot::download_and_execute(std::string_view path_v) -> bool
+auto Netboot::fetch(vfsio::error& error_v, std::string_view path_v, std::int32_t retry_v) -> std::span<std::byte const>
 {
-  return download(path_v) && execute(path_v);
+  error_v = vfsio::error::none;
+  vfsio::archive_view archive_view_v { m_heapfile->view() };  
+  if (error_v != vfsio::error::none)
+    return {}; 
+  auto const file_view_v = archive_view_v.find(error_v, archive_view_v.file, path_v);
+  if (error_v != vfsio::error::none) 
+  {
+    if (retry_v > 0)
+      return {};    
+    if (!Netboot::download(path_v)) {
+      error_v = vfsio::error::not_found;
+      return {};
+    }
+    return fetch(error_v, path_v, retry_v + 1);
+  }  
+  return file_view_v;
 }
+
 
 auto Netboot::download(std::string_view path_v) -> bool
 {
@@ -71,29 +90,44 @@ auto Netboot::download(std::string_view path_v) -> bool
 int Netboot::cmd_echo(std::vector<std::string> const& what_v) 
 {      
   std::for_each(what_v.begin(), what_v.begin() + what_v.size() - 1u, 
-  [](auto const& value_v) {
-    Gmod.info<"{} ", "">(value_v);
-  });
-  Gmod.info<"{}">(what_v.back());
+  [](auto const& value_v) { Glog.info<"{} ", "">(value_v); });
+  Glog.info<"{}">(what_v.back());
   return 0;
 }
 
-int Netboot::cmd_fetch([[maybe_unused]] std::string_view designator_v, std::string_view path_v)
+int Netboot::cmd_disp(std::vector<std::string_view> const& paths_v)
+{
+  vfsio::error error_v { vfsio::error::none };
+  for (auto&& curr_v : paths_v) {
+    auto file_view_v = fetch(error_v, curr_v);
+    if (error_v != vfsio::error::none) {
+      Gmod.error<"Failed to fetch {}: {}"> (curr_v, (int)error_v);
+      return -1;
+    }
+    textio::fmt::format_to<"{}">(stdout, utils::as_chars<char>(file_view_v));
+  }
+  textio::fmt::format_to<"\n">(stdout);
+  return 0;
+}
+
+int Netboot::cmd_exec(std::vector<std::string_view> const& paths_v)
 { 
-  return download(path_v) ? 0 : -1;
+  for (auto&& curr_v : paths_v) {
+    if (!execute(curr_v))
+      return -1;
+  }
+  return 0;
 }
 
 auto Netboot::execute(std::string_view script_path_v) -> bool
 {
-  // TODO: figure out what's the best way to indicate failure of script execution
-  vfsio::archive_view archive_view_v { m_heapfile->view() };  
   vfsio::error error_v { vfsio::error::none };
-  auto script_bytes_v = archive_view_v.find(error_v, archive_view_v.file, script_path_v);
+  auto const script_bytes_v = fetch(error_v, script_path_v);
   if (error_v != vfsio::error::none) {
-    Gmod.error<"Failed to find {}: {}"> (script_path_v, (int)error_v);
+    Gmod.error<"Failed to fetch {}: {}"> (script_path_v, (int)error_v);
     return false;
   }
-  std::string script_v { (char const*)script_bytes_v.data(), script_bytes_v.size() };
+  std::string script_v { utils::as_chars<char>(script_bytes_v) };
   script::interpreter interpreter_v;
   interpreter_v.execute(*this, script_v);
   auto result_v = interpreter_v.last_status();

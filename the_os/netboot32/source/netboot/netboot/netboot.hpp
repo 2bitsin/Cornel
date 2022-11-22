@@ -25,38 +25,40 @@ namespace netboot
   namespace cmd
   {
     // echo [what...]
-    struct echo: script::command_base<echo, "echo", std::vector<std::string>>
-    {
-      auto execute(auto&& netboot_v, auto&& ... args_v)  
-      { return netboot_v.cmd_echo(std::forward<decltype(args_v)>(args_v)...); }
-    };
 
-    // fetch <designator> <resource path> 
-    struct fetch: script::command_base<fetch, "fetch", std::string_view, std::string_view>
-    {
-      auto execute(auto&& netboot_v, auto&& ... args_v)  
-      { return netboot_v.cmd_fetch(std::forward<decltype(args_v)>(args_v)...); }
-    };
+  #define DEFINE_CMD(_Name_, ...) \
+    struct _Name_: script::command_base<_Name_, #_Name_, __VA_ARGS__> { \
+      auto execute(auto&& host_v, auto&& ... args_v) const -> int { \
+        return host_v.cmd_##_Name_ (std::forward<decltype(args_v)>(args_v)...); \
+      } \
+    }
+
+    DEFINE_CMD(echo, std::vector<std::string>);
+    DEFINE_CMD(disp, std::vector<std::string_view>);
+    DEFINE_CMD(exec, std::vector<std::string_view>);
   }
 
   struct Netboot: 
-    public script::executor<Netboot, cmd::echo, cmd::fetch>
+    public script::executor<Netboot, cmd::echo, cmd::disp, cmd::exec>
   {
+    friend cmd::echo; friend cmd::disp; friend cmd::exec;
+
+    static const inline constexpr std::string_view G_autoexec { "autoexec.bat" };
+
     void initialize();
     void finalize();
     void main();
 
   protected:
     friend WPNotify<Netboot, std::string_view>;
-    friend cmd::echo;
-    friend cmd::fetch;
  
-    auto download (std::string_view path_v) -> bool;
-    auto execute (std::string_view path_v) ->bool;
-    auto download_and_execute (std::string_view path_v) -> bool;
+    auto fetch (vfsio::error& error_v, std::string_view path_v, std::int32_t retry_v = 0) -> std::span<std::byte const>;
+    auto execute (std::string_view path_v) -> bool;
+    auto download (std::string_view path_v) -> bool; 
 
     auto cmd_echo (std::vector<std::string> const& what_v) -> int;
-    auto cmd_fetch (std::string_view designator_v, std::string_view path_v) -> int;
+    auto cmd_disp (std::vector<std::string_view> const& paths_v) -> int;
+    auto cmd_exec (std::vector<std::string_view> const& paths_v) -> int;
 
     void notify_resize(std::string_view path_v, vfsio::error const& error_v, std::size_t size_v);
     void notify_write(std::string_view path_v, vfsio::error const& error_v, std::size_t bytes_written_v);
