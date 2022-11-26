@@ -10,6 +10,8 @@
 #include <span>
 #include <iterator>
 
+#include "helpers.hpp"
+
 #pragma pack(push, 1)
 struct header
 { 
@@ -21,50 +23,12 @@ struct header
 static_assert(sizeof(header) == 256);
 #pragma pack(pop)
 
-template <typename I>
-struct identity {
-	using type = I;
-};
-
-template <typename Q = std::runtime_error, typename ... K>
-static auto throw_fmt(std::_Basic_format_string<char, typename identity<K>::type...> fmt, K&&... args)
-{
-  throw Q(std::format(fmt, std::forward<K>(args)...));
-}
-
 static auto header_size(header const& header_v) -> std::size_t
 {
   return offsetof(header, name) + header_v.name_len;
 }
 
-static auto load (std::filesystem::path const& path_v) -> std::vector<std::byte>
-{
-	if (!std::filesystem::exists(path_v))
-		throw_fmt("File '{}' does not exist.", path_v.string());
-	if (!std::filesystem::is_regular_file(path_v))
-		throw_fmt("File '{}' is not a regular file.", path_v.string());
-	const auto length_v = std::filesystem::file_size(path_v);
-	if (length_v < 1u)
-		return {};
-	std::vector<std::byte> buffer_v (length_v);
-	std::ifstream input_file_v (path_v, std::ios::binary);
-	if (!input_file_v)
-		throw_fmt("Failed to open file '{}' for reading.", path_v.string());
-	input_file_v.read((char*)buffer_v.data(), length_v);
-	if (!input_file_v || input_file_v.gcount() != length_v)
-		throw_fmt("Failed to read file '{}' into memory.", path_v.string());
-	return buffer_v;
-}
 
-static auto save (std::filesystem::path const& path_v, std::span<const std::byte> bytes_v) 
-{	
-	std::ofstream output_file_v(path_v, std::ios::binary);
-	if (!output_file_v)
-		throw_fmt("Failed to open file '{}' for writing.", path_v.string());
-	output_file_v.write((char*)bytes_v.data(), bytes_v.size());
-	if (!output_file_v)
-		throw_fmt("Failed to write file '{}' from memory.", path_v.string());
-}
 
 auto header_from_bytes(std::span<const std::byte> bytes_v) 
 	-> header const&

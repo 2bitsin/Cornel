@@ -33,21 +33,30 @@ namespace netboot
       } \
     }
 
-    DEFINE_CMD(echo, std::vector<std::string>);
+    DEFINE_CMD(start, std::string_view);
     DEFINE_CMD(disp, std::vector<std::string_view>);
     DEFINE_CMD(exec, std::vector<std::string_view>);
+    DEFINE_CMD(load, std::vector<std::string_view>);
+    DEFINE_CMD(echo, std::vector<std::string>);
+    DEFINE_CMD(rem,  std::vector<std::string_view>);
+  #undef DEFINE_CMD
   }
 
   struct Netboot: 
-    public script::executor<Netboot, cmd::echo, cmd::disp, cmd::exec>
+    public script::executor<Netboot, cmd::echo, cmd::disp, cmd::exec, cmd::load, cmd::rem>
   {
-    friend cmd::echo; friend cmd::disp; friend cmd::exec;
-
-    static const inline constexpr std::string_view G_autoexec { "autoexec.bat" };
+    static const inline constexpr std::string_view G_autoexec { "netboot32.cmd" };
 
     void initialize();
     void finalize();
     void main();
+
+    auto cmd_rem (std::vector<std::string_view> const& paths_v) -> int;
+    auto cmd_echo (std::vector<std::string> const& what_v) -> int;
+    auto cmd_disp (std::vector<std::string_view> const& paths_v) -> int;
+    auto cmd_exec (std::vector<std::string_view> const& paths_v) -> int;
+    auto cmd_load (std::vector<std::string_view> const& paths_v) -> int;
+    auto cmd_start (std::string_view path_v) -> int;
 
   protected:
     friend WPNotify<Netboot, std::string_view>;
@@ -55,10 +64,6 @@ namespace netboot
     auto fetch (vfsio::error& error_v, std::string_view path_v, std::int32_t retry_v = 0) -> std::span<std::byte const>;
     auto execute (std::string_view path_v) -> bool;
     auto download (std::string_view path_v) -> bool; 
-
-    auto cmd_echo (std::vector<std::string> const& what_v) -> int;
-    auto cmd_disp (std::vector<std::string_view> const& paths_v) -> int;
-    auto cmd_exec (std::vector<std::string_view> const& paths_v) -> int;
 
     void notify_resize(std::string_view path_v, vfsio::error const& error_v, std::size_t size_v);
     void notify_write(std::string_view path_v, vfsio::error const& error_v, std::size_t bytes_written_v);

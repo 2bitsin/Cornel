@@ -16,6 +16,7 @@
 #include <utils/utils.hpp>
 
 declare_module(NETBOOT32);
+static inline constexpr const std::string_view G_module_name {"NETBOOT32"}; 
 
 using netboot::Netboot;
 
@@ -31,7 +32,7 @@ void Netboot::finalize()
 
 void Netboot::main()
 {
-  Gmod.info<"Starting NETBOOT32 ...">();
+  Gmod.info<"Starting {} ...">(G_module_name);
 
   vfsio::error error_v { vfsio::error::none };
   m_heapfile = std::make_unique<vfsio::heapfile>(error_v, memory::get_extended_heap_blist());
@@ -87,6 +88,32 @@ auto Netboot::download(std::string_view path_v) -> bool
   return true;  
 }
 
+auto Netboot::execute(std::string_view script_path_v) -> bool
+{
+  vfsio::error error_v { vfsio::error::none };
+  auto const script_bytes_v = fetch(error_v, script_path_v);
+  if (error_v != vfsio::error::none) {
+    Gmod.error<"Failed to fetch {}: {}"> (script_path_v, (int)error_v);
+    return false;
+  }
+  std::string script_v { utils::as_chars<char>(script_bytes_v) };
+  script::interpreter interpreter_v;
+  m_current_script.push(std::string(script_path_v));
+  interpreter_v.execute(*this, script_v);
+  auto result_v = interpreter_v.last_status();
+  m_current_script.pop();
+  if (!result_v || *result_v != 0) {
+    Gmod.error<"Failed to execute {}: {}"> (script_path_v, result_v ? *result_v : -1);    ;
+    return false;
+  }
+  return true;
+}
+
+int Netboot::cmd_rem(std::vector<std::string_view> const& path_v)
+{
+  return 0;
+}
+
 int Netboot::cmd_echo(std::vector<std::string> const& what_v) 
 {   
   if (!m_current_script.empty()) {
@@ -124,45 +151,40 @@ int Netboot::cmd_exec(std::vector<std::string_view> const& paths_v)
   return 0;
 }
 
-auto Netboot::execute(std::string_view script_path_v) -> bool
+int Netboot::cmd_load(std::vector<std::string_view> const& path_v)
+{
+  for(auto&& curr_v : path_v) {
+    if (!download(curr_v))
+      return -1;
+  }
+  return 0;
+}
+
+int Netboot::cmd_start(std::string_view path_v) 
 {
   vfsio::error error_v { vfsio::error::none };
-  auto const script_bytes_v = fetch(error_v, script_path_v);
-  if (error_v != vfsio::error::none) {
-    Gmod.error<"Failed to fetch {}: {}"> (script_path_v, (int)error_v);
-    return false;
-  }
-  std::string script_v { utils::as_chars<char>(script_bytes_v) };
-  script::interpreter interpreter_v;
-  m_current_script.push(std::string(script_path_v));
-  interpreter_v.execute(*this, script_v);
-  auto result_v = interpreter_v.last_status();
-  m_current_script.pop();
-  if (!result_v || *result_v != 0) {
-    Gmod.error<"Failed to execute {}: {}"> (script_path_v, result_v ? *result_v : -1);    ;
-    return false;
-  }
-  return true;
+  auto const file_view_v = fetch(error_v, path_v);
+  if (error_v != vfsio::error::none) 
+    goto L_error;
+  auto const entry_point_v = load_image(error_v, file_view_v);
+  if (error_v != vfsio::error::none) 
+    goto L_error;
+  entry_point_v();
+L_error:
+  Gmod.error<"Can't start {} (error = {:d})!"> (path_v, (int)error_v);
+  return (int)error_v;
 }
 
 auto Netboot::notify_write(std::string_view path_v, vfsio::error const& error_v, std::size_t bytes_written_v) -> void
 {
-  if (!m_current_script.empty()) {
-    Glog.info<"({}) Downloading {} ({} bytes) ...", "\r"> (m_current_script.top(), path_v, bytes_written_v);
-  }
-  else {    
-    Gmod.info<"Downloading {} ({} bytes) ...", "\r"> (path_v, bytes_written_v);
-  }
+  auto const context_v = m_current_script.empty() ? G_module_name : m_current_script.top();
+  Glog.info<"({}) Downloading {} ({} bytes) ...", "\r"> (context_v, path_v, bytes_written_v);
 }
 
 auto Netboot::notify_flush(std::string_view path_v, vfsio::error const& error_v, bool flush_succeeded_v) -> void
 {
-  if (!m_current_script.empty()) {
-    Glog.info<"({}) Completeded downloading {}."> (m_current_script.top(), path_v);
-  }
-  else {
-    Gmod.info<"Completeded downloading {}."> (path_v);
-  }
+  auto const context_v = m_current_script.empty() ? G_module_name : m_current_script.top();
+  Glog.info<"({}) Completeded downloading {}."> (context_v, path_v);
 }
 
 auto Netboot::notify_resize(std::string_view path_v, vfsio::error const& error_v, std::size_t size_v) -> void

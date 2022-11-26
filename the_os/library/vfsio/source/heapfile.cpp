@@ -37,7 +37,7 @@ auto heapfile::resize(error& error_v, std::uintmax_t new_size_v) -> std::uintmax
 {
 	error_v = error::none;
 	new_size_v = std::min<std::uintmax_t>(new_size_v, m_max_size);
-	const auto new_data_p = m_heap_w.reallocate(error_v, m_data_s.data(), new_size_v);
+	const auto new_data_p = m_heap_w.reallocate(m_data_s.data(), new_size_v);
 	if (nullptr == new_data_p)
 		return m_data_s.size();	
 	m_data_s = std::span<std::byte>((std::byte*)new_data_p, new_size_v);

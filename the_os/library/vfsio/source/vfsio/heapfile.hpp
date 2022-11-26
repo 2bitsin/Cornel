@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vfsio/vfsio.hpp>
+#include <memory/block_list.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -75,11 +76,10 @@ namespace vfsio
   struct heapfile final: 
     public vfsio::helper::IFile
   {
-    template <typename HeapT>   
-    heapfile(error& error_v, HeapT& heap_v,        
+    
+    heapfile(error& error_v, memory::block_list& heap_v,        
       std::size_t max_size_v = std::numeric_limits<std::size_t>::max())   
-    : m_wstore   { }
-    , m_heap_w   { *new (&m_wstore) detail::Heap_wrapper<HeapT>(heap_v) }
+    : m_heap_w   { heap_v }
     , m_data_s   { }
     , m_max_size { max_size_v }
     {
@@ -98,8 +98,7 @@ namespace vfsio
 		inline auto view() const noexcept -> std::span<std::byte const> { return m_data_s; }
 
   private:
-    std::aligned_union_t<0, detail::Heap_wrapper<detail::DummyHeap>> m_wstore;
-    detail::IHeap& m_heap_w;
+    memory::block_list& m_heap_w;
     std::span<std::byte> m_data_s;
     std::size_t m_max_size;
   };

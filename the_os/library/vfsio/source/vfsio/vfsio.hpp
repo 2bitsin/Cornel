@@ -18,6 +18,8 @@ namespace vfsio
     invalid_file,
     invalid_argument,
     invalid_operation,
+		invalid_or_corrupted,
+		unsupported_machine_type,
     name_too_long,
     not_found,
     io_error,
