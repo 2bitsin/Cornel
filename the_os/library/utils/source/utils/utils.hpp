@@ -134,5 +134,15 @@ namespace utils
       return nullptr;
     return clone_from_bytes<Value_type> (bytes_v.subspan (offset_v));
   }
+
+  template <typename Value_type>
+  requires (std::is_trivial_v<Value_type>) 
+  static inline auto clone_from_bytes(std::span<const std::byte> bytes_v, std::size_t offset_v, std::size_t count_v) -> std::unique_ptr<Value_type>
+  {
+    if (offset_v >= bytes_v.size() || bytes_v.size() - offset_v < sizeof (Value_type))
+      return nullptr;
+    return clone_from_bytes<Value_type> (bytes_v.subspan (offset_v, std::min(bytes_v.size() -  offset_v, count_v)));
+  }
+
 }
 
