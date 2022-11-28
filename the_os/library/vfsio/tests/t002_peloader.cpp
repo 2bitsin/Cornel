@@ -10,7 +10,7 @@ int main(int, char**)
 	heap_v.insert_range({ new std::byte[Q], Q });
 	vfsio::peloader peloader_v (heap_v);
 
-	auto bytes_v = load(R"(vfsio.t003_test.exe)");
+	auto bytes_v = load(R"(C:\Users\alex\Desktop\projects\leisure\Cornel\workspace\os99\os99core.exe)");
 	vfsio::error error_v;
 	auto [image_p, entry_p] = peloader_v.load(error_v, bytes_v) ;
 

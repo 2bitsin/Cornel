@@ -166,10 +166,10 @@ int Netboot::cmd_start(std::string_view path_v)
   auto const file_view_v = fetch(error_v, path_v);
   if (error_v != vfsio::error::none) 
     goto L_error;
-  auto const entry_point_v = load_image(error_v, file_view_v);
+  //auto const entry_point_v = load_image(error_v, file_view_v);
   if (error_v != vfsio::error::none) 
     goto L_error;
-  entry_point_v();
+  //entry_point_v();
 L_error:
   Gmod.error<"Can't start {} (error = {:d})!"> (path_v, (int)error_v);
   return (int)error_v;

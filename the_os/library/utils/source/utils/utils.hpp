@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <memory>
 #include <span>
+#include <cstring>
 
 namespace utils
 {
@@ -120,7 +121,6 @@ namespace utils
   {
     if (bytes_v.size() < sizeof (Value_type))
       return nullptr;
-
     auto value_p = std::make_unique<Value_type>();
     std::memcpy(value_p.get(), bytes_v.data(), sizeof (Value_type));
     return std::move (value_p); 
@@ -144,5 +144,116 @@ namespace utils
     return clone_from_bytes<Value_type> (bytes_v.subspan (offset_v, std::min(bytes_v.size() -  offset_v, count_v)));
   }
 
-}
+  template <typename Value_type>
+  requires (std::is_trivial_v<Value_type>)
+  static inline auto partial_copy_from_bytes(Value_type& target_v, std::span<const std::byte> bytes_v) -> bool
+  {
+    if (bytes_v.size() < sizeof (Value_type)) {
+      std::memset(&target_v, 0, sizeof (Value_type));   
+      std::memcpy(&target_v, bytes_v.data(), bytes_v.size());
+      return false;
+    }
+    std::memcpy(&target_v, bytes_v.data(), sizeof(Value_type));   
+    return true;
+  }
 
+  template <typename Value_type>
+  requires (std::is_trivial_v<Value_type>)
+  static inline auto partial_copy_from_bytes(Value_type& target_v, std::span<const std::byte> bytes_v, std::size_t offset_v) -> bool
+  {
+    if (offset_v >= bytes_v.size())
+      return partial_copy_from_bytes(target_v, {});
+    return partial_copy_from_bytes(target_v, bytes_v.subspan(offset_v));
+  }
+
+  template <typename Value_type>
+  requires (std::is_trivial_v<Value_type>)
+  static inline auto partial_copy_from_bytes(Value_type& target_v, std::span<const std::byte> bytes_v, std::size_t offset_v, std::size_t size_v) -> bool
+  {
+    if (offset_v >= bytes_v.size())
+      return partial_copy_from_bytes(target_v, {});
+    return partial_copy_from_bytes(target_v, bytes_v.subspan(offset_v, std::min(bytes_v.size(), size_v)));
+  }
+
+  template <typename Value_type>
+  requires (std::is_trivial_v<Value_type>) 
+  static inline auto partial_clone_from_bytes(std::span<const std::byte> bytes_v) 
+    -> std::unique_ptr<Value_type>
+  {
+    auto value_p = std::make_unique<Value_type>();
+    if (partial_copy_from_bytes(*value_p, bytes_v))
+      return value_p;
+    return nullptr;
+  }
+
+  template <typename Value_type>
+  requires (std::is_trivial_v<Value_type>) 
+  static inline auto partial_clone_from_bytes(std::span<const std::byte> bytes_v, std::size_t offset_v) 
+    -> std::unique_ptr<Value_type>
+  {
+    auto value_p = std::make_unique<Value_type>();
+    if (partial_copy_from_bytes(*value_p, bytes_v, offset_v))     
+      return value_p;
+    return nullptr;
+  }
+  
+  template <typename Value_type>
+  requires (std::is_trivial_v<Value_type>) 
+  static inline auto partial_clone_from_bytes(std::span<const std::byte> bytes_v, std::size_t offset_v, std::size_t size_v) 
+    -> std::unique_ptr<Value_type>
+  {
+    auto value_p = std::make_unique<Value_type>();
+    if (partial_copy_from_bytes(*value_p, bytes_v, offset_v, size_v))
+      return value_p;
+    return nullptr;
+  }
+  
+  template <typename Value_type>
+  requires (std::is_trivial_v<Value_type>)
+  static inline auto from_bytes(std::span<const std::byte> bytes_v) 
+    -> std::span<const Value_type> 
+  {   
+    if (bytes_v.size() < sizeof(Value_type))
+      return {};
+    return { 
+      (Value_type const*)bytes_v.data(), 
+      bytes_v.size()/sizeof(Value_type) 
+    };
+  }
+
+  template <typename Value_type>
+  requires (std::is_trivial_v<Value_type>)
+  static inline auto from_bytes(std::span<const std::byte> bytes_v, std::size_t offset_v)
+    -> std::span<const Value_type>
+  {
+    if (offset_v >= bytes_v.size() || bytes_v.size() - offset_v < sizeof(Value_type))
+      return {};
+    return from_bytes<Value_type>(bytes_v.subspan(offset_v));
+  }
+
+  template <typename Value_type>
+  requires (std::is_trivial_v<Value_type>)
+  static inline auto from_bytes(std::span<const std::byte> bytes_v, std::size_t offset_v, std::size_t size_v)
+    -> std::span<const Value_type>
+  {
+    if (offset_v >= bytes_v.size() || bytes_v.size() - offset_v < sizeof(Value_type))
+      return {};
+    return from_bytes<Value_type>(bytes_v.subspan(offset_v, std::min(bytes_v.size() - offset_v, size_v)));
+  }
+
+  template <typename U>
+  auto safe_subspan(std::span<const U> bytes_v, std::size_t offset_v, std::size_t size_v) -> std::span<const U>
+  {
+    if (offset_v >= bytes_v.size())
+      return {};
+    return bytes_v.subspan(offset_v, std::min(bytes_v.size() - offset_v, size_v));    
+  }
+
+  template <typename U>
+  auto safe_subspan(std::span<U> bytes_v, std::size_t offset_v, std::size_t size_v) -> std::span<U>
+  {
+    if (offset_v >= bytes_v.size())
+      return {};
+    return bytes_v.subspan(offset_v, std::min(bytes_v.size() - offset_v, size_v));    
+  }
+};

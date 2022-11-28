@@ -1,11 +1,8 @@
 OUTPUT_FORMAT(pei-i386)
 ENTRY(core_entry)
 SECTIONS
-{
-  . = 0xE0000000;
-
-  . = ALIGN(0x1000);
-  .text :
+{  __image_base__ = 0xe0000000;
+  .text (__image_base__) :
   {  
     *(.text.bootstrap)
     *(.text.interrupts)
@@ -14,8 +11,7 @@ SECTIONS
     *(.text)      
   }
 
-  . = ALIGN(0x1000);
-  .data :
+  .data : ALIGN(0x1000)
   {     
     *(.rodata.options)
     *(.rodata.*)
@@ -24,8 +20,8 @@ SECTIONS
     *(.data)    
   }
 
-  . = ALIGN(16);
-  .bss :
+  
+  .bss : ALIGN(0x1000)
   {    
     *(.bss)
   }
