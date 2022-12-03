@@ -4,6 +4,7 @@
 #include <memory>
 #include <span>
 #include <cstring>
+#include <string_view>
 
 namespace utils
 {

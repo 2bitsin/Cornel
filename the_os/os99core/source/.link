@@ -1,8 +1,8 @@
-OUTPUT_FORMAT(pei-i386)
+OUTPUT_FORMAT(elf32-i386)
 ENTRY(core_entry)
 SECTIONS
-{  __image_base__ = 0xe0000000;
-  .text (__image_base__) :
+{
+  .text (0xE0000000) : 
   {  
     *(.text.bootstrap)
     *(.text.interrupts)

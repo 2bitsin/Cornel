@@ -5,7 +5,7 @@
 
 #include <string_view>
 
-namespace elf
+namespace vfsio::elf
 {
 	using namespace std::string_view_literals;
 
@@ -295,9 +295,9 @@ namespace elf
 	static inline constexpr const auto SHT_NOTE			=	7u;
 	static inline constexpr const auto SHT_NOBITS		=	8u;
 	static inline constexpr const auto SHT_REL			=	9u;
-	static inline constexpr const auto SHT_SHLIB		=	10u
-	static inline constexpr const auto SHT_DYNSYM		=	11u
-	static inline constexpr const auto SHT_NUM			=	12u
+	static inline constexpr const auto SHT_SHLIB		=	10u;
+	static inline constexpr const auto SHT_DYNSYM		=	11u;
+	static inline constexpr const auto SHT_NUM			=	12u;
 	static inline constexpr const auto SHT_LOPROC		=	0x70000000u;
 	static inline constexpr const auto SHT_HIPROC		=	0x7fffffffu;
 	static inline constexpr const auto SHT_LOUSER		=	0x80000000u;

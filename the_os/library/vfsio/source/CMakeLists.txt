@@ -4,7 +4,7 @@ add_library(vfsio
 	archive.cpp 
 	vfsio.cpp 
   archive_view.cpp
-  elfimage.cpp
+  "elf_load.cpp"
 )
 
 target_include_directories(vfsio PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
