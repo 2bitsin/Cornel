@@ -1,8 +1,7 @@
 set (TEST_SOURCES 
   t000_hello_world.cpp
   t001_extract.cpp
-	t002_peloader.cpp
-	t003_test.cpp
+	t002_elfload.cpp
 )
 
 set (TEST_PREFIX vfsio)
