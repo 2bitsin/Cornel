@@ -5,6 +5,7 @@
 #include <span>
 #include <cstring>
 #include <string_view>
+#include <concepts>
 
 namespace utils
 {
@@ -255,6 +256,21 @@ namespace utils
   {
     if (offset_v >= bytes_v.size())
       return {};
-    return bytes_v.subspan(offset_v, std::min(bytes_v.size() - offset_v, size_v));    
-  }
+    return bytes_v.subspan(offset_v, std::min(bytes_v.size() - offset_v, size_v));     	
+	}
+
+	template<typename U, auto N, typename... T>
+	requires (sizeof...(T) <= N && ((std::is_convertible_v<U, T>) && ...)) 
+	static inline constexpr auto compare_array_to(U const (&array_v) [N], T const& ... valuen_v)
+	{
+		static auto compare_f = []<auto... I>(auto&& array_v, auto&& valuetup_v, 
+			std::index_sequence<I...> index_v)
+		{
+			return ((array_v[I] == std::get<I>(valuetup_v)) && ...);
+		};
+
+		return compare_f(array_v, std::tuple{ valuen_v... }, 
+			std::make_index_sequence<sizeof...(T)>{});
+	}
+
 };
