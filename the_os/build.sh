@@ -11,5 +11,3 @@ cmake --build . --config $BUILD_TYPE -- VERBOSE=1
 cmake --install . --config $BUILD_TYPE
 
 popd
-
-

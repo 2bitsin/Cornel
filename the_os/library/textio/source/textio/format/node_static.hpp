@@ -1,9 +1,7 @@
 #pragma once
 
-#include <concepts>
-#include <algorithm>
-
 #include <meta/string.hpp>
+#include <textio/format/vconvert.hpp>
 
 namespace textio::fmt::detail
 {
@@ -12,10 +10,10 @@ namespace textio::fmt::detail
   {
     static inline constexpr auto value = String;
     
-    template <std::output_iterator<char> OIterator, typename... Args>
-    inline static auto apply(OIterator out_iterator, std::tuple<Args...> const&)
+    template <typename... Args>
+    inline static auto apply(vconvert_base& vconv_r, std::tuple<Args...> const&) -> convert_error
     {     
-      return std::copy(value.begin(), value.end(), out_iterator);
+      return vconv_r.put(value);
     }
   };
 }

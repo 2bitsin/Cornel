@@ -22,16 +22,20 @@ namespace textio::fmt::detail
     return format_optimize_empty(format_optimize_merge(format_static<meta::string_truncate_v<String>, 0u>()));
   }
   
+	/*
   template <std::output_iterator<char> OIterator, typename ArgsTuple, typename... NodeN>
   inline auto format_to_impl(OIterator out_iterator, meta::type_list<NodeN...>, ArgsTuple const& args) -> OIterator
   {
     ((out_iterator = NodeN::apply(out_iterator, args)), ...);
     return out_iterator;
-  } 
+  }
+	*/
+	
 }
 
 namespace textio::fmt
 {
+	/*
   template <meta::string Format_string = meta::string{"{}"}, typename AsWhat = std::string, typename... ArgN>
   auto format_as(ArgN&&... args) -> AsWhat
   {
@@ -42,9 +46,8 @@ namespace textio::fmt
 
   template <meta::string Format_string = meta::string{"{}"}, std::output_iterator<char> OIterator, typename... ArgN>
   auto format_to(OIterator o_iterator, ArgN&&... args) -> OIterator
-  {
-  
-  return detail::format_to_impl(o_iterator, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
+  {  
+		return detail::format_to_impl(o_iterator, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
   }
   
   template <meta::string Format_string = meta::string{"{}"}, typename... ArgN>
@@ -54,11 +57,13 @@ namespace textio::fmt
     auto cstdio_i = detail::format_to_impl(cstdio_iterator{ file }, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
     return cstdio_i.status();
   }
+	*/
 }
 
 namespace textio::fmt
 {
 
+	/*
   template <meta::string Format_string>
   struct format_statement
   {
@@ -121,5 +126,5 @@ namespace textio::fmt
     {
       return format_statement<Format_string>();
     }
-  }
+  }*/
 }
