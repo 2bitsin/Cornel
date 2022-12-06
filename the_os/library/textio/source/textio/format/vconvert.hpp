@@ -63,7 +63,7 @@ namespace textio::fmt::detail
 		auto put(double        value_v, format_options<double        , char_type> const& options_v) noexcept -> convert_error override { return put_boolean(value_v, options_v) ; }
 
 		inline auto put_integer(auto&& value_v, auto const& options_v) noexcept -> convert_error
-		{
+		{     			
 			return convert_error::none;				
 		}
 		
@@ -79,7 +79,36 @@ namespace textio::fmt::detail
 		
 		inline auto put_char(auto&& value_v, auto const& options_v) noexcept -> convert_error
 		{
+      constexpr auto min_number_buffer_size = sizeof(value_type) * 16u;
+      auto const min_string_buffer_size = std::max<std::size_t>(min_number_buffer_size,
+				options_v.pad_zeros * options_v.width + options_v.prefix_base * 2u + 1u);
+			
+      ///////////////////////////////
+      // Take care of 'c' format type
+      ///////////////////////////////
+      if constexpr (std::is_same_v<value_type, char_type> || options.format_type == fmt_type::character)
+      {       
+        char_type buff [1u];
+        if constexpr (!std::is_same_v<value_type, char_type>)
+          buff[0u] = static_cast<char_type>(value);
+        else
+          buff[0u] = value;       
+        return format_sv::apply(o_iterator, typename format_sv::value_type{ buff, std::size(buff) });
+      }
+
 			return convert_error::none;
+		}
+		
+		inline auto put_paddig(char_type value_v, std::size_t count_v) noexcept -> convert_error
+		{
+			convert_error error_v{ convert_error::none };
+			for(auto i = 0u; i < total_padding; ++i) {
+				error_v = put(options.fill_char);
+				if (error_v != convert_error::none){
+					return error_v;
+				}				
+			}	
+			return error_v;
 		}
 
 		inline auto put_string(auto&& value_v, auto const& options_v) noexcept -> convert_error
@@ -88,33 +117,81 @@ namespace textio::fmt::detail
       // String larger then aligment width ?
       //////////////////////////////////////
       if (options_v.width < value.size()) {
-        return std::copy(value.begin(), value.end(), o_iterator);
+				return put_string(value_v);
       }
 
       /////////////////////////////////////////
       // Output an aligned string by padding it
       /////////////////////////////////////////
-      const auto total_padding = options.width - value.size();
-      switch (options.direction)
+      const auto total_padding = options_v.width - value_v.size();
+			convert_error error_v { convert_error::none };
+      switch (options_v.direction)
       {
+
+
+			/////////////////////////////////
+			// Left aligned string
+			/////////////////////////////////
       case fmt_align::left:
-        o_iterator = std::copy(value.begin(), value.end(), o_iterator);
-        return std::fill_n(o_iterator, total_padding, options.fill_char);
+				error_v = put(value_v);
+				if (error_v != convert_error::none){
+					return error_v;
+				}
+				error_v = put_paddig(options_v.fill_char, total_padding);
+				if (error_v != convert_error::none){
+					return error_v;
+				}
+				break;				
+
+				
+			/////////////////////////////////
+			// Right aligned string
+			/////////////////////////////////
       case fmt_align::right:
-        o_iterator = std::fill_n(o_iterator, total_padding, options.fill_char);
-        return std::copy(value.begin(), value.end(), o_iterator);
+				error_v = put_paddig(options_v.fill_char, total_padding);
+				if (error_v != convert_error::none){
+					return error_v;
+				}
+				error_v = put(value_v);
+				if (error_v != convert_error::none){
+					return error_v;
+				}
+				break;
+
+				
+			/////////////////////////////////
+			// Center aligned string
+			/////////////////////////////////
       case fmt_align::center:
         {
-          const auto left_padding = total_padding / 2;
-          const auto right_padding = total_padding - left_padding;
-          o_iterator = std::fill_n(o_iterator, left_padding, options.fill_char);
-          o_iterator = std::copy(value.begin(), value.end(), o_iterator);
-          return std::fill_n(o_iterator, right_padding, options.fill_char);
+          const auto left_padding = total_padding / 2;					
+					error_v = put_paddig(options_v.fill_char, left_padding);
+					if (error_v != convert_error::none) {
+						return error_v;
+					}
+					error_v = put(value_v);
+					if (error_v != convert_error::none) {
+						return error_v;
+					}
+					error_v = put_paddig(options_v.fill_char, total_padding - left_padding);
+					if (error_v != convert_error::none) {
+						return error_v;
+					}
+					break;
         }
-      case fmt_align::none:
+				
+			/////////////////////////////////
+			// No alignment
+			/////////////////////////////////
+			case fmt_align::none:
       default:
-        return std::copy(value.begin(), value.end(), o_iterator);
+				error_v = put(value_v);
+				if (error_v != convert_error::none) {
+					return error_v;
+				}
+				break;
       }
+			return error_v;
     }     
 
 		inline auto put_string(auto&& value_v) noexcept -> convert_error
