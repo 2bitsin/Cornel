@@ -1,3 +1,5 @@
+#pragma  once
+
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
@@ -13,7 +15,9 @@ namespace textio::fmt::detail
   {
     none,
     too_large,
-    out_of_memory
+    out_of_memory,
+		invalid_format,
+		io_error
   };
 
   template <typename Char_type>
@@ -21,7 +25,7 @@ namespace textio::fmt::detail
   {
 
     using char_type = Char_type;
-    using string_view = std::basic_string_view<char_type>4;
+    using string_view = std::basic_string_view<char_type>;
 
     virtual ~vconvert_base () = default;
 
@@ -43,9 +47,10 @@ namespace textio::fmt::detail
   };
 
 	template <typename Char_type>
-	struct vconvert: vconvert_base<Char_type>
+	struct vconvert: public vconvert_base<Char_type>
 	{
 		using typename vconvert_base<Char_type>::char_type;
+		using typename vconvert_base<Char_type>::string_view;
 
     auto put(string_view   value_v) noexcept -> convert_error override { return put_string(value_v); }
     auto put(char_type     value_v, format_options<char_type     , char_type> const& options_v) noexcept -> convert_error override { return put_char(value_v, options_v); }
@@ -64,46 +69,46 @@ namespace textio::fmt::detail
 
 		inline auto put_integer(auto&& value_v, auto const& options_v) noexcept -> convert_error
 		{     			
+			__debugbreak();
 			return convert_error::none;				
 		}
 		
 		inline auto put_float(auto&& value_v, auto const& options_v) noexcept -> convert_error
 		{
+			__debugbreak();
 			return convert_error::none;				
 		}
 
 		inline auto put_boolean(auto&& value_v, auto const& options_v) noexcept -> convert_error
 		{
+			__debugbreak();
 			return convert_error::none;	
 		}
 		
 		inline auto put_char(auto&& value_v, auto const& options_v) noexcept -> convert_error
 		{
-      constexpr auto min_number_buffer_size = sizeof(value_type) * 16u;
-      auto const min_string_buffer_size = std::max<std::size_t>(min_number_buffer_size,
-				options_v.pad_zeros * options_v.width + options_v.prefix_base * 2u + 1u);
 			
       ///////////////////////////////
       // Take care of 'c' format type
       ///////////////////////////////
-      if constexpr (std::is_same_v<value_type, char_type> || options.format_type == fmt_type::character)
+			using value_type = std::remove_cvref_t<decltype(value_v)>;
+			if (options_v.format_type == fmt_type::character)
       {       
         char_type buff [1u];
         if constexpr (!std::is_same_v<value_type, char_type>)
-          buff[0u] = static_cast<char_type>(value);
+          buff[0u] = static_cast<char_type>(value_v);
         else
-          buff[0u] = value;       
-        return format_sv::apply(o_iterator, typename format_sv::value_type{ buff, std::size(buff) });
+          buff[0u] = value_v;
+        return put(string_view{ buff }, options_v);
       }
-
-			return convert_error::none;
+			return put_integer(value_v);
 		}
 		
 		inline auto put_paddig(char_type value_v, std::size_t count_v) noexcept -> convert_error
 		{
 			convert_error error_v{ convert_error::none };
-			for(auto i = 0u; i < total_padding; ++i) {
-				error_v = put(options.fill_char);
+			for(auto i = 0u; i < count_v; ++i) {
+				error_v = put(value_v);
 				if (error_v != convert_error::none){
 					return error_v;
 				}				
@@ -116,7 +121,7 @@ namespace textio::fmt::detail
       //////////////////////////////////////
       // String larger then aligment width ?
       //////////////////////////////////////
-      if (options_v.width < value.size()) {
+      if (options_v.width < value_v.size()) {
 				return put_string(value_v);
       }
 
@@ -204,5 +209,55 @@ namespace textio::fmt::detail
 			return convert_error::none;
 		}
 	};
+
+	template <typename Char_type, typename Container_type = std::basic_string<Char_type>>
+	struct vconvert_back_insert: public vconvert<Char_type>
+	{
+		using container_type = Container_type;
+		using typename vconvert_base<Char_type>::char_type;
+		using typename vconvert_base<Char_type>::string_view;
+
+		vconvert_back_insert(container_type& sink_v) noexcept: m_sink(sink_v) {}
+
+		auto put(char_type value_v) noexcept -> convert_error override {
+			m_sink.push_back(value_v);
+			return convert_error::none;
+		}
+    auto put(string_view value_v) noexcept -> convert_error override {
+			m_sink.insert(m_sink.end(), value_v.begin(), value_v.end());
+			return convert_error::none;
+		} 
+
+	private:
+		container_type &m_sink;
+	};
+
+	template <typename Char_type>
+	struct vconvert_cstdio: public vconvert<Char_type>
+	{
+		using handle_type = FILE*;
+		using typename vconvert_base<Char_type>::char_type;
+		using typename vconvert_base<Char_type>::string_view;
+
+		vconvert_cstdio(handle_type sink_v) noexcept: m_sink(sink_v) {}
+
+		auto put(char_type value_v) noexcept -> convert_error override {
+			if (std::fputc(value_v, m_sink) == EOF)
+				return convert_error::io_error;
+			return convert_error::none;
+		}
+    auto put(string_view value_v) noexcept -> convert_error override {
+			auto const written_v = std::fwrite(value_v.data(), 1u, value_v.size(), m_sink);
+			if (0u == written_v)
+				return convert_error::io_error;
+			if (written_v < value_v.size())
+				return convert_error::too_large;
+			return convert_error::none;
+		} 
+
+	private:
+		handle_type m_sink;
+	};
+
 
 }

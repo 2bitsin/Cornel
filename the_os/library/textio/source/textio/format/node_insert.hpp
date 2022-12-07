@@ -70,27 +70,27 @@ namespace textio::fmt::detail
     using variable::uses_default;
 
     static inline constexpr auto value = String;
-    static inline constexpr auto options = format_options<char_type, option_string>;
+    static inline constexpr auto options = format_options<char_type, options_string>;
           
 
     template <typename What>
-    inline static auto apply(vconvert_base &vconv_r, What&& value_v)
+    inline static auto apply(vconvert_base<char_type> &vconv_r, What&& value_v)
     {
 			using value_type = std::remove_cvref_t<What>;
 
-      if constexpr (is_formatable_internal_without_options<value_type, vconvert_base&, options_string>)
-				return value_v.format(vconv_v);
-      if constexpr (is_formatable_internal_with_options<value_type, vconvert_base&, options_string>)
-				return value_v.format<options_string>(vconv_v);
-			if constexpr (is_formatable_external<value_type, vconvert_base&, options_string>)
-				return user_convert<value_type, options_string>::apply(vconv_v, std::forward<What>(value_v));
+      if constexpr (is_formatable_internal_without_options<value_type, vconvert_base<char_type>&, options_string>)
+				return value_v.format(vconv_r);
+      if constexpr (is_formatable_internal_with_options<value_type, vconvert_base<char_type>&, options_string>)
+				return value_v.format<options_string>(vconv_r);
+			if constexpr (is_formatable_external<value_type, vconvert_base<char_type>&, options_string>)
+				return user_convert<value_type, options_string>::apply(vconv_r, std::forward<What>(value_v));
       else
         return vconv_r.put(std::forward<What>(value_v), options);
     }
 
 
     template <typename... Args>
-    inline static auto apply(vconvert_base &vconv_r, std::tuple<Args...> const& args) -> convert_error
+    inline static auto apply(vconvert_base<char_type> &vconv_r, std::tuple<Args...> const& args) -> convert_error
     {
       return apply(vconv_r, std::get<argument_index>(args));      
     }   

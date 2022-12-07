@@ -8,11 +8,11 @@
 #include <meta/type_list.hpp>
 #include <meta/string.hpp>
 
-#include "format/node_static.hpp"
-#include "format/node_insert.hpp"
-#include "format/optimize.hpp"
-#include "format/parse.hpp"
-#include "general/cstdio_iterator.hpp"
+#include <textio/format/node_static.hpp>
+#include <textio/format/node_insert.hpp>
+#include <textio/format/optimize.hpp>
+#include <textio/format/parse.hpp>
+#include <textio/format/variable.hpp>
 
 namespace textio::fmt::detail
 {
@@ -22,19 +22,25 @@ namespace textio::fmt::detail
     return format_optimize_empty(format_optimize_merge(format_static<meta::string_truncate_v<String>, 0u>()));
   }
   
-	/*
-  template <std::output_iterator<char> OIterator, typename ArgsTuple, typename... NodeN>
-  inline auto format_to_impl(OIterator out_iterator, meta::type_list<NodeN...>, ArgsTuple const& args) -> OIterator
-  {
-    ((out_iterator = NodeN::apply(out_iterator, args)), ...);
-    return out_iterator;
-  }
-	*/
 	
+  template <typename Char_type, typename ArgsTuple, typename... NodeN>
+  inline auto format_to_impl(vconvert_base<Char_type>& vconv_r, meta::type_list<NodeN...>, ArgsTuple const& args) -> convert_error
+  {	
+		convert_error error_v { convert_error::none };
+		auto const result_v = (((error_v = NodeN::apply(vconv_r, args)) != convert_error::none) && ...);    
+    return error_v;
+  }
 }
 
 namespace textio::fmt
 {
+
+  template <meta::string Format_string = meta::string{"{}"}, typename Char_type, typename... ArgN>
+  auto format_to(detail::vconvert_base<Char_type> vconv_r, ArgN&&... args) -> detail::convert_error
+  {  
+		return detail::format_to_impl(o_iterator, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
+  }
+	
 	/*
   template <meta::string Format_string = meta::string{"{}"}, typename AsWhat = std::string, typename... ArgN>
   auto format_as(ArgN&&... args) -> AsWhat
@@ -42,12 +48,6 @@ namespace textio::fmt
     AsWhat collect;
     detail::format_to_impl(std::back_inserter(collect), detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
     return collect;
-  }
-
-  template <meta::string Format_string = meta::string{"{}"}, std::output_iterator<char> OIterator, typename... ArgN>
-  auto format_to(OIterator o_iterator, ArgN&&... args) -> OIterator
-  {  
-		return detail::format_to_impl(o_iterator, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
   }
   
   template <meta::string Format_string = meta::string{"{}"}, typename... ArgN>
