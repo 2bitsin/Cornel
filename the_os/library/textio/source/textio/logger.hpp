@@ -6,7 +6,6 @@
 #include <string_view>
 
 #include <meta/string.hpp>
-#include <textio/general/cstdio_iterator.hpp>
 #include <textio/format.hpp>
 
 namespace textio::detail
@@ -187,6 +186,6 @@ namespace textio
   logger_module(Output_type output_i)->logger_module<Module, Output_type>;
 }
 
-#define declare_module(Module) static inline auto Gmod = textio::logger_module<#Module, textio::detail::cstdio_iterator>{stdout}
+#define declare_module(Module) static inline auto Gmod = textio::logger_module<#Module, FILE*>{stdout}
 
-extern textio::logger_module<meta::empty_string_v<char>, textio::detail::cstdio_iterator> Glog;
+extern textio::logger_module<meta::empty_string_v<char>, FILE*> Glog;

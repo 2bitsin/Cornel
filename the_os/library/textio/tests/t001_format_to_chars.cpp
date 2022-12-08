@@ -1,14 +1,10 @@
 #include <iterator>
 #include <textio/format.hpp>
-#include <textio/format/to_chars.hpp>
 #include "expect.hpp"
-
-#ifdef TESTING
-#define main t000_format_to_chars_base_10
-#endif
 
 int main(int,char** const) 
 {
+	/*
   using namespace std::string_literals;
   using namespace std::string_view_literals;
 	using namespace textio::fmt;
@@ -40,6 +36,7 @@ int main(int,char** const)
 		}
 	}
 	__debugbreak();
+	*/
 	return 0;
 }  
 

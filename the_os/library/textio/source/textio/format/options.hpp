@@ -228,7 +228,8 @@ namespace textio::fmt::detail
       if (index < value.size() && value[index] != 0) {
         ::textio::detail::throw_invalid_argument("Invalid format string: garbage at the end of options string");
       }
-    }   
+    } 
+
     inline constexpr auto base() const  
       -> std::size_t
     { 
@@ -246,9 +247,47 @@ namespace textio::fmt::detail
       case fmt_type::upper_binary: return 2u;       
       case fmt_type::none:;
       default: return 10u;
-      }
-    }
+      }   		
+		}
 
+		inline constexpr auto format_as_integer() const -> bool
+		{
+      switch (format_type)
+      {
+      case fmt_type::lower_pointer: 
+      case fmt_type::upper_pointer: 
+      case fmt_type::lower_hexadecimal: 
+      case fmt_type::upper_hexadecimal: 
+      case fmt_type::lower_decimal: 
+      case fmt_type::upper_decimal: 
+      case fmt_type::lower_octal:
+      case fmt_type::upper_octal: 
+      case fmt_type::lower_binary:
+      case fmt_type::upper_binary: 
+				return true;
+      default: 
+				return false;
+      }   		
+		}
+
+		inline constexpr auto format_as_float() const -> bool 
+		{
+			switch (format_type)
+			{
+			case fmt_type::lower_float_hexadecimal:
+			case fmt_type::upper_float_hexadecimal:
+			case fmt_type::lower_float_scientific:
+			case fmt_type::upper_float_scientific:
+			case fmt_type::lower_float_fixed:
+			case fmt_type::upper_float_fixed:
+			case fmt_type::lower_float_geneneral:
+			case fmt_type::upper_float_geneneral:
+				return true;
+			default:
+				return false;
+			}
+		}
+		
     inline constexpr auto prefix_string() const  
       -> std::basic_string_view<char_type>
     {
@@ -269,15 +308,41 @@ namespace textio::fmt::detail
       }     
     }
 
-    inline constexpr auto is_upper() const 
+    inline constexpr auto is_upper() const -> bool
     {
-      return format_type == fmt_type::upper_hexadecimal 
-          || format_type == fmt_type::upper_pointer ;
+      switch (format_type)
+      {
+      case fmt_type::upper_pointer:
+      case fmt_type::upper_hexadecimal:
+      case fmt_type::upper_decimal:
+      case fmt_type::upper_octal:
+      case fmt_type::upper_binary:
+			case fmt_type::upper_float_hexadecimal:
+			case fmt_type::upper_float_scientific:
+			case fmt_type::upper_float_fixed:
+			case fmt_type::upper_float_geneneral:
+				return true;
+			default:
+				return false;
+      }     
     }
-    inline constexpr auto is_lower() const 
+    inline constexpr auto is_lower() const -> bool
     {
-      return format_type == fmt_type::lower_hexadecimal 
-          || format_type == fmt_type::lower_pointer ;
+      switch (format_type)
+      {
+      case fmt_type::lower_pointer:
+      case fmt_type::lower_hexadecimal:
+      case fmt_type::lower_decimal:
+      case fmt_type::lower_octal:
+      case fmt_type::lower_binary:
+			case fmt_type::lower_float_hexadecimal:
+			case fmt_type::lower_float_scientific:
+			case fmt_type::lower_float_fixed:
+			case fmt_type::lower_float_geneneral:
+				return true;
+			default:
+				return false;
+      }     
     }
   };
   

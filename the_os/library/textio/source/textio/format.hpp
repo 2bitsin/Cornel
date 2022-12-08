@@ -34,11 +34,6 @@ namespace textio::fmt::detail
 
 namespace textio::fmt
 {
-	template <typename T, typename U>
-	concept back_insertable = requires(T& container_v, U&& value_v, std::basic_string_view<std::remove_cvref_t<U>> const& view_v) {
-		{ container_v.push_back(std::forward<U>(value_v)) } ;
-		{ container_v.insert(container_v.end(), view_v.begin(), view_v.end()) };
-	};
 
 	template <meta::string Format_string = meta::string{"{}"}, typename... ArgN>
 	auto format_to(FILE* ofile_v, ArgN&&... args_v) -> FILE*
@@ -116,7 +111,17 @@ namespace textio::fmt
   auto format_to(std::FILE* file, ArgN&&... args) noexcept -> detail::convert_error
   {
 		using namespace detail;
-    return format_to_impl(file, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));    
+		vconvert_cstdio<typename decltype(Format_string)::char_type> vconv_r{ file };
+    return format_to_impl(vconv_r, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));    
+  }
+	
+  template <meta::string Format_string = meta::string{"{}"}, typename... ArgN>
+  auto format_to(std::basic_string<typename decltype(Format_string)::char_type>& ostring_v, ArgN&&... args) noexcept -> detail::convert_error
+  {
+		using namespace detail;
+		using char_type = typename decltype(Format_string)::char_type;
+		vconvert_back_insert<char_type, std::basic_string<char_type>> vconv_r{ ostring_v };
+    return format_to_impl(vconv_r, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));    
   }
 	
 }

@@ -3,17 +3,13 @@
 
 #include "expect.hpp"
 
-#ifdef TESTING
-#define main t005_logger_basic
-#endif
-
-declare_module(Memory);
+//declare_module(Memory);
 
 int main(int,char** const) 
 {
   using namespace std::string_literals;
   using namespace std::string_view_literals;
-
+/*
 	auto const expected = ""s;
 	auto buffer = ""s;
 	
@@ -63,5 +59,6 @@ int main(int,char** const)
 	
 
   expect_eq(buffer, expected);
+	*/
 }  
 
