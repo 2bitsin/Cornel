@@ -41,10 +41,9 @@ namespace textio::fmt::detail
     upper_float_geneneral
   };
 
-  template <typename ValueT, typename CharT>
+  template <typename CharT>
   struct format_options
-  {
-    using value_type  = ValueT;
+  {    
     using char_type   = CharT;
 
     static constexpr inline auto fmt_type_from_char (char_type char_v)

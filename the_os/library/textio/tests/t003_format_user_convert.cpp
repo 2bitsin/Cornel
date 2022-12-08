@@ -10,9 +10,10 @@ struct vec3i
 {
 	int x, y, z;
 	
-	inline auto format(std::output_iterator<char> auto o_i, auto const& options) const
+	template <typename T>
+	inline auto format(T& output_v, auto const& options) const 
 	{
-		return textio::fmt::format_to<"vec3i({0}, {1}, {2})">(o_i, x, y, z);
+		return textio::fmt::format_to<"vec3i({0}, {1}, {2})">(output_v, x, y, z);
 	}
 };
 
@@ -22,12 +23,13 @@ struct box2u
 	unsigned x1,y1;
 };
 
-template <typename Char_type, meta::string Options>
-struct textio::fmt::user_convert<box2u, Char_type, Options>
+template <meta::string Options>
+struct textio::fmt::user_convert<box2u, Options>
 {	
-	static inline auto apply(std::output_iterator<char> auto o_iterator, box2u const& value)
+	template <typename T>
+	static inline auto apply(T&& output_v, box2u const& value)
 	{
-		return textio::fmt::format_to<"box2u[({0}, {1}), ({2}, {3})]">(o_iterator, value.x0, value.y0, value.x1, value.y1);
+		return textio::fmt::format_to<"box2u[({0}, {1}), ({2}, {3})]">(std::forward<T>(output_v), value.x0, value.y0, value.x1, value.y1);
 	}
 };
 
@@ -47,6 +49,7 @@ int main(int,char** const)
 	fmt_s0.to(stderr, vec3i{1,2,3}, box2u{1,2,3,4});
 	const auto buffer = fmt_s0.as<std::string>(vec3i{1,2,3}, box2u{1,2,3,4});
 	
+	//const auto buffer = ""s;
 	// TODO : WRITE MORE TESTS
   expect_eq(buffer, expected);
 }  

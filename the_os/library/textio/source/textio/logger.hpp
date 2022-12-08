@@ -147,7 +147,7 @@ namespace textio
         constexpr meta::string format_s { meta::string_truncate_v<"(">, 
                                           meta::string_truncate_v<Module>, 
                                           meta::string_truncate_v<") "> };
-        m_output = format_to<format_s>(m_output);
+        format_to<format_s>(m_output);
       }
 
       if constexpr (logger_base::level_type::none != Level
@@ -157,15 +157,15 @@ namespace textio
         constexpr meta::string format_s { detail::level_as_string_v<Level>, 
                                           meta::string_truncate_v<": "> };
 
-        m_output = format_to<format_s>(m_output);
+        format_to<format_s>(m_output);
       }
       
-      m_output = format_to<Format_string>(m_output, std::forward<Args>(args)...);
+      format_to<Format_string>(m_output, std::forward<Args>(args)...);
 
       constexpr meta::string line_ending_s = meta::string_truncate_v<Line_engine>;
       if constexpr (!line_ending_s.empty())
       {
-        m_output = format_to<line_ending_s>(m_output);
+        format_to<line_ending_s>(m_output);
       }
  
       return *this;

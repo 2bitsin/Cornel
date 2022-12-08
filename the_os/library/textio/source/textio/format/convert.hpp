@@ -125,7 +125,7 @@ namespace textio::fmt::detail
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
     {
       [[maybe_unused]]
-      constexpr auto options = format_options<value_type, char_type>{ Options };
+      constexpr auto options = format_options<char_type>{ Options };
       //////////////////////////////////////
       // String larger then aligment width ?
       //////////////////////////////////////
@@ -174,7 +174,7 @@ namespace textio::fmt::detail
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
     {
       [[maybe_unused]]
-      constexpr auto options = format_options<value_type, char_type>{ Options };
+      constexpr auto options = format_options<char_type>{ Options };
 
       static constexpr bool is_integral_format = (
           options.format_type == fmt_type::lower_pointer 
@@ -284,7 +284,7 @@ namespace textio::fmt::detail
     {   
       using format_sv = format_convert<std::basic_string_view<char_type>, char_type, Options>;
 
-      constexpr auto options = format_options<value_type, char_type>{ Options };
+      constexpr auto options = format_options<char_type>{ Options };
       constexpr auto min_number_buffer_size = sizeof(value_type) * 8u * 2u;
       constexpr auto min_string_buffer_size = std::max<std::size_t>(options.pad_zeros * options.width + options.prefix_base * 2u + 1u, min_number_buffer_size);
       ///////////////////////////////
@@ -395,7 +395,7 @@ namespace textio::fmt::detail
     template <std::output_iterator<char> OIterator>
     static inline auto apply(OIterator o_iterator, value_type const& value) -> OIterator
     {
-      constexpr auto options = format_options<value_type, char_type>{ Options };        
+      constexpr auto options = format_options<char_type>{ Options };        
       ///////////////////////////////////////////////
       // Take care of 's' format in the case of bool
       ///////////////////////////////////////////////

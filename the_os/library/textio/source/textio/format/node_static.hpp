@@ -9,7 +9,7 @@ namespace textio::fmt::detail
   struct format_node_static 
   {
     static inline constexpr auto value = String;
-		using char_type = std::remove_cvref_t<decltype(String[0])>;
+		using char_type = typename decltype(String)::char_type;
     
     template <typename... Args>
     inline static auto apply(vconvert_base<char_type>& vconv_r, std::tuple<Args...> const&) -> convert_error

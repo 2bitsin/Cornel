@@ -34,36 +34,97 @@ namespace textio::fmt::detail
 
 namespace textio::fmt
 {
+	template <typename T, typename U>
+	concept back_insertable = requires(T& container_v, U&& value_v, std::basic_string_view<std::remove_cvref_t<U>> const& view_v) {
+		{ container_v.push_back(std::forward<U>(value_v)) } ;
+		{ container_v.insert(container_v.end(), view_v.begin(), view_v.end()) };
+	};
 
-  template <meta::string Format_string = meta::string{"{}"}, typename Char_type, typename... ArgN>
-  auto format_to(detail::vconvert_base<Char_type> vconv_r, ArgN&&... args) -> detail::convert_error
-  {  
-		return detail::format_to_impl(o_iterator, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
-  }
+	template <meta::string Format_string = meta::string{"{}"}, typename... ArgN>
+	auto format_to(FILE* ofile_v, ArgN&&... args_v) -> FILE*
+	{
+		using namespace detail;
+		using char_type = typename decltype(Format_string)::char_type;
+		vconvert_cstdio<char_type> vconv_r{ ofile_v };
+		auto const error_v = format_to_impl(vconv_r, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args_v)...));
+		return ofile_v;
+	}
 	
-	/*
+	template <meta::string Format_string = meta::string{"{}"}, std::output_iterator<typename decltype(Format_string)::char_type> Output_type, typename... ArgN>
+	auto format_to(Output_type output_v, ArgN&&... args_v) -> Output_type
+	{
+		using namespace detail;
+		using char_type = typename decltype(Format_string)::char_type;
+		vconvert_iterator<Output_type, char_type> vconv_r{ output_v };
+		auto const error_v = format_to_impl(vconv_r, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args_v)...));		
+		return output_v;
+	}
+
+	template <meta::string Format_string = meta::string{"{}"}, typename... ArgN>
+	auto format_to(detail::vconvert_base<typename decltype(Format_string)::char_type>& vconv_r, ArgN&&... args_v) 
+		-> detail::vconvert_base<typename decltype(Format_string)::char_type>&
+	{
+		using namespace detail;
+		auto const error_v = format_to_impl(vconv_r, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args_v)...));
+		return vconv_r;		
+	}
+	
+/*
+  template <meta::string Format_string = meta::string{"{}"}, typename Output_type, typename... ArgN>
+  auto format_to(Output_type&& output_v, ArgN&&... args)
+  {  
+		using output_type = std::remove_cvref_t<Output_type>;
+		using char_type = typename decltype(Format_string)::char_type;
+		
+		using namespace detail;
+		if constexpr (std::output_iterator<output_type, char>)
+		{
+			vconvert_iterator<output_type, char_type> vconv_r { std::forward<Output_type>(output_v) };
+			return format_to_impl(vconv_r, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));	
+		}
+		else if constexpr (std::is_same_v<output_type, FILE*>) 
+		{
+			vconvert_cstdio<char_type> vconv_r{ std::forward<Output_type>(output_v) };
+			return format_to_impl(vconv_r, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));	
+		}
+		else if constexpr (back_insertable<output_type, char_type>)
+		{			
+			vconvert_back_insert<char_type> vconv_r{ std::forward<Output_type>(output_v) };
+			return format_to_impl(vconv_r, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
+		}
+		else
+		{
+			static_assert(sizeof(Output_type*) == 0, "Output_type is not a valid output type");
+		}		
+  }*/	
+	
+	
   template <meta::string Format_string = meta::string{"{}"}, typename AsWhat = std::string, typename... ArgN>
   auto format_as(ArgN&&... args) -> AsWhat
   {
+		using namespace detail;
     AsWhat collect;
-    detail::format_to_impl(std::back_inserter(collect), detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
-    return collect;
+		vconvert_back_insert<typename decltype(Format_string)::char_type, AsWhat> vconv_r { collect };
+    auto const error_v = format_to_impl(vconv_r, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
+		if (error_v != convert_error::none)
+			return collect;
+		//TODO: What to do in case of error ?
+		return AsWhat{};
   }
   
   template <meta::string Format_string = meta::string{"{}"}, typename... ArgN>
-  auto format_to(std::FILE* file, ArgN&&... args) -> int
+  auto format_to(std::FILE* file, ArgN&&... args) noexcept -> detail::convert_error
   {
-    using textio::detail::cstdio_iterator;
-    auto cstdio_i = detail::format_to_impl(cstdio_iterator{ file }, detail::format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));
-    return cstdio_i.status();
+		using namespace detail;
+    return format_to_impl(file, format_encode<Format_string>(), std::forward_as_tuple(std::forward<ArgN>(args)...));    
   }
-	*/
+	
 }
 
 namespace textio::fmt
 {
 
-	/*
+	
   template <meta::string Format_string>
   struct format_statement
   {
@@ -73,47 +134,53 @@ namespace textio::fmt
     static inline constexpr auto format_string_encoded = detail::format_encode<Format_string>();
 
     template <std::output_iterator<char> OIterator, typename... ArgN>
-    static inline auto to(OIterator o_iterator, ArgN&& ... args) -> OIterator
+    static inline auto to(OIterator o_iterator, ArgN&& ... args) -> std::tuple<detail::convert_error, OIterator>
     {
-      return detail::format_to_impl(o_iterator, format_string_encoded, std::forward_as_tuple(std::forward<ArgN>(args)...));
+			using namespace detail;
+			vconvert_iterator<OIterator, char_type> vconv_r{ o_iterator };
+      auto const error_v = format_to_impl(vconv_r, format_string_encoded, std::forward_as_tuple(std::forward<ArgN>(args)...));
+			return { error_v, o_iterator };
     }   
 
     template <typename... ArgN>
-    static inline auto to(std::basic_string<char_type>& o_string, ArgN&& ... args) -> std::basic_string<char_type>
-    {
-      detail::format_to_impl(std::back_inserter(o_string), format_string_encoded, std::forward_as_tuple(std::forward<ArgN>(args)...));
-      return o_string;
+    static inline auto to(std::basic_string<char_type>& o_string, ArgN&& ... args) -> std::tuple<detail::convert_error, std::basic_string<char_type>>
+    {      
+			using namespace detail;
+			vconvert_back_insert<char_type, std::basic_string<char_type>> vconv_r{ o_string };
+      auto const error_v = format_to_impl(vconv_r, format_string_encoded, std::forward_as_tuple(std::forward<ArgN>(args)...));
+			return { error_v, o_string };
     }   
 
     template <typename... ArgN>
-    static inline auto to(FILE* o_file, ArgN&& ... args) -> int
+    static inline auto to(FILE* o_file, ArgN&& ... args) -> detail::convert_error
     {
-      using ::textio::detail::cstdio_iterator;
-      auto cstdio_i = detail::format_to_impl(cstdio_iterator{ o_file }, format_string_encoded, std::forward_as_tuple(std::forward<ArgN>(args)...));
-      return cstdio_i.status();
+			using namespace detail;			
+			vconvert_cstdio<char_type> vconv_r{ o_file };
+      return format_to_impl(vconv_r, format_string_encoded, std::forward_as_tuple(std::forward<ArgN>(args)...));
     }   
 
     template <typename As_type, typename... ArgN>
     static inline auto as(ArgN&& ... args)
     {
       As_type collect;      
-      return to(collect, std::forward<ArgN>(args)...);
+      auto const [error_v, value_v] = to(collect, std::forward<ArgN>(args)...);
+			return value_v;
     }   
 
     template <std::output_iterator<char> OIterator, typename... ArgN>
-    inline auto operator () (std::output_iterator<char> auto o_iterator, ArgN&& ... args) const -> OIterator
-    {
-      return to(o_iterator, std::forward<ArgN>(args)...);
-    }   
+		inline auto operator () (std::output_iterator<char> auto o_iterator, ArgN&& ... args) const -> std::tuple<detail::convert_error, OIterator>
+		{
+			return to(o_iterator, std::forward<ArgN>(args)...);
+		}
 
     template <typename... ArgN>
-    inline auto operator () (std::basic_string<char_type>& o_string, ArgN&& ... args) const -> std::basic_string<char_type>
+    inline auto operator () (std::basic_string<char_type>& o_string, ArgN&& ... args) const -> std::tuple<detail::convert_error, std::basic_string<char_type>>
     {     
       return to(o_string, std::forward<ArgN>(args)...);
     }
     
     template <typename... ArgN>
-    inline auto operator () (std::FILE* o_file, ArgN&& ... args) const -> int
+    inline auto operator () (std::FILE* o_file, ArgN&& ... args) const -> detail::convert_error
     {     
       return to(o_file, std::forward<ArgN>(args)...);
     }
@@ -126,5 +193,5 @@ namespace textio::fmt
     {
       return format_statement<Format_string>();
     }
-  }*/
+  }
 }
