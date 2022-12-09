@@ -119,7 +119,7 @@ namespace textio
     static inline level_type G_current_level = level_type::all;
   };
 
-  template <meta::string Module = meta::empty_string_v<char>, typename Output_type = detail::cstdio_iterator>
+  template <meta::string Module = meta::empty_string_v<char>, typename Output_type = FILE*>
   struct logger_module: logger_module_base<Module>
   {
     using output_type = Output_type;

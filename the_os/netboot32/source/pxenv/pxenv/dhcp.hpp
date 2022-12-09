@@ -24,11 +24,12 @@ namespace pxenv::dhcp
   {
     ip_address_v4(std::uint32_t const& value): m_value(value) {};
 
-    template <std::output_iterator<char> O>
-    inline auto format(O out) const -> O 
+    template <typename char_type>
+    inline auto format(textio::fmt::detail::vconvert_base<char_type>& vconv_r) const 
+      -> textio::fmt::detail::convert_error
     {
-      using textio::fmt::format_to;
-      return format_to<"{:d}.{:d}.{:d}.{:d}">(out, 
+      using textio::fmt::format_to;      
+      return format_to<"{:d}.{:d}.{:d}.{:d}">(vconv_r, 
         ((m_value >>  0)&0xff),
         ((m_value >>  8)&0xff), 
         ((m_value >> 16)&0xff), 
@@ -46,15 +47,22 @@ namespace pxenv::dhcp
   {
     client_address(std::span<const std::uint8_t> const& value): m_value(value) {};
 
-    template <std::output_iterator<char> O>
-    inline auto format(O out) const -> O 
+    template <typename char_type>
+    inline auto format(textio::fmt::detail::vconvert_base<char_type>& vconv_r) const 
+      -> textio::fmt::detail::convert_error
     {
       using textio::fmt::format_to;
-
-      out = format_to<"{:02x}">(out, m_value[0]);
-      for(auto&& sub_v : m_value.subspan(1))
-        out = format_to<":{:02x}">(out, sub_v);
-      return out;
+      using textio::fmt::detail::convert_error;
+      convert_error error_v { convert_error::none };
+      error_v = format_to<"{:02x}">(vconv_r, m_value[0]);
+      if (error_v != convert_error::none)
+        return error_v;
+      for(auto&& sub_v : m_value.subspan(1)) {
+        error_v = format_to<":{:02x}">(vconv_r, sub_v);
+        if (error_v != convert_error::none)
+          return error_v;
+      }
+      return error_v;
     }
 
     auto value () const  -> std::span<const std::uint8_t> { return m_value; }

@@ -6,6 +6,7 @@
 #include <tuple>
 #include <concepts>
 
+#include <textio/format/vconvert.hpp>
 #include <textio/format.hpp>
 
 namespace x86arch
@@ -54,11 +55,12 @@ namespace x86arch
       { return seg; } 
     }
 
-    template <std::output_iterator<char> O>
-    inline auto format(O out_i) const -> O
+    template <typename char_type>
+    inline auto format(textio::fmt::detail::vconvert_base<char_type>& vconv_r) const 
+     -> textio::fmt::detail::convert_error
     {
       using ::textio::fmt::format_to;
-      return format_to<"{:04x}:{:04x}">(out_i, seg, off);
+      return format_to<"{:04x}:{:04x}">(vconv_r, seg, off);
     }
 
   #pragma GCC diagnostic push

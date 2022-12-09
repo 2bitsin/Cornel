@@ -6,7 +6,7 @@
 
 namespace textio::fmt::helpers::detail
 { 
-	using ::textio::fmt::detail::vconvert_base;
+  using ::textio::fmt::detail::vconvert_base;
 
   struct repeat_value_dynamic_t {};
 
@@ -29,14 +29,14 @@ namespace textio::fmt::helpers::detail
       using namespace ::textio::fmt;
       if constexpr (Count > 0)
       {
-				convert_error error_v { convert_error::none };
+        convert_error error_v { convert_error::none };
         error_v = format_to<"{}">(vconv_r, value);
-				if (error_v != convert_error::none)
-					return error_v;
+        if (error_v != convert_error::none)
+          return error_v;
         for (auto i = 1u; i < Count; ++i) {
           error_v = format_to<"{}{}">(vconv_r, glue, value);
-					if (error_v != convert_error::none)
-						return error_v;
+          if (error_v != convert_error::none)
+            return error_v;
         }
       }
       return convert_error::none;
@@ -58,15 +58,15 @@ namespace textio::fmt::helpers::detail
       using namespace ::textio::fmt;
       if constexpr (Count > 0)
       {     
-				convert_error error_v { convert_error::none };
+        convert_error error_v { convert_error::none };
         for (auto i = 0u; i < Count; ++i) {
           error_v = format_to<"{}">(vconv_r, value);
-					if (error_v != convert_error::none)
-						return error_v;
+          if (error_v != convert_error::none)
+            return error_v;
         }
       }
-			return convert_error::none;
-		}
+      return convert_error::none;
+    }
 
   };
   
@@ -89,18 +89,18 @@ namespace textio::fmt::helpers::detail
       using namespace ::textio::fmt;
       if (count > 0)
       {
-				convert_error error_v { convert_error::none };
+        convert_error error_v { convert_error::none };
         error_v = format_to<"{}">(vconv_r, value);
-				if (error_v != convert_error::none)
-					return error_v;
+        if (error_v != convert_error::none)
+          return error_v;
         for (auto i = 1u; i < count; ++i) {
           error_v = format_to<"{}{}">(vconv_r, glue, value);
-					if (error_v != convert_error::none)
-						return error_v;
+          if (error_v != convert_error::none)
+            return error_v;
         }
       }
       return convert_error::none;
-    }		
+    }   
   };
 
   template <typename Value_type>
@@ -118,17 +118,17 @@ namespace textio::fmt::helpers::detail
     inline auto format(vconvert_base<char_type>& vconv_r) const -> convert_error
     {
       using namespace ::textio::fmt;
-      if constexpr (count > 0)
+      if (count > 0)
       {     
-				convert_error error_v { convert_error::none };
+        convert_error error_v { convert_error::none };
         for (auto i = 0u; i < count; ++i) {
           error_v = format_to<"{}">(vconv_r, value);
-					if (error_v != convert_error::none)
-						return error_v;
+          if (error_v != convert_error::none)
+            return error_v;
         }
       }
-			return convert_error::none;
-		}
+      return convert_error::none;
+    }
   };
 }
 

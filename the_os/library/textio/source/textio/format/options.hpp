@@ -88,8 +88,8 @@ namespace textio::fmt::detail
     
     fmt_align   direction   { fmt_align::none };
     char_type   fill_char   { ' '             };    
-    int32_t     width       { 0               };
-    int32_t     precision   { 0               };    
+    uint32_t    width       { 0               };
+    uint32_t    precision   { 0               };    
     bool        prefix_base { false           };
     bool        pad_zeros   { false           };
     bool        plus_sign   { false           };
