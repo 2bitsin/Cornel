@@ -2,10 +2,12 @@
 
 #include <concepts>
 
-#include "../../format.hpp"
+#include <textio/format/vconvert.hpp>
 
 namespace textio::fmt::helpers::detail
 { 
+	using ::textio::fmt::detail::vconvert_base;
+
   struct repeat_value_dynamic_t {};
 
   static inline constexpr auto repeat_value_dynamic = repeat_value_dynamic_t{};
@@ -21,18 +23,23 @@ namespace textio::fmt::helpers::detail
     , glue(glue)
     { }
     
-    template <std::output_iterator<char> O>
-    inline auto format(O out_i) const -> O
+    template <typename char_type>
+    inline auto format(vconvert_base<char_type>& vconv_r) const -> convert_error
     {
       using namespace ::textio::fmt;
       if constexpr (Count > 0)
       {
-        out_i = format_to<"{}">(out_i, value);
+				convert_error error_v { convert_error::none };
+        error_v = format_to<"{}">(vconv_r, value);
+				if (error_v != convert_error::none)
+					return error_v;
         for (auto i = 1u; i < Count; ++i) {
-          out_i = format_to<"{}{}">(out_i, glue, value);
+          error_v = format_to<"{}{}">(vconv_r, glue, value);
+					if (error_v != convert_error::none)
+						return error_v;
         }
       }
-      return out_i;
+      return convert_error::none;
     }
   };
 
@@ -45,18 +52,22 @@ namespace textio::fmt::helpers::detail
     : value(value)
     { }
     
-    template <std::output_iterator<char> O>
-    inline auto format(O out_i) const -> O
+    template <typename char_type>
+    inline auto format(vconvert_base<char_type>& vconv_r) const -> convert_error
     {
       using namespace ::textio::fmt;
       if constexpr (Count > 0)
       {     
+				convert_error error_v { convert_error::none };
         for (auto i = 0u; i < Count; ++i) {
-          out_i = format_to<"{}">(out_i, value);
+          error_v = format_to<"{}">(vconv_r, value);
+					if (error_v != convert_error::none)
+						return error_v;
         }
       }
-      return out_i;
-    }
+			return convert_error::none;
+		}
+
   };
   
   template <typename Value_type, typename Glue_type>
@@ -72,19 +83,24 @@ namespace textio::fmt::helpers::detail
     , glue(glue)
     { }
 
-    template <std::output_iterator<char> O>
-    inline auto format(O out_i) const -> O
+    template <typename char_type>
+    inline auto format(vconvert_base<char_type>& vconv_r) const -> convert_error
     {
       using namespace ::textio::fmt;
       if (count > 0)
       {
-        out_i = format_to<"{}">(out_i, value);
+				convert_error error_v { convert_error::none };
+        error_v = format_to<"{}">(vconv_r, value);
+				if (error_v != convert_error::none)
+					return error_v;
         for (auto i = 1u; i < count; ++i) {
-          out_i = format_to<"{}{}">(out_i, glue, value);
+          error_v = format_to<"{}{}">(vconv_r, glue, value);
+					if (error_v != convert_error::none)
+						return error_v;
         }
       }
-      return out_i;
-    }   
+      return convert_error::none;
+    }		
   };
 
   template <typename Value_type>
@@ -98,15 +114,21 @@ namespace textio::fmt::helpers::detail
     , value(value)
     { }
     
-    template <std::output_iterator<char> O>
-    inline auto format(O out_i) const -> O
+    template <typename char_type>
+    inline auto format(vconvert_base<char_type>& vconv_r) const -> convert_error
     {
       using namespace ::textio::fmt;
-      for (auto i = 0u; i < count; ++i) {
-        out_i = format_to<"{}">(out_i, value);
+      if constexpr (count > 0)
+      {     
+				convert_error error_v { convert_error::none };
+        for (auto i = 0u; i < count; ++i) {
+          error_v = format_to<"{}">(vconv_r, value);
+					if (error_v != convert_error::none)
+						return error_v;
+        }
       }
-      return out_i;
-    } 
+			return convert_error::none;
+		}
   };
 }
 

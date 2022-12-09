@@ -17,6 +17,7 @@
 ////////////////////////
 namespace textio::fmt
 {
+	using detail::convert_error;
   template <typename User_type, meta::string Options>
   struct user_convert;  
 }
@@ -35,7 +36,7 @@ namespace textio::fmt::detail
 
   template <typename Value_type, typename Output_type, meta::string Options>
   concept is_formatable_internal_with_options = requires (Value_type const& value, Output_type& output_v) { 
-    { value.format(output_v, Options) } ;
+		{ value.format(output_v, std::basic_string_view { Options }) } ;
   };
 
   template <typename Value_type, typename Output_type, meta::string Options>
@@ -73,7 +74,7 @@ namespace textio::fmt::detail
           
 
     template <typename What>
-    inline static auto apply(vconvert_base<char_type> &vconv_r, What&& value_v)
+    inline static auto apply(vconvert_base<char_type> &vconv_r, What&& value_v) -> convert_error
     {
       using value_type = std::remove_cvref_t<What>;
 

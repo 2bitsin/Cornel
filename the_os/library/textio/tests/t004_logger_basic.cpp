@@ -3,13 +3,13 @@
 
 #include "expect.hpp"
 
-//declare_module(Memory);
+declare_module(Memory);
 
 int main(int,char** const) 
 {
   using namespace std::string_literals;
   using namespace std::string_view_literals;
-/*
+
 	auto const expected = ""s;
 	auto buffer = ""s;
 	
@@ -57,8 +57,7 @@ int main(int,char** const)
 	Gmod.info		<"Goodbye world!"> ();
 	Gmod.trace	<"Goodbye world!"> ();
 	
-
   expect_eq(buffer, expected);
-	*/
+
 }  
 

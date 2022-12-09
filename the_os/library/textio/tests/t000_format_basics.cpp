@@ -13,7 +13,6 @@ int main(int,char** const)
 	std::string buffer;
 
 	format_to<"Hello {{WORLD}} {0:!^#32b} {0:*<#32o} {0:->c} {0:#016x}">(buffer, 0x55);
-
 	
 	// TODO : WRITE MORE TESTS
   expect_eq(buffer, expected);

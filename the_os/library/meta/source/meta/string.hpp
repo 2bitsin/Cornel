@@ -130,7 +130,7 @@ namespace meta
       return {};    
     }
 
-    constexpr auto as_string_view() const -> std::basic_string_view<char_type>
+    constexpr auto Char_type() const -> std::basic_string_view<char_type>
     {
       return { m_data, m_size };
     }

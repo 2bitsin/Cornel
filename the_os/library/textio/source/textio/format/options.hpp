@@ -344,6 +344,14 @@ namespace textio::fmt::detail
 				return false;
       }     
     }
+
+		inline constexpr auto as(fmt_type fmt_type) const noexcept 
+			-> format_options<char_type>
+		{
+			auto options_v = *this;
+			options_v.format_type = fmt_type;
+			return options_v;
+		}
   };
   
 }

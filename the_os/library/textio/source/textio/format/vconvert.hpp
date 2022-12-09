@@ -21,7 +21,8 @@ namespace textio::fmt::detail
     out_of_memory,
     invalid_format,
     io_error,
-		invalid_argument
+		invalid_argument,
+		not_implemented
   };
 
   template <typename Char_type>
@@ -34,25 +35,31 @@ namespace textio::fmt::detail
 
     virtual ~vconvert_base () = default;
 
-    virtual auto put(char_type     value_v) noexcept -> convert_error = 0;
-    virtual auto put(string_view   value_v) noexcept -> convert_error = 0;
-    virtual auto put(string_view   value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0; 
-    virtual auto put(char					 value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-		virtual auto put(char8_t			 value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-		virtual auto put(char16_t			 value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-		virtual auto put(char32_t			 value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-		virtual auto put(wchar_t			 value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-    virtual auto put(std::uint8_t  value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-    virtual auto put(std::int8_t   value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-    virtual auto put(std::uint16_t value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-    virtual auto put(std::int16_t  value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-    virtual auto put(std::uint32_t value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-    virtual auto put(std::int32_t  value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-    virtual auto put(std::uint64_t value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-    virtual auto put(std::int64_t  value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-    virtual auto put(bool          value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-    virtual auto put(float         value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
-    virtual auto put(double        value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(char_type				value_v) noexcept -> convert_error = 0;
+    virtual auto put(string_view			value_v) noexcept -> convert_error = 0;
+    virtual auto put(string_view			value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0; 
+		virtual auto put(char const*			value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+		virtual auto put(char8_t const*		value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+		virtual auto put(char16_t const*	value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+		virtual auto put(char32_t const*	value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+		virtual auto put(wchar_t const*		value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+		virtual auto put(void const*      value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(char							value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+		virtual auto put(char8_t					value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+		virtual auto put(char16_t					value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+		virtual auto put(char32_t					value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+		virtual auto put(wchar_t					value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(std::uint8_t			value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(std::int8_t			value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(std::uint16_t		value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(std::int16_t			value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(std::uint32_t		value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(std::int32_t			value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(std::uint64_t		value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(std::int64_t			value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(bool							value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(float						value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
+    virtual auto put(double						value_v, format_options<char_type> const& options_v) noexcept -> convert_error = 0;
   };
 
   template <typename Char_type>
@@ -63,26 +70,32 @@ namespace textio::fmt::detail
 		using typename vconvert_base<Char_type>::string;
     using vconvert_base<Char_type>::put;
 
-    auto put(string_view   value_v) noexcept -> convert_error override { return put_string(value_v); }
-    auto put(string_view   value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_string(value_v, options_v); }     
-    auto put(char					 value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v); }
-		auto put(char8_t			 value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v); }
-		auto put(char16_t			 value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v); }
-		auto put(char32_t			 value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v); }
-		auto put(wchar_t			 value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v); }
-    auto put(std::uint8_t  value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
-    auto put(std::int8_t   value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
-    auto put(std::uint16_t value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
-    auto put(std::int16_t  value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
-    auto put(std::uint32_t value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
-    auto put(std::int32_t  value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
-    auto put(std::uint64_t value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
-    auto put(std::int64_t  value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
-    auto put(bool          value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_float(value_v, options_v) ; }
-    auto put(float         value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_float(value_v, options_v) ; } 
-    auto put(double        value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_boolean(value_v, options_v) ; }
+    auto put(string_view			value_v) noexcept -> convert_error override { return put_string(value_v); }
+    auto put(string_view			value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_string(value_v, options_v) ; }     
+		auto put(char const*			value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_pointer(value_v, options_v) ; }
+		auto put(char8_t const*		value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_pointer(value_v, options_v) ; }
+		auto put(char16_t const*	value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_pointer(value_v, options_v) ; }
+		auto put(char32_t const*	value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_pointer(value_v, options_v) ; }
+		auto put(wchar_t const*		value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_pointer(value_v, options_v) ; }
+		auto put(void const*      value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_pointer(value_v, options_v) ; }
+    auto put(char							value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+		auto put(char8_t					value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+		auto put(char16_t					value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+		auto put(char32_t					value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+		auto put(wchar_t					value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+    auto put(std::uint8_t			value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+    auto put(std::int8_t			value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+    auto put(std::uint16_t		value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+    auto put(std::int16_t			value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+    auto put(std::uint32_t		value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+    auto put(std::int32_t			value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+    auto put(std::uint64_t		value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+    auto put(std::int64_t			value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_integer(value_v, options_v) ; }
+    auto put(bool							value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_boolean(value_v, options_v) ; }
+    auto put(float						value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_float(value_v, options_v) ; } 
+    auto put(double						value_v, format_options<char_type> const& options_v) noexcept -> convert_error override { return put_float(value_v, options_v) ; }
 
-		inline auto put_numeric(std::uint64_t value_v, format_options<char_type> const& options_v, bool negative_v = false) noexcept -> convert_error
+		inline auto put_numeric(std::uintmax_t value_v, format_options<char_type> const& options_v, bool negative_v = false) noexcept -> convert_error
 		{
 			using namespace std::string_literals;
 			char_type number_v [129u];
@@ -110,38 +123,45 @@ namespace textio::fmt::detail
 						[](char_type c_v) { return std::toupper(c_v); });
 				}
 			}		
+
+      //////////////////////////////////////////////////////////
+      // Some calculations related to how much padding is needed
+      //////////////////////////////////////////////////////////
+
 			auto const result_size_v = result_v.ptr - std::begin(number_v);			
 			auto const prefix_string = options_v.prefix_base ? options_v.prefix_string() : ""s;
 			auto const include_signs = (negative_v || options_v.plus_sign);
 			auto const prefix_size_v = prefix_string.size() + include_signs*1u;
 			auto const padding_len_v = options_v.width - (result_size_v + prefix_size_v);
 
+      ////////////////////////////////////////////////////////
+      // Sort out 0 padding and signs and put it all together
+      ////////////////////////////////////////////////////////
+
 			string buffer_v;
 			
 			buffer_v.reserve(std::max<std::size_t>(options_v.width, result_size_v + prefix_size_v) + 1u);
 
-			if (negative_v) {
+			if (negative_v)
 				buffer_v.push_back('-');
-			}
-			else {
-				if (options_v.plus_sign) {
-					buffer_v.push_back('+');
-				}
-			}
-
-			if (options_v.prefix_base) {
-				buffer_v.append(prefix_string);
-			}
 			
-			buffer_v.resize(buffer_v.size() + padding_len_v, options_v.fill_char);
+			else if (options_v.plus_sign) 
+				buffer_v.push_back('+');				
+
+			if (options_v.prefix_base) 
+				buffer_v.append(prefix_string);
+			
+			if (options_v.pad_zeros) 
+				buffer_v.append(padding_len_v, '0');
+						
 			buffer_v.append(std::begin(number_v), result_v.ptr);
 
-			return put_string(string_view{ buffer_v }, options_v);
+			return put_string(string_view{ buffer_v }, options_v.as(fmt_type::string));
 		} 
 
-		inline auto put_numeric(std::int64_t value_v, format_options<char_type> const& options_v) noexcept -> convert_error
+		inline auto put_numeric(std::intmax_t value_v, format_options<char_type> const& options_v) noexcept -> convert_error
 		{						
-			return put_numeric((std::uint64_t)std::abs(value_v), options_v, value_v < 0u);
+			return put_numeric((std::uintmax_t)std::abs(value_v), options_v, value_v < 0u);
 		}
 		
 		template <typename T>
@@ -150,27 +170,15 @@ namespace textio::fmt::detail
       //////////////////////////////////////
       // Character format type
       //////////////////////////////////////
-			if constexpr (std::is_same_v<char_type, T>) {
-				if (options_v.format_type == fmt_type::character 
-				  ||options_v.format_type == fmt_type::string) 
-				{
-					char_type buffer_v[] = { value_v };
-					return put_string(string_view{ buffer_v }, options_v);
-				}				
-			}
-			
-      //////////////////////////////////////
-      // Integer format type
-      //////////////////////////////////////
-			if (options_v.format_as_integer()) 
-			{
-				if constexpr (!std::is_signed_v<T>) {
-					return put_numeric((std::uint64_t)value_v, options_v);
-				}
-				else {
-					return put_numeric((std::int64_t)value_v, options_v);
-				}
-			}	
+			if(( options_v.format_type == fmt_type::character 
+			  || options_v.format_type == fmt_type::string
+				&& value_v >= std::numeric_limits<char_type>::min() 
+				&& value_v <= std::numeric_limits<char_type>::max())
+				|| (std::is_same_v<char_type, T> && options_v.format_type == fmt_type::none))				
+			{				
+				char_type buffer_v[1u] = { (char_type)value_v };
+				return put_string(string_view{ buffer_v, 1u }, options_v.as(fmt_type::string));
+			}				
 
       //////////////////////////////////////
       // Floating point format type
@@ -184,6 +192,19 @@ namespace textio::fmt::detail
 					return put_float((double)value_v, options_v);
 				}
 			}
+			
+      //////////////////////////////////////
+      // Integer format type
+      //////////////////////////////////////
+			if (options_v.format_as_integer() || options_v.format_type == fmt_type::none) 
+			{
+				if constexpr (!std::is_signed_v<T>) {
+					return put_numeric((std::uint64_t)value_v, options_v);
+				}
+				else {
+					return put_numeric((std::int64_t)value_v, options_v);
+				}
+			}	
 
       //////////////////////////////////////
 			// Not supported format type 
@@ -195,20 +216,14 @@ namespace textio::fmt::detail
 		{
 			if (options_v.format_type == fmt_type::string) {
 				if (value_v) {
-					return put_string(string_view{ "true" }, options_v);
+					return put_string(string_view{ "true" }, options_v.as(fmt_type::string));
 				}
 				else {
-					return put_string(string_view{ "false" }, options_v);
+					return put_string(string_view{ "false" }, options_v.as(fmt_type::string));
 				}
 			}
-			return put_numeric((std::uint64_t)value_v, options_v);
+			return put_numeric((std::uint64_t)value_v, options_v.as(fmt_type::lower_decimal));
 		}
-    
-    inline auto put_float(auto&& value_v, format_options<char_type> const& options_v) noexcept -> convert_error
-    {
-      __debugbreak();
-      return convert_error::none;
-    }
         
     inline auto put_paddig(char_type value_v, std::size_t count_v) noexcept -> convert_error
     {
@@ -314,7 +329,57 @@ namespace textio::fmt::detail
       }
       return convert_error::none;
     }
-  };
+    
+		template <typename T>
+		inline auto put_pointer(T const* value_v, format_options<char_type> const& options_v) noexcept -> convert_error
+		{
+			static_assert(sizeof(std::uintptr_t) <= sizeof(std::uintmax_t));
+			switch (options_v.format_type)
+			{
+			case fmt_type::lower_binary:
+			case fmt_type::upper_binary:
+			case fmt_type::lower_octal:
+			case fmt_type::upper_octal:
+			case fmt_type::lower_decimal:
+			case fmt_type::upper_decimal:
+			case fmt_type::lower_hexadecimal:
+			case fmt_type::upper_hexadecimal:
+				return put_numeric((std::uintmax_t)value_v, options_v);
+				
+			case fmt_type::lower_pointer:
+				return put_numeric((std::uintmax_t)value_v, options_v.as(fmt_type::lower_hexadecimal));
+
+			case fmt_type::upper_pointer:			
+				return put_numeric((std::uintmax_t)value_v, options_v.as(fmt_type::upper_hexadecimal));
+
+			case fmt_type::string:
+				if constexpr (std::is_same_v<char_type, T>) {
+					return put_string(string_view{ value_v ? value_v : "@null" }, options_v.as(fmt_type::string));
+				}
+				else {
+					return convert_error::invalid_format;
+				}
+				break;
+			case fmt_type::none:
+				if constexpr (std::is_same_v<char_type, T>) {
+					return put_string(string_view{ value_v ? value_v : "@null" }, options_v.as(fmt_type::string));
+				}
+				else {
+					return put_numeric((std::uintmax_t)value_v, options_v.as(fmt_type::lower_hexadecimal));
+				}
+				break;
+			default:
+				break;
+			}					
+			return convert_error::invalid_format;
+		}
+
+    inline auto put_float(auto&& value_v, format_options<char_type> const& options_v) noexcept -> convert_error
+    {      
+      return convert_error::not_implemented;
+    }
+		
+	};
 
   ////////////////////////////////////////////////
   //
