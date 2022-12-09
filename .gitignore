@@ -1,6 +1,7 @@
 enc_temp_folder
 workspace
 build
+build_linux
 .vs
 /tools/bin
 /bochs/*.txt
