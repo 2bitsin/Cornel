@@ -259,7 +259,7 @@ namespace textio::fmt::detail
       /////////////////////////////////
       // Left aligned string
       /////////////////////////////////
-      case fmt_align::left:
+      case fmt_align::left:				
         error_v = put(value_v);
         if (error_v != convert_error::none){
           return error_v;
@@ -438,6 +438,8 @@ namespace textio::fmt::detail
     }
 
     auto put(string_view value_v) noexcept -> convert_error override {
+			if (value_v.empty())
+				return convert_error::none;
       auto const written_v = std::fwrite(value_v.data(), 1u, value_v.size(), m_sink);
       if (0u == written_v)
         return convert_error::io_error;
