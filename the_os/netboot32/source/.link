@@ -33,11 +33,11 @@ SECTIONS
   G_heap_begin = .;
     LONG(ADDR(.heap))
 
-    *(.rodata.options)
     *(.rodata.*)
     *(.rodata)
     *(.data.*)
-    *(.data)    
+    *(.data)
+    *(.options)
   }
 
   . = ALIGN(16);

@@ -17,7 +17,7 @@
 ////////////////////////
 namespace textio::fmt
 {
-	using detail::convert_error;
+  using detail::convert_error;
   template <typename User_type, meta::string Options>
   struct user_convert;  
 }
@@ -36,7 +36,7 @@ namespace textio::fmt::detail
 
   template <typename Value_type, typename Output_type, meta::string Options>
   concept is_formatable_internal_with_options = requires (Value_type const& value, Output_type& output_v) { 
-		{ value.format(output_v, std::basic_string_view { Options }) } ;
+    { value.format(output_v, std::basic_string_view { Options }) } ;
   };
 
   template <typename Value_type, typename Output_type, meta::string Options>
@@ -57,6 +57,11 @@ namespace textio::fmt::detail
 ////////////////////////
 namespace textio::fmt::detail
 {
+  template <meta::string OptionString> 
+  static consteval auto make_options() noexcept {
+    return format_options<typename decltype(OptionString)::char_type>{ OptionString };
+  }
+
   template <meta::string String, size_t DefaultIndex>
   struct format_node_insert
   : public format_variable<String, DefaultIndex>
@@ -69,29 +74,26 @@ namespace textio::fmt::detail
     using variable::options_string;
     using variable::next_default_index;
     using variable::uses_default;
-
-    static inline constexpr auto value = String;    
+    
+    //static inline constexpr auto value = String;
           
-
     template <typename What>
     inline static auto apply(vconvert_base<char_type> &vconv_r, What&& value_v) -> convert_error
     {
-      using value_type = std::remove_cvref_t<What>;
-
-      static constexpr const format_options<char_type> options { options_string };
+      using value_type = std::remove_cvref_t<What>;      
       
       if constexpr (is_formatable_internal_without_options<value_type, vconvert_base<char_type>, options_string>) {
         return value_v.format(vconv_r);
-			}
+      }
       else if constexpr (is_formatable_internal_with_options<value_type, vconvert_base<char_type>, options_string>) {
         return value_v.format(vconv_r, options_string);
-			}
+      }
       else if constexpr (is_formatable_external<value_type, vconvert_base<char_type>, options_string>) {
         return user_convert<value_type, options_string>::apply(vconv_r, std::forward<What>(value_v));
-			}
+      }
       else {
-        return vconv_r.put(std::forward<What>(value_v), options);
-			}
+        return vconv_r.put(std::forward<What>(value_v), make_options<options_string>());
+      }
     }
 
 

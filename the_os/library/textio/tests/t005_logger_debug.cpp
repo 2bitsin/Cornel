@@ -52,6 +52,7 @@ int main(int,char**) {
   Glog.info(repeat_value<79>('*'));
 
   Glog.info<" EAX={:08x} EBX={:08x} ECX={:08x} EDX={:08x}">(0x60000001, 0x12345689, 0x12345689, 0x12345689);
-
+	volatile  auto i = sizeof(textio::fmt::detail::format_options<char>);
+	
   return 0;
 }

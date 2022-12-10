@@ -99,11 +99,11 @@ namespace textio::fmt::detail
     inline auto put_numeric(std::uintmax_t value_v, format_options<char_type> const& options_v, bool negative_v = false) noexcept -> convert_error
     {
       using namespace std::string_literals;
-      char_type number_v [129u];
+      std::string number_v (129u, '\0');
       //////////////////////////////////////
       // Do the numeric conversion
       //////////////////////////////////////
-      auto const result_v = std::to_chars(std::begin(number_v), std::end(number_v), value_v, options_v.base());
+      auto const result_v = std::to_chars(number_v.data(), number_v.data()+number_v.size(), value_v, options_v.base());
       if (result_v.ec != std::errc()) {
         if (result_v.ec == std::errc::value_too_large) {
           return convert_error::too_large;
@@ -116,11 +116,11 @@ namespace textio::fmt::detail
       if (options_v.is_upper ()) 
       {
         if constexpr (std::is_same_v<char_type, wchar_t> || std::is_same_v<char_type, char16_t>) {
-          std::transform(std::begin(number_v), result_v.ptr, std::begin(number_v), 
+          std::transform(number_v.data(), result_v.ptr, number_v.data(), 
             [](char_type c_v) { return std::towupper(c_v); });
         }
         else {
-          std::transform(std::begin(number_v), result_v.ptr, std::begin(number_v), 
+          std::transform(number_v.data(), result_v.ptr, number_v.data(), 
             [](char_type c_v) { return std::toupper(c_v); });
         }
       }   
@@ -129,7 +129,7 @@ namespace textio::fmt::detail
       // Some calculations related to how much padding is needed
       //////////////////////////////////////////////////////////
 
-      auto const result_size_v = result_v.ptr - std::begin(number_v);     
+      auto const result_size_v = result_v.ptr - number_v.data();     
       auto const prefix_string = options_v.prefix_base ? options_v.prefix_string() : ""s;
       auto const include_signs = (negative_v || options_v.plus_sign);
       auto const prefix_size_v = prefix_string.size() + include_signs*1u;
@@ -155,7 +155,7 @@ namespace textio::fmt::detail
       if (options_v.pad_zeros) 
         buffer_v.append(padding_len_v, '0');
             
-      buffer_v.append(std::begin(number_v), result_v.ptr);
+      buffer_v.append(number_v.data(), result_v.ptr);
 
       return put_string(string_view{ buffer_v }, options_v.as(fmt_type::string));
     } 
@@ -259,7 +259,7 @@ namespace textio::fmt::detail
       /////////////////////////////////
       // Left aligned string
       /////////////////////////////////
-      case fmt_align::left:				
+      case fmt_align::left:       
         error_v = put(value_v);
         if (error_v != convert_error::none){
           return error_v;
@@ -395,7 +395,7 @@ namespace textio::fmt::detail
   };
 
   template <typename Char_type, typename Container_type = std::basic_string<Char_type>>
-  struct vconvert_back_insert: public vconvert<Char_type>
+  struct vconvert_back_insert final: public vconvert<Char_type>
   {
     using container_type = Container_type;
     using typename vconvert_base<Char_type>::char_type;
@@ -423,7 +423,7 @@ namespace textio::fmt::detail
   ////////////////////////////////////////////////
 
   template <typename Char_type>
-  struct vconvert_cstdio: public vconvert<Char_type>
+  struct vconvert_cstdio final: public vconvert<Char_type>
   {
     using handle_type = FILE*;
     using typename vconvert_base<Char_type>::char_type;
@@ -438,8 +438,8 @@ namespace textio::fmt::detail
     }
 
     auto put(string_view value_v) noexcept -> convert_error override {
-			if (value_v.empty())
-				return convert_error::none;
+      if (value_v.empty())
+        return convert_error::none;
       auto const written_v = std::fwrite(value_v.data(), 1u, value_v.size(), m_sink);
       if (0u == written_v)
         return convert_error::io_error;
@@ -459,7 +459,7 @@ namespace textio::fmt::detail
   ////////////////////////////////////////////////
 
   template <typename Output_type, typename Char_type>
-  struct vconvert_iterator: public vconvert<Char_type>
+  struct vconvert_iterator final: public vconvert<Char_type>
   {
     using typename vconvert_base<Char_type>::char_type;
     using typename vconvert_base<Char_type>::string_view;
@@ -496,7 +496,7 @@ namespace textio::fmt::detail
   ////////////////////////////////////////////////
 
   template <typename Output_type, typename Char_type>
-  struct vconvert_iterator_range: public vconvert<Char_type>
+  struct vconvert_iterator_range final: public vconvert<Char_type>
   {
     using typename vconvert_base<Char_type>::char_type;
     using typename vconvert_base<Char_type>::string_view;

@@ -7,8 +7,8 @@
 
 namespace textio::fmt::detail
 {
-    
-  enum class fmt_align
+#pragma pack(push, 1)
+  enum class fmt_align: uint8_t
   {
     none,
     left,
@@ -16,7 +16,7 @@ namespace textio::fmt::detail
     center
   };
   
-  enum class fmt_type
+  enum class fmt_type: uint8_t
   {
     none,
     lower_binary,
@@ -85,15 +85,6 @@ namespace textio::fmt::detail
       }
       return fmt_align::none;
     }
-    
-    fmt_align   direction   { fmt_align::none };
-    char_type   fill_char   { ' '             };    
-    uint32_t    width       { 0               };
-    uint32_t    precision   { 0               };    
-    bool        prefix_base { false           };
-    bool        pad_zeros   { false           };
-    bool        plus_sign   { false           };
-    fmt_type    format_type { fmt_type::none  };
     
     static constexpr inline bool is_digit(char_type char_v)
     {
@@ -193,7 +184,8 @@ namespace textio::fmt::detail
             numeric_value = numeric_value * 10u + (value[i] - '0');
           }         
         }
-        width = numeric_value;
+        // Limit to 255, so we can fit in 8 bits
+        width = numeric_value < 255 ? numeric_value : 255;
       }
         
       //////////////////////////
@@ -209,8 +201,9 @@ namespace textio::fmt::detail
           for(auto i = index0; i < index; ++i) {
             numeric_value = numeric_value * 10u + (value[i] - '0');
           }         
-        }
-        precision = numeric_value;
+        }        
+        // Limit to 63, so we can fit in 6 bits
+        precision = numeric_value < 63 ? numeric_value : 63;
       }
 
       ////////////////////
@@ -247,11 +240,11 @@ namespace textio::fmt::detail
       case fmt_type::upper_binary: return 2u;       
       case fmt_type::none:;
       default: return 10u;
-      }   		
-		}
+      }       
+    }
 
-		inline constexpr auto format_as_integer() const -> bool
-		{
+    inline constexpr auto format_as_integer() const -> bool
+    {
       switch (format_type)
       {
       case fmt_type::lower_pointer: 
@@ -264,30 +257,30 @@ namespace textio::fmt::detail
       case fmt_type::upper_octal: 
       case fmt_type::lower_binary:
       case fmt_type::upper_binary: 
-				return true;
+        return true;
       default: 
-				return false;
-      }   		
-		}
+        return false;
+      }       
+    }
 
-		inline constexpr auto format_as_float() const -> bool 
-		{
-			switch (format_type)
-			{
-			case fmt_type::lower_float_hexadecimal:
-			case fmt_type::upper_float_hexadecimal:
-			case fmt_type::lower_float_scientific:
-			case fmt_type::upper_float_scientific:
-			case fmt_type::lower_float_fixed:
-			case fmt_type::upper_float_fixed:
-			case fmt_type::lower_float_geneneral:
-			case fmt_type::upper_float_geneneral:
-				return true;
-			default:
-				return false;
-			}
-		}
-		
+    inline constexpr auto format_as_float() const -> bool 
+    {
+      switch (format_type)
+      {
+      case fmt_type::lower_float_hexadecimal:
+      case fmt_type::upper_float_hexadecimal:
+      case fmt_type::lower_float_scientific:
+      case fmt_type::upper_float_scientific:
+      case fmt_type::lower_float_fixed:
+      case fmt_type::upper_float_fixed:
+      case fmt_type::lower_float_geneneral:
+      case fmt_type::upper_float_geneneral:
+        return true;
+      default:
+        return false;
+      }
+    }
+    
     inline constexpr auto prefix_string() const  
       -> std::basic_string_view<char_type>
     {
@@ -317,13 +310,13 @@ namespace textio::fmt::detail
       case fmt_type::upper_decimal:
       case fmt_type::upper_octal:
       case fmt_type::upper_binary:
-			case fmt_type::upper_float_hexadecimal:
-			case fmt_type::upper_float_scientific:
-			case fmt_type::upper_float_fixed:
-			case fmt_type::upper_float_geneneral:
-				return true;
-			default:
-				return false;
+      case fmt_type::upper_float_hexadecimal:
+      case fmt_type::upper_float_scientific:
+      case fmt_type::upper_float_fixed:
+      case fmt_type::upper_float_geneneral:
+        return true;
+      default:
+        return false;
       }     
     }
     inline constexpr auto is_lower() const -> bool
@@ -335,23 +328,37 @@ namespace textio::fmt::detail
       case fmt_type::lower_decimal:
       case fmt_type::lower_octal:
       case fmt_type::lower_binary:
-			case fmt_type::lower_float_hexadecimal:
-			case fmt_type::lower_float_scientific:
-			case fmt_type::lower_float_fixed:
-			case fmt_type::lower_float_geneneral:
-				return true;
-			default:
-				return false;
+      case fmt_type::lower_float_hexadecimal:
+      case fmt_type::lower_float_scientific:
+      case fmt_type::lower_float_fixed:
+      case fmt_type::lower_float_geneneral:
+        return true;
+      default:
+        return false;
       }     
     }
 
-		inline constexpr auto as(fmt_type fmt_type) const noexcept 
-			-> format_options<char_type>
-		{
-			auto options_v = *this;
-			options_v.format_type = fmt_type;
-			return options_v;
-		}
+    inline constexpr auto as(fmt_type fmt_type) const noexcept 
+      -> format_options<char_type>
+    {
+      auto options_v = *this;
+      options_v.format_type = fmt_type;
+      return options_v;
+    }
+
+  public:    
+    fmt_type    format_type : 5 { fmt_type::none  };
+    bool        prefix_base : 1 { false           };
+    bool        pad_zeros   : 1 { false           };
+    bool        plus_sign   : 1 { false           };
+    fmt_align   direction   : 2 { fmt_align::none };
+    uint8_t     precision   : 6 { 0               };    
+    uint8_t     width           { 0               };
+    char_type   fill_char       { ' '             };    
+
   };
+
+  static_assert(sizeof(format_options<char>) == 4);
+#pragma pack(pop)
   
 }

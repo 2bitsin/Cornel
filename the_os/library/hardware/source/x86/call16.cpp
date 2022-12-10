@@ -30,7 +30,6 @@ static inline std::uint32_t call16_invoke(x86arch::call16_context& ctx, Target c
   std::copy(call16_thunk_begin, call16_thunk_end, std::begin(call16_thunk.code));  
   std::construct_at(&call16_thunk.regs, std::move (ctx));
 
-  __debugbreak();
   if constexpr(!std::is_same_v<Target, x86arch::call16_address>) 
   { call16_thunk.addr.as<std::uint8_t*>()[1u] = target; }
   else

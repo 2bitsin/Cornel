@@ -43,8 +43,7 @@ namespace std
 
   [[noreturn]] 
   void __throw_length_error(char const* err)
-  {
-    __debugbreak();
+  {    
     using namespace textio::fmt;
     Glog.fatal<"Length error ({:s}).">(err);
     std::abort();
