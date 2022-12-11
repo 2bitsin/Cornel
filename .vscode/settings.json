@@ -79,7 +79,8 @@
     "regex": "cpp",
     "any": "cpp",
     "charconv": "cpp",
-    "shared_mutex": "cpp"
+    "shared_mutex": "cpp",
+    "version": "cpp"
   },
   "C_Cpp.errorSquiggles": "Disabled"
 }

@@ -2,6 +2,9 @@
 #include <cstdint>
 #include <cstddef>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wbuiltin-declaration-mismatch"
+
 extern "C"
 int memcmp(void const* lhs, void const* rhs, std::size_t count)
 {
@@ -14,3 +17,5 @@ int memcmp(void const* lhs, void const* rhs, std::size_t count)
   }
   return 0;    
 }
+
+#pragma GCC diagnostic pop

@@ -7,8 +7,9 @@ add_library(netboot
   panick.cpp
   main.cpp
   keyboard.cpp  
-  netboot.cpp) 
+  netboot.cpp
+ ) 
 
 target_include_directories(netboot PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(netboot PUBLIC utils textio pxenv hardware script)
+target_link_libraries(netboot PUBLIC cimpl utils textio pxenv hardware script)
   

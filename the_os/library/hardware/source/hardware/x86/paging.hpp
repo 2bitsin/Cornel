@@ -4,8 +4,22 @@
 #include <cstddef>
 #include <span>
 
-struct Paging
-{
-  auto map (void* virtual_addr_v, std::uint32_t physical_addr_v, std::size_t size_v, std::uint32_t access_v) -> bool;
+namespace x86arch::detail
+{  
 
-};
+
+
+  struct PagingImpl
+  {  
+    auto enable  (error& error_v) -> bool;
+    auto disable (error& error_v) -> bool;
+    auto map     (std::uint32_t page_base_v, std::uint32_t count_v, void const* target_v, std::uint32_t access_v) -> void const*;
+  };
+}
+
+namespace x86arch
+{
+
+  auto Paging () noexcept -> PagingImpl& ;
+}
+

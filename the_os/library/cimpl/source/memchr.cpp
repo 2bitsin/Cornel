@@ -1,8 +1,12 @@
-#include <cstring>
+//#include <cstring>
 #include <cstdint>
 #include <cstddef>
 
-//extern "C"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wbuiltin-declaration-mismatch"
+
+extern "C"
 const void* memchr(const void* ptr, int value, size_t count)
 {
   auto src = (const std::uint8_t*)ptr;  
@@ -14,3 +18,5 @@ const void* memchr(const void* ptr, int value, size_t count)
   }
   return nullptr;
 }
+
+#pragma GCC diagnostic pop
