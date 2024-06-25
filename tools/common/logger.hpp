@@ -20,11 +20,11 @@ struct basic_logger
 	using logger_sink_fun = std::function<void(filter_level, std::string_view)>;	
 	
 	template <typename ... Args>
-	auto write_line(filter_level level, const std::string_view fmt, Args&& ... args)
+	auto write_line(filter_level level, const std::string_view fmt, Args ... args)
 		-> basic_logger&
 	{		
 		using namespace std::string_literals;
-		auto formatted_line = std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
+		auto formatted_line = std::vformat(fmt, std::make_format_args(args...));
 		sink_line(level, formatted_line);
 		return *this;
 	}

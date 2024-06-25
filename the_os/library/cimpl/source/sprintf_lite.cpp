@@ -39,6 +39,7 @@ namespace __gnu_cxx {
   void
   __throw_insufficient_space(const char *__buf, const char *__bufend)
   {
+    using namespace std;
     // Include space for trailing NUL.
     const size_t __len = __bufend - __buf + 1;
 
@@ -52,7 +53,7 @@ namespace __gnu_cxx {
     __builtin_memcpy(__e, __err, __errlen);
     __builtin_memcpy(__e + __errlen, __buf, __len - 1);
     __e[__errlen + __len - 1] = '\0';
-    std::__throw_logic_error(__e);
+    std::__throw_logic_error(__e);   
   }
 
 
