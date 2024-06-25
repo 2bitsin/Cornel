@@ -1,0 +1,36 @@
+
+    ;       DS:SI -> string        
+coninit:
+    push    ax
+    mov     ax,     0x3
+    int     0x10
+    pop     ax
+    ret
+    
+putstr:
+    push    si
+    push    ax
+    pushf
+    cld
+  .next:
+    lodsb 
+    or      al,     al
+    jz      .done
+    call    putchar
+    jmp     .next
+  .done:
+    popf  
+    pop     ax
+    pop     si
+    ret
+
+putchar: 
+    push    ax
+    push    bx
+    mov     ah,     0x0e
+    mov     bx,     0x07
+    int     0x10
+    pop     bx
+    pop     ax
+    ret
+    

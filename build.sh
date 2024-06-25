@@ -1,13 +1,19 @@
 #!/bin/bash
 
-export WORKSPACE_ROOT=`pwd`/workspace
+export PROJECT_ROOT=`pwd`
+export WORKSPACE_ROOT=$PROJECT_ROOT/workspace
 export BUILD_TYPE=Release
 #export BUILD_TYPE=Debug
 
 rm -rf $WORKSPACE_ROOT
 mkdir -p $WORKSPACE_ROOT
 
-pushd ./the_os
+# Build the os99 docker images
+pushd ./docker
+  source ./build.sh
+  popd
+
+pushd ./os99
   source ./build.sh
   popd
   

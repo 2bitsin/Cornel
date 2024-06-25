@@ -3,7 +3,7 @@
 export BUILD_TYPE=Release
 #export BUILD_TYPE=Debug
 
-pushd ./the_os
+pushd ./os99
   source ./clean.sh
   popd
   
