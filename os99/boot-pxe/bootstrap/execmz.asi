@@ -1,0 +1,60 @@
+
+execute_mz:
+
+; Parse MZ header
+
+		mov 		ax, 	__payload
+		shr			ax, 	4
+		mov			gs, 	ax
+
+		mov			ax,   MZ_SIGNATURE
+		cmp			ax, 	0x5A4D
+		jnz			__selfcheck_fail
+
+		mov			bx, 	MZ_RELOCOFFS		
+		mov			cx, 	MZ_RELOCSIZE
+		
+	.patch_reloc:
+		
+	; Compute the segment to be patched
+		mov			ax,		[MZ_SEGMENT:bx + 2]
+		add     ax,		__payload / 16
+		add			ax,		MZ_HEADERLEN
+		mov			fs, 	ax
+
+	; Get the offset to be patched
+		push		bx
+		mov			bx,		[MZ_SEGMENT:bx]
+
+	; Patch the relocation
+		mov			ax, 	[fs:bx]
+		add			ax,		word __payload / 16
+		mov			[fs:bx],ax
+
+	; Restore bx
+		pop			bx
+		add			bx,		2
+		dec			cx
+		jnz			.patch_reloc
+
+	; Done patching, setup environment
+		
+		mov			ax,		__PSP / 16
+		mov			ds,		ax
+		mov			es, 	ax
+		
+		mov			ax, 	MZ_INITIALSS
+		add			ax,		__payload / 16
+		add 		ax, 	MZ_HEADERLEN
+		mov			ss,		ax
+		mov			sp,		MZ_INITIALSP
+
+	; RETF to initial CS:IP
+		mov			ax, 	MZ_INITIALCS
+		add			ax, 	__payload / 16
+		add			ax,		MZ_HEADERLEN
+		push		ax
+		mov			ax, 	MZ_INITIALIP
+		push		ax
+		mov			ax,		0xffff
+		retf		

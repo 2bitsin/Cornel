@@ -1,0 +1,110 @@
+
+  dosinit:
+
+; Setup INT 0x20
+		mov			ax,		cs
+		mov			[fs:0x20*4 + 0], word __dos_20h
+		mov			[fs:0x20*4 + 2], ax
+
+; Setup INT 0x21 
+		mov			[fs:0x21*4 + 0], word __dos_21h
+		mov			[fs:0x21*4 + 2], ax
+
+		int			0x12
+		shl			ax, 	6
+		mov			[__PSP.mem_top_seg], ax
+    ret
+
+; ---------------------------
+; DOS Get Version
+; ---------------------------
+
+	__dos_getver:
+		pop			bx		
+		mov			bx,		0xfd2b
+		or      al, 	al
+		jz			.novflags
+		xor			bh,		bh
+	.novflags:
+		mov			ax, 	0x1606
+		iret
+
+  __dos_open:
+    ; AL = access/sharing modes
+    ; DS:DX = name ptr
+    xchg    bx,   bx
+    pop     bx
+    pusha
+    xchg    dx,   bx
+    mov     dx,   [ds:bx+0]
+    cmp     dx,   0x6F63
+    jnz     __halt
+    mov     dx,   [ds:bx+2]
+    cmp     dx,   0x006E
+    jnz     __halt
+    inc     word  [cs:__PSP.G_last_fd]    
+    popa
+    mov     ax,   [cs:__PSP.G_last_fd]
+    clc
+    iret
+
+; Dummy INT 0x20
+	__dos_20h:
+    xchg    bx,   bx
+		jmp     __halt		
+
+; Dummy INT 0x21
+	__dos_21h:
+		test		ax,		0x80
+		jnz			__halt
+
+		push 		bx
+		xor			bh, 	bh
+		mov			bl, 	ah		
+		shl			bx,		1
+    jmp     near  [cs:__dos_tbl+bx]
+    
+
+; Terminate handler
+	__dos_term:
+		xchg		bx,  	bx
+		retf
+
+; Ctrl+Brk handler
+	__dos_cbrk:
+		xchg		bx,  	bx
+		retf
+
+; Critical error handler
+	__dos_cerr:
+		xchg		bx,  	bx
+		retf				
+
+
+; ---------------------------
+;	DOS function dispatch table
+; ---------------------------
+	align 16
+	__dos_tbl:
+		times 0x30 dw __halt ; 0x00 .. 0x2F
+		dw __dos_getver      ; 0x30
+    dw __halt            ; 0x31
+    dw __halt            ; 0x32
+    dw __halt            ; 0x33
+    dw __halt            ; 0x34
+    dw __halt            ; 0x35
+    dw __halt            ; 0x36
+    dw __halt            ; 0x37
+    dw __halt            ; 0x38
+    dw __halt            ; 0x39
+    dw __halt            ; 0x3A
+    dw __halt            ; 0x3B
+    dw __halt            ; 0x3C
+    dw __dos_open        ; 0x3D
+    dw __halt            ; 0x3E
+    dw __halt            ; 0x3F    
+		times 0x40 dw __halt ; 0x40...0x7F
+  .end:
+assert ((__dos_tbl.end - __dos_tbl) = 256)
+
+  

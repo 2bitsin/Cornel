@@ -1,0 +1,8 @@
+	strings:
+		.version:
+			db 		"BOOT-PXE v0.1", 13, 10, 0		
+		.corrupted:
+			db		"Bootloader corrupted, ", 13, 10
+			db 		"system halted.", 13, 10, 0
+    .opening:
+      db    "Opening file : ", 0
