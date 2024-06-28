@@ -1,5 +1,6 @@
 #!/bin/bash -l
 
+set -e
 
 # local variables
 TEMPORARY_PATH=$WORKSPACE_ROOT/build/boot-pxe

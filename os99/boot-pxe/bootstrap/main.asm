@@ -63,19 +63,18 @@
 
 		mov			bx, 	MZ_RELOCOFFS		
 		mov			cx, 	MZ_RELOCSIZE
-
-		xchg		bx,		bx
+		
 	.patch_reloc:
 		
 	; Compute the segment to be patched
 		mov			ax,		[MZ_SEGMENT:bx + 2]
 		add     ax,		__payload / 16
+		add			ax,		MZ_HEADERLEN
 		mov			fs, 	ax
 
 	; Get the offset to be patched
 		push		bx
 		mov			bx,		[MZ_SEGMENT:bx]
-
 
 	; Patch the relocation
 		mov			ax, 	[fs:bx]
@@ -89,6 +88,10 @@
 		jnz			.patch_reloc
 
 	; Done patching, setup environment
+
+		int			0x12
+		shl			ax, 	6
+		mov			[__PSP.mem_top_seg], ax
 		
 		mov			ax,		__PSP / 16
 		mov			ds,		ax
@@ -96,19 +99,19 @@
 		
 		mov			ax, 	MZ_INITIALSS
 		add			ax,		__payload / 16
+		add 		ax, 	MZ_HEADERLEN
 		mov			ss,		ax
 		mov			sp,		MZ_INITIALSP
 
 	; RETF to initial CS:IP
 		mov			ax, 	MZ_INITIALCS
 		add			ax, 	__payload / 16
+		add			ax,		MZ_HEADERLEN
 		push		ax
 		mov			ax, 	MZ_INITIALIP
 		push		ax
 		mov			ax,		0xffff
-
-		retf
-		
+		retf		
 
 	; .....
 		mov     si,   header.version
@@ -117,128 +120,133 @@
 		hlt
 
 	.corrupted:
-		xchg		bx,		bx
+		
 		mov			si, 	strings.corrupted
 		call		putstr
 
+	__halt:
+		xchg		bx,		bx
 		cli
 		hlt
 
-	
+
+; ---------------------------
+; DOS Get Version
+; ---------------------------
+
+	__dos_getver:
+		pop			bx		
+		mov			bx,		0xfd2b
+		or      al, 	al
+		jz			.novflags
+		xor			bh,		bh
+	.novflags:
+		mov			ax, 	0x1606
+		iret
+
+; ---------------------------
+;	DOS function dispatch table
+; ---------------------------
+	align 16
+	__dos_tbl:
+		times 0x30 dw __halt
+		dw __dos_getver
+		times 0x4F dw __halt
+
 ; Dummy INT 0x20
 	__dos_20h:
-
-		pushad 
-		push 		ds
-		push 		ss
-		push 		es
-		push 		fs
-		push 		gs
-		
-		mov 		ax, 	cs
-		mov 		ds, 	ax
-		mov 		es, 	ax
-
-		mov 		si, 	strings.int20h
-		call 		putstr
-
-		xchg 		bx, 	bx
-
-		pop 		gs
-		pop 		fs
-		pop 		es
-		pop 		ss
-		pop 		ds
-		popad
-
-		iret
+		jmp __halt		
 
 ; Dummy INT 0x21
 	__dos_21h:
+		xchg		bx,		bx
+		test		ax,		0x80
+		jnz			__halt
 
-		pushad 
-		push 		ds
-		push 		ss
-		push 		es
-		push 		fs
-		push 		gs
-		
-		mov 		ax, 	cs
-		mov 		ds, 	ax
-		mov 		es, 	ax
+		push 		bx
+		xor			bh, 	bh
+		mov			bl, 	ah		
+		shl			bx,		1
+		jmp			near [cs:__dos_tbl+bx]
 
-		mov 		si, 	strings.int21h
-		call 		putstr
+; Terminate handler
+	__dos_term:
+		xchg		bx,  	bx
+		retf
 
-		xchg 		bx, 	bx
+; Ctrl+Brk handler
+	__dos_cbrk:
+		xchg		bx,  	bx
+		retf
 
-		pop 		gs
-		pop 		fs
-		pop 		es
-		pop 		ss
-		pop 		ds
-		popad
+; Critical error handler
+	__dos_cerr:
+		xchg		bx,  	bx
+		retf				
 
-		iret
-
-		align 	256
+; --------------------------
+;  Dummy PSP
+; --------------------------
+		align 	16
 	__PSP:
-		.exit_vector:	
-			dw		0
-		.mem_top_seg:
-			dw		0
-		; reserved
-			db		0
-		; ??????
-			db    0
-		.com_seg_size:
-			dw 		0
-		; ?????
-			dw		0
-		.exit_addr:
-			dd		0
-		.cbrk_addr:
-			dd 		0
-		.cerr_addr:
-			dd		0
-		.parent_psp_seg:
-			dw		0
-		.job_file_tbl:
-			times 20 db 0
-		.env_seg:
-			dw 		0
-		.temp_ss_sp:
-			dd		0
-		.jft_size:
-			dw		0
-		.jft_pointer:
-			dd		0
-		.prev_psp_ptr:
-			dd		0
-		; reserved
-			dd		0
-		.dos_version:
-			dw		0x610
-		; reserved
-			times 14 db 0
-		.call_far_dos:
-			int		0x21
-			retf
-		; reserved
-			dw 		0
-		; reserved, fcb?
-			dd		0
-			dw 		0
-			db		0
-		.fcbs_1:
-			times	16 db 0
-		.fcbs_2:
-			times 20 db 0
+		.exit_vector:	 		; 2 bytes 
+			int		0x20    			       ; 2
+		.mem_top_seg:  		; 2 bytes
+			dw		0			               ; 4
+		.fill1:        		; 1 byte
+			db		0                    ; 5
+		.ps_reentry:   		; 5 bytes
+			call far 0x0000:0x00C0		 ; 10
+		.exit_addr:		 		; 4 bytes
+			dw    __dos_term, LOAD_ADDRESS / 16 ; 14
+		.cbrk_addr:		 		; 4 bytes  
+			dw 		__dos_cbrk, LOAD_ADDRESS / 16 ; 18
+		.cerr_addr:    		; 4 bytes
+			dw		__dos_cerr, LOAD_ADDRESS / 16 ; 22
+		.parent_psp_seg:	; 2 bytes
+			dw		0                    	; 24
+		.file_tab:				; 20 bytes
+			times 20 db 0              	; 44
+		.env_seg:					; 2 bytes
+			dw 		0                    	; 46
+		.temp_ss_sp:			; 4 bytes
+			dd		0                    	; 50
+		.max_files:				; 2 bytes
+			dw		20                  	; 52
+		.file_tab_ptr:		; 4 bytes
+			dw		__PSP.file_tab, LOAD_ADDRESS / 16	; 56
+		.prev_psp_ptr:    ; 4 bytes
+			dw		0xffff, 0xffff       	; 60
+		; reserved        ; 4 bytes
+			dd		0                    	; 64
+		.dos_version:     ; 2 bytes
+			dw		0x610                	; 66
+		.pdb_next:				; 2 bytes
+			dw		0	                   	; 68		
+		; reserved				; 4 bytes
+			dd    0										 	; 72
+		; reserved				; 1 bytes
+		  db    0										 	; 73
+		; reserved 				; 7 bytes
+			times 7 db 0								; 80
+		.ps_unix:					; 3 bytes
+			int 	0x21									; 83
+			retf					
+		; reserved				; 9 bytes
+			times 9 db 0								; 92		
+		.first_fcb:				; 16 bytes
+			times 16 db 0								; 108
+		.second_fcb:			; 16 bytes
+			times 16 db 0								; 124
+		; reserved				; 4 bytes
+			dd		0											; 128
+		.cmdline_size:		; 1 bytes
+			db		0											; 129
+		.cmdline_str:			; 127 bytes
+			times 127 db 0xd						; 256
 
-		.cmdline_size:
-			db		0
-		.cmdline_str:
-			times 127 db 0xd
+		.end_of_psp:
+	assert ((.end_of_psp - __PSP) = 256)
 
 	PADSIZE   equ   512
 	PADDING   equ 	times ((PADSIZE - (($ - $$) mod PADSIZE)))
