@@ -38,72 +38,124 @@
     xchg    dx,   bx
     mov     dx,   [ds:bx+0]
     cmp     dx,   0x6F63
-    jnz     __halt
+    jnz     .cant_open
     mov     dx,   [ds:bx+2]
     cmp     dx,   0x006E
-    jnz     __halt
+    jnz     .cant_open
     inc     word  [cs:__PSP.G_last_fd]    
     popa
     mov     ax,   [cs:__PSP.G_last_fd]
     clc
     iret
+	.cant_open:
+		call		__halt
+
+	__dos_sbrk:		
+		pop			bx		
+		push		bx
+		mov			bx,		es
+		cmp			bx,		__PSP/16
+		pop			bx
+		jnz			.bad_block
+		push		bx
+		add			bx,		__PSP/16
+		cmp			bx,		[cs:__PSP.mem_top_seg]
+		pop			bx
+		pushf
+		mov			ax,  	es
+		mov			bx,		[cs:__PSP.mem_top_seg]
+		sub			bx,		ax
+		popf
+		ja			.oom_error
+		xor			ax,		ax
+		clc
+		iret		
+	.oom_error:
+		stc	
+		mov			ax, 	0x8
+		iret 
+	.bad_block:
+		stc
+		mov			ax,		0x9
+		iret
+
 
 ; Dummy INT 0x20
-	__dos_20h:
-    xchg    bx,   bx
-		jmp     __halt		
+	__dos_20h:    
+		call    __halt		
 
 ; Dummy INT 0x21
 	__dos_21h:
-		test		ax,		0x80
-		jnz			__halt
-
+		test		ah,		0x80
+		jz			.valid
+		mov			bx,		0x03
+		call		__halt
+	.valid:
 		push 		bx
 		xor			bh, 	bh
 		mov			bl, 	ah		
 		shl			bx,		1
     jmp     near  [cs:__dos_tbl+bx]
     
-
 ; Terminate handler
-	__dos_term:
-		xchg		bx,  	bx
-		retf
+	__dos_term:			
+		mov			bx,		0x0
+		call		__halt
 
 ; Ctrl+Brk handler
-	__dos_cbrk:
-		xchg		bx,  	bx
-		retf
+	__dos_cbrk:				
+		mov			bx,		0x1
+		call		__halt
 
 ; Critical error handler
-	__dos_cerr:
-		xchg		bx,  	bx
-		retf				
-
+	__dos_cerr:		
+		mov			bx,		0x2
+		call		__halt
+		
+	__dos_noimpl:
+		mov			bx,		0x3
+		call		__halt
 
 ; ---------------------------
 ;	DOS function dispatch table
 ; ---------------------------
 	align 16
 	__dos_tbl:
-		times 0x30 dw __halt ; 0x00 .. 0x2F
-		dw __dos_getver      ; 0x30
-    dw __halt            ; 0x31
-    dw __halt            ; 0x32
-    dw __halt            ; 0x33
-    dw __halt            ; 0x34
-    dw __halt            ; 0x35
-    dw __halt            ; 0x36
-    dw __halt            ; 0x37
-    dw __halt            ; 0x38
-    dw __halt            ; 0x39
-    dw __halt            ; 0x3A
-    dw __halt            ; 0x3B
-    dw __halt            ; 0x3C
-    dw __dos_open        ; 0x3D
-    dw __halt            ; 0x3E
-    dw __halt            ; 0x3F    
-		times 0x40 dw __halt ; 0x40...0x7F
+		times 0x30 dw __halt 	; 0x00 .. 0x2F
+		dw __dos_getver      	; 0x30
+    dw __dos_noimpl      	; 0x31
+    dw __dos_noimpl      	; 0x32
+    dw __dos_noimpl      	; 0x33
+    dw __dos_noimpl      	; 0x34
+    dw __dos_noimpl      	; 0x35
+    dw __dos_noimpl      	; 0x36
+    dw __dos_noimpl      	; 0x37
+    dw __dos_noimpl      	; 0x38
+    dw __dos_noimpl      	; 0x39
+    dw __dos_noimpl      	; 0x3A
+    dw __dos_noimpl      	; 0x3B
+    dw __dos_noimpl      	; 0x3C
+    dw __dos_open        	; 0x3D
+    dw __dos_noimpl      	; 0x3E
+    dw __dos_noimpl      	; 0x3F    
+
+		dw __dos_noimpl				; 0x40
+    dw __dos_noimpl      	; 0x41
+    dw __dos_noimpl      	; 0x42
+    dw __dos_noimpl      	; 0x43
+    dw __dos_noimpl      	; 0x44
+    dw __dos_noimpl      	; 0x45
+    dw __dos_noimpl      	; 0x46
+    dw __dos_noimpl      	; 0x47
+    dw __dos_noimpl      	; 0x48
+    dw __dos_noimpl      	; 0x49
+    dw __dos_sbrk  				; 0x4A
+    dw __dos_noimpl      	; 0x4B
+    dw __dos_noimpl      	; 0x4C
+    dw __dos_noimpl 			; 0x4D
+    dw __dos_noimpl      	; 0x4E
+    dw __dos_noimpl      	; 0x4F    
+		times 0x30 dw __dos_noimpl 	; 0x50...0x7F
   .end:
 assert ((__dos_tbl.end - __dos_tbl) = 256)
 

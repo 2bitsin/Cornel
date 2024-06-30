@@ -1,7 +1,7 @@
 ; --------------------------
 ;  Dummy PSP
 ; --------------------------
-		align 	16
+		align 	256
 	__PSP:
 		.exit_vector:	 		; 2 bytes 
 			int		0x20    			       ; 2
@@ -57,14 +57,13 @@
     ; unused          ; 2 bytes   
       dw    0                     ; 128
 		.cmdline_size:		; 1 bytes
-			db		0											; 129
+			db		16										; 129
 		.cmdline_str:			; 127 bytes
-			times 127 db 0xd						; 256
+			db 		"A:\BOOT-PXE.SYS",0xd,0
+			times 110 db 0xd						; 256
 		.end:
+  assert ((__PSP mod 16) = 0)
 	assert ((__PSP.end - __PSP) = 256)
 
-    align 16
-  __PSP_env:
-      db    "PATH=",0,"PROMPT=$P$G",0,"COMSPEC=A:\\COMMAND.COM",0,0
     
       

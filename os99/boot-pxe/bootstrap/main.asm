@@ -33,19 +33,21 @@
 		call		putstr
 
 	__halt:
-		xchg		bx,		bx
+		mov			si,		cs
+		mov			ds,		si
+		and			bx,		3
+		shl			bx,		1
+		mov			si, 	[cs:strings.error_tbl+bx]
+		call		putstr
 		cli
 		hlt
 
-		include "mzhead.asi"
 		include "console.asi"
+		include "mzhead.asi"
 		include "execmz.asi"
-		include "fakedos.asi"
+		include "fakeenv.asi"		
+		include "fakedos.asi"		
 		include "fakepsp.asi"
-
-	PADSIZE   equ   512
-	PADDING   equ 	times ((PADSIZE - (($ - $$) mod PADSIZE)))
-	PADDING 	db    1	
 		align		16
 	__payload:
 
