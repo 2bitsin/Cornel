@@ -128,6 +128,16 @@
 		popa	
 		iret
 
+	__dos_term:
+		int 		0x22
+		retf
+	__dos_cbrk:
+		int 		0x23
+		retf	
+	__dos_cerr:
+		int 		0x24
+		retf	
+
 ; ---------------------------
 ; DOS stubs
 ; ---------------------------
