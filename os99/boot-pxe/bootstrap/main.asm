@@ -1,20 +1,11 @@
     format binary    
     use16
 
-    LOAD_ADDRESS 	equ 0x7c00
-		INT21H_TABLE	equ (LOAD_ADDRESS - (0x80*4))
-		STACK_BASE		equ 0x0500
-		STACK_TOP			equ (INT21H_TABLE - STACK_BASE) 
-		MZ_SEGMENT		equ gs
+		include "config.asi"
 	
     org     LOAD_ADDRESS
 
-    jmp     preamble
-
-		include	"strings.asi"
-
-		align 16			
-	preamble:
+    
 
 		mov		 	ax, 	cs
 		mov 		ds,   ax
@@ -49,8 +40,9 @@
 		include "console.asi"
 		include "mzhead.asi"
 		include "execmz.asi"
-		include "fakeenv.asi"		
 		include "fakedos.asi"		
+		include	"strings.asi"
+		include "fakeenv.asi"
 		include "fakepsp.asi"
 		align		16
 	__payload:

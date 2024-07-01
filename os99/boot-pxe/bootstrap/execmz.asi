@@ -38,7 +38,6 @@ execute_mz:
 		jnz			.patch_reloc
 
 	; Done patching, setup environment
-		
 		mov			ax,		__PSP / 16
 		mov			ds,		ax
 		mov			es, 	ax

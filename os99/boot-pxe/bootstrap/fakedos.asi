@@ -1,51 +1,27 @@
 	
 
-	INTR_IP			equ 
-	INTR_CS			equ
-	INTR_FLAGS	equ
-	INTR_AX			equ
-
-
-  
+	INTR_FLAGS	   	equ word [ss:bp + 30]
+	INTR_CS	       	equ word [ss:bp + 28]
+	INTR_IP	       	equ word [ss:bp + 26]
+	INTR_INTNUM	   	equ word [ss:bp + 24]
+	INTR_DS	       	equ word [ss:bp + 22]
+	INTR_ES	       	equ word [ss:bp + 20]
+	INTR_FS	       	equ word [ss:bp + 18]
+	INTR_GS	       	equ word [ss:bp + 16]
+	INTR_AX	       	equ word [ss:bp + 14]
+	INTR_CX	       	equ word [ss:bp + 12]
+	INTR_DX	       	equ word [ss:bp + 10]
+	INTR_BX       	equ word [ss:bp + 8 ]
+	INTR_SP       	equ word [ss:bp + 6 ]
+	INTR_BP       	equ word [ss:bp + 4 ]
+	INTR_SI       	equ word [ss:bp + 2 ]
+	INTR_DI       	equ word [ss:bp + 0 ]  
 	
 	dosinit:
 		int			0x12
 		shl			ax, 	6
 		mov			[__PSP.mem_top_seg], ax  
 
-;	Setup forwarding vectors
-		mov			[cs:0x20*4 + 2], cs
-		mov			[cs:0x20*4 + 0], word __dos_20h
-		mov			[cs:0x21*4 + 2], cs
-		mov			[cs:0x21*4 + 0], word __dos_21h
-		mov			[cs:0x22*4 + 2], cs
-		mov			[cs:0x22*4 + 0], word __dos_22h
-		mov			[cs:0x23*4 + 2], cs
-		mov			[cs:0x23*4 + 0], word __dos_23h
-		mov			[cs:0x24*4 + 2], cs
-		mov			[cs:0x24*4 + 0], word __dos_24h
-		mov			[cs:0x25*4 + 2], cs
-		mov			[cs:0x25*4 + 0], word __dos_25h
-		mov			[cs:0x26*4 + 2], cs
-		mov			[cs:0x26*4 + 0], word __dos_26h
-		mov			[cs:0x27*4 + 2], cs
-		mov			[cs:0x27*4 + 0], word __dos_27h
-		mov			[cs:0x28*4 + 2], cs
-		mov			[cs:0x28*4 + 0], word __dos_28h
-		mov			[cs:0x29*4 + 2], cs
-		mov			[cs:0x29*4 + 0], word __dos_29h
-		mov			[cs:0x2A*4 + 2], cs
-		mov			[cs:0x2A*4 + 0], word __dos_2Ah
-		mov			[cs:0x2B*4 + 2], cs
-		mov			[cs:0x2B*4 + 0], word __dos_2Bh
-		mov			[cs:0x2C*4 + 2], cs
-		mov			[cs:0x2C*4 + 0], word __dos_2Ch
-		mov			[cs:0x2D*4 + 2], cs
-		mov			[cs:0x2D*4 + 0], word __dos_2Dh
-		mov			[cs:0x2E*4 + 2], cs
-		mov			[cs:0x2E*4 + 0], word __dos_2Eh
-		mov			[cs:0x2F*4 + 2], cs
-		mov			[cs:0x2F*4 + 0], word __dos_2Fh
 		
 
 ; Point to INT21H patch table (assume CS = 0)
@@ -53,61 +29,89 @@
 		mov			[cs:0xFF*4 + 2], word INT21H_TABLE/16
 
 ; Setup dispatch table
-		mov			cx,		0x80
-		xor			ax,		ax
-		mov			es,		ax		
-		mov			di,		INT21H_TABLE
 		cld	
+		xor			ax,		ax
+		mov			es,		ax				
+
+		mov			cx,		0x80
+		mov			di,		INT21H_TABLE
+
+	.fill_tbl:
 		mov			ax, 	__dos_not_impl
 		stosw
 		xor			ax, 	ax
 		stosw		
+		loop		.fill_tbl
+
+	; Setup functions 0x30 and 0x4a
 		mov			[cs:INT21H_TABLE + 0x30*4], word __dos_ver
 		mov			[cs:INT21H_TABLE + 0x4A*4], word __dos_sbrk			
+
+	; Setup IVT entries 0x20..0x2F
+		mov			cx,		0x10
+		mov			di,		0x20*4
+
+	.fill_ivt:
+		mov			ax, 	__dos_not_impl
+		stosw
+		xor			ax,		ax
+		stosw
+		loop		.fill_ivt
+
+	; Setup IVT entry for INT 0x21 
+		mov			[cs:0x21*4 + 0], word __dos_21h
+		mov			[cs:0x21*4 + 2], word 0
 	  ret
 
-
 ; ---------------------------
 ; DOS Get Version
 ; ---------------------------
 
-	__dos_not_impl:
-		xchg 		bx,		bx
-		cli
-		hlt
-
-
-; ---------------------------
-; DOS Get Version
-; ---------------------------
-
-	__dos_sbrk:
-		jmp __dos_not_impl
-		ret
+	__dos_sbrk:	
+		or			INTR_FLAGS, 1
+		mov			INTR_AX, 0x9
+		xor			INTR_ES, __PSP/16
+		jnz			.exit ; Invalid seg
+		mov			INTR_AX, 0x8
+		mov			bx,		[cs:__PSP.mem_top_seg]
+		sub     bx, 	INTR_ES
+		xchg		INTR_BX, bx
+		cmp			bx,		INTR_BX
+		ja			.exit ; Out of memory
+		xor			INTR_FLAGS, 1
+		mov			INTR_AX, 0x0
+	.exit:
+		retf
 
 ; ---------------------------
 ; DOS Get Version
 ; ---------------------------
 
 	__dos_ver:		
-		jmp __dos_not_impl
-		mov			bx,		0xfd2b
-		or      al, 	al
+		mov			bx, 	0xfd2b
+		mov 		ax,		INTR_AX
+		or			al, 	al
 		jz			.novflags
-		xor			bh,		bh
+		xor			bh, 	bh	
 	.novflags:
-		mov			ax, 	0x1606
-		ret
+		mov			INTR_BX, bx
+		mov			INTR_AX, 0x1606
+		and			INTR_FLAGS, 0xfffe
+		retf
 
 ; ---------------------------
 ; DOS interrupt entry point
 ; ---------------------------
 	__dos_intr:
-		pusha
 		push 		ds
 		push 		es
 		push		fs
 		push		gs		
+		pusha
+
+		mov			bp,		sp
+		cmp			INTR_INTNUM, 0x21
+		jnz			__halt
 
 		test		ah,		0x80
 		mov			si,		1
@@ -121,75 +125,39 @@
 		
 		call		far [cs:INT21H_TABLE + si]
 
+		popa	
 		pop			gs
 		pop			fs
 		pop			es
 		pop			ds
-		popa	
+		add			sp,		2
+		
 		iret
 
 	__dos_term:
+		xchg		bx,		bx
 		int 		0x22
 		retf
 	__dos_cbrk:
+		xchg		bx,		bx
 		int 		0x23
 		retf	
 	__dos_cerr:
+		xchg		bx,		bx
 		int 		0x24
 		retf	
+	__dos_not_impl:
+		xchg 		bx,		bx
+		cli
+		hlt
 
 ; ---------------------------
 ; DOS stubs
 ; ---------------------------
-	__dos_20h: 
-		push word 0x20
-		jmp	__dos_intr
-	__dos_21h: 
-		push word 0x21
-		jmp	__dos_intr
-	__dos_22h: 
-		push word 0x22
-		jmp	__dos_intr
-	__dos_23h: 
-		push word 0x23
-		jmp	__dos_intr
-	__dos_24h: 
-		push word 0x24
-		jmp	__dos_intr
-	__dos_25h: 
-		push word 0x25
-		jmp	__dos_intr
-	__dos_26h: 
-		push word 0x26
-		jmp	__dos_intr
-	__dos_27h: 
-		push word 0x27
-		jmp	__dos_intr
-	__dos_28h: 
-		push word 0x28
-		jmp	__dos_intr
-	__dos_29h: 
-		push word 0x29
-		jmp	__dos_intr
-	__dos_2Ah: 
-		push word 0x2A
-		jmp	__dos_intr
-	__dos_2Bh: 
-		push word 0x2B
-		jmp	__dos_intr
-	__dos_2Ch: 
-		push word 0x2C
-		jmp	__dos_intr
-	__dos_2Dh: 
-		push word 0x2D
-		jmp	__dos_intr
-	__dos_2Eh: 
-		push word 0x2E
-		jmp	__dos_intr
-	__dos_2Fh: 
-		push word 0x2F
-		jmp	__dos_intr
-
+	__dos_21h:
+		xchg		bx,		bx
+		push 		word 0x21
+		jmp			__dos_intr
 
 
 
