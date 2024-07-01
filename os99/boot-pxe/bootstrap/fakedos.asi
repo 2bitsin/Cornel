@@ -1,162 +1,186 @@
+	
 
-  dosinit:
+	INTR_IP			equ 
+	INTR_CS			equ
+	INTR_FLAGS	equ
+	INTR_AX			equ
 
-; Setup INT 0x20
-		mov			ax,		cs
-		mov			[fs:0x20*4 + 0], word __dos_20h
-		mov			[fs:0x20*4 + 2], ax
 
-; Setup INT 0x21 
-		mov			[fs:0x21*4 + 0], word __dos_21h
-		mov			[fs:0x21*4 + 2], ax
-
+  
+	
+	dosinit:
 		int			0x12
 		shl			ax, 	6
-		mov			[__PSP.mem_top_seg], ax
-    ret
+		mov			[__PSP.mem_top_seg], ax  
+
+;	Setup forwarding vectors
+		mov			[cs:0x20*4 + 2], cs
+		mov			[cs:0x20*4 + 0], word __dos_20h
+		mov			[cs:0x21*4 + 2], cs
+		mov			[cs:0x21*4 + 0], word __dos_21h
+		mov			[cs:0x22*4 + 2], cs
+		mov			[cs:0x22*4 + 0], word __dos_22h
+		mov			[cs:0x23*4 + 2], cs
+		mov			[cs:0x23*4 + 0], word __dos_23h
+		mov			[cs:0x24*4 + 2], cs
+		mov			[cs:0x24*4 + 0], word __dos_24h
+		mov			[cs:0x25*4 + 2], cs
+		mov			[cs:0x25*4 + 0], word __dos_25h
+		mov			[cs:0x26*4 + 2], cs
+		mov			[cs:0x26*4 + 0], word __dos_26h
+		mov			[cs:0x27*4 + 2], cs
+		mov			[cs:0x27*4 + 0], word __dos_27h
+		mov			[cs:0x28*4 + 2], cs
+		mov			[cs:0x28*4 + 0], word __dos_28h
+		mov			[cs:0x29*4 + 2], cs
+		mov			[cs:0x29*4 + 0], word __dos_29h
+		mov			[cs:0x2A*4 + 2], cs
+		mov			[cs:0x2A*4 + 0], word __dos_2Ah
+		mov			[cs:0x2B*4 + 2], cs
+		mov			[cs:0x2B*4 + 0], word __dos_2Bh
+		mov			[cs:0x2C*4 + 2], cs
+		mov			[cs:0x2C*4 + 0], word __dos_2Ch
+		mov			[cs:0x2D*4 + 2], cs
+		mov			[cs:0x2D*4 + 0], word __dos_2Dh
+		mov			[cs:0x2E*4 + 2], cs
+		mov			[cs:0x2E*4 + 0], word __dos_2Eh
+		mov			[cs:0x2F*4 + 2], cs
+		mov			[cs:0x2F*4 + 0], word __dos_2Fh
+		
+
+; Point to INT21H patch table (assume CS = 0)
+		mov			[cs:0xFF*4 + 0], word 0
+		mov			[cs:0xFF*4 + 2], word INT21H_TABLE/16
+
+; Setup dispatch table
+		mov			cx,		0x80
+		xor			ax,		ax
+		mov			es,		ax		
+		mov			di,		INT21H_TABLE
+		cld	
+		mov			ax, 	__dos_not_impl
+		stosw
+		xor			ax, 	ax
+		stosw		
+		mov			[cs:INT21H_TABLE + 0x30*4], word __dos_ver
+		mov			[cs:INT21H_TABLE + 0x4A*4], word __dos_sbrk			
+	  ret
+
 
 ; ---------------------------
 ; DOS Get Version
 ; ---------------------------
 
-	__dos_getver:
-		pop			bx		
+	__dos_not_impl:
+		xchg 		bx,		bx
+		cli
+		hlt
+
+
+; ---------------------------
+; DOS Get Version
+; ---------------------------
+
+	__dos_sbrk:
+		jmp __dos_not_impl
+		ret
+
+; ---------------------------
+; DOS Get Version
+; ---------------------------
+
+	__dos_ver:		
+		jmp __dos_not_impl
 		mov			bx,		0xfd2b
 		or      al, 	al
 		jz			.novflags
 		xor			bh,		bh
 	.novflags:
 		mov			ax, 	0x1606
-		iret
+		ret
 
-  __dos_open:
-    ; AL = access/sharing modes
-    ; DS:DX = name ptr
-    xchg    bx,   bx
-    pop     bx
-    pusha
-    xchg    dx,   bx
-    mov     dx,   [ds:bx+0]
-    cmp     dx,   0x6F63
-    jnz     .cant_open
-    mov     dx,   [ds:bx+2]
-    cmp     dx,   0x006E
-    jnz     .cant_open
-    inc     word  [cs:__PSP.G_last_fd]    
-    popa
-    mov     ax,   [cs:__PSP.G_last_fd]
-    clc
-    iret
-	.cant_open:
-		call		__halt
+; ---------------------------
+; DOS interrupt entry point
+; ---------------------------
+	__dos_intr:
+		pusha
+		push 		ds
+		push 		es
+		push		fs
+		push		gs		
 
-	__dos_sbrk:		
-		pop			bx		
-		push		bx
-		mov			bx,		es
-		cmp			bx,		__PSP/16
-		pop			bx
-		jnz			.bad_block
-		push		bx
-		add			bx,		__PSP/16
-		cmp			bx,		[cs:__PSP.mem_top_seg]
-		pop			bx
-		pushf
-		mov			ax,  	es
-		mov			bx,		[cs:__PSP.mem_top_seg]
-		sub			bx,		ax
-		popf
-		ja			.oom_error
-		xor			ax,		ax
-		clc
-		iret		
-	.oom_error:
-		stc	
-		mov			ax, 	0x8
-		iret 
-	.bad_block:
-		stc
-		mov			ax,		0x9
-		iret
-
-
-; Dummy INT 0x20
-	__dos_20h:    
-		call    __halt		
-
-; Dummy INT 0x21
-	__dos_21h:
 		test		ah,		0x80
-		jz			.valid
-		mov			bx,		0x03
-		call		__halt
-	.valid:
-		push 		bx
-		xor			bh, 	bh
-		mov			bl, 	ah		
-		shl			bx,		1
-    jmp     near  [cs:__dos_tbl+bx]
-    
-; Terminate handler
-	__dos_term:			
-		mov			bx,		0x0
-		call		__halt
+		mov			si,		1
+		jnz			__halt
 
-; Ctrl+Brk handler
-	__dos_cbrk:				
-		mov			bx,		0x1
-		call		__halt
-
-; Critical error handler
-	__dos_cerr:		
-		mov			bx,		0x2
-		call		__halt
+		mov			si,		ax
+		shr			si,		8
+		shl			si,		2
+		mov			ax, 	ss		
+		mov			bx, 	sp
 		
-	__dos_noimpl:
-		mov			bx,		0x3
-		call		__halt
+		call		far [cs:INT21H_TABLE + si]
+
+		pop			gs
+		pop			fs
+		pop			es
+		pop			ds
+		popa	
+		iret
 
 ; ---------------------------
-;	DOS function dispatch table
+; DOS stubs
 ; ---------------------------
-	align 16
-	__dos_tbl:
-		times 0x30 dw __halt 	; 0x00 .. 0x2F
-		dw __dos_getver      	; 0x30
-    dw __dos_noimpl      	; 0x31
-    dw __dos_noimpl      	; 0x32
-    dw __dos_noimpl      	; 0x33
-    dw __dos_noimpl      	; 0x34
-    dw __dos_noimpl      	; 0x35
-    dw __dos_noimpl      	; 0x36
-    dw __dos_noimpl      	; 0x37
-    dw __dos_noimpl      	; 0x38
-    dw __dos_noimpl      	; 0x39
-    dw __dos_noimpl      	; 0x3A
-    dw __dos_noimpl      	; 0x3B
-    dw __dos_noimpl      	; 0x3C
-    dw __dos_open        	; 0x3D
-    dw __dos_noimpl      	; 0x3E
-    dw __dos_noimpl      	; 0x3F    
+	__dos_20h: 
+		push word 0x20
+		jmp	__dos_intr
+	__dos_21h: 
+		push word 0x21
+		jmp	__dos_intr
+	__dos_22h: 
+		push word 0x22
+		jmp	__dos_intr
+	__dos_23h: 
+		push word 0x23
+		jmp	__dos_intr
+	__dos_24h: 
+		push word 0x24
+		jmp	__dos_intr
+	__dos_25h: 
+		push word 0x25
+		jmp	__dos_intr
+	__dos_26h: 
+		push word 0x26
+		jmp	__dos_intr
+	__dos_27h: 
+		push word 0x27
+		jmp	__dos_intr
+	__dos_28h: 
+		push word 0x28
+		jmp	__dos_intr
+	__dos_29h: 
+		push word 0x29
+		jmp	__dos_intr
+	__dos_2Ah: 
+		push word 0x2A
+		jmp	__dos_intr
+	__dos_2Bh: 
+		push word 0x2B
+		jmp	__dos_intr
+	__dos_2Ch: 
+		push word 0x2C
+		jmp	__dos_intr
+	__dos_2Dh: 
+		push word 0x2D
+		jmp	__dos_intr
+	__dos_2Eh: 
+		push word 0x2E
+		jmp	__dos_intr
+	__dos_2Fh: 
+		push word 0x2F
+		jmp	__dos_intr
 
-		dw __dos_noimpl				; 0x40
-    dw __dos_noimpl      	; 0x41
-    dw __dos_noimpl      	; 0x42
-    dw __dos_noimpl      	; 0x43
-    dw __dos_noimpl      	; 0x44
-    dw __dos_noimpl      	; 0x45
-    dw __dos_noimpl      	; 0x46
-    dw __dos_noimpl      	; 0x47
-    dw __dos_noimpl      	; 0x48
-    dw __dos_noimpl      	; 0x49
-    dw __dos_sbrk  				; 0x4A
-    dw __dos_noimpl      	; 0x4B
-    dw __dos_noimpl      	; 0x4C
-    dw __dos_noimpl 			; 0x4D
-    dw __dos_noimpl      	; 0x4E
-    dw __dos_noimpl      	; 0x4F    
-		times 0x30 dw __dos_noimpl 	; 0x50...0x7F
-  .end:
-assert ((__dos_tbl.end - __dos_tbl) = 256)
+
+
 
   

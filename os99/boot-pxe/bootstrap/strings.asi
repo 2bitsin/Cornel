@@ -1,18 +1,12 @@
 	strings:
 		.version:
 			db 		"BOOT-PXE v0.1", 13, 10, 0		
-		.corrupted:
-			db		"E04", 0
-		.error_00:
+		.eindex:
 			db		"E00", 0
-		.error_01:
 			db		"E01", 0
-		.error_02:
 			db		"E02", 0
-		.error_03:
 			db		"E03", 0
-		.error_tbl:
-			dw		.error_00
-			dw		.error_01
-			dw		.error_02
-			dw		.error_03
+			db		"E04", 0
+			db		"E05", 0
+			db		"E06", 0
+			db		"E07", 0

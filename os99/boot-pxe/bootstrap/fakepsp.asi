@@ -12,11 +12,11 @@
 		.ps_reentry:   		; 5 bytes
 			call far 0x0000:0x00C0		 ; 10
 		.exit_addr:		 		; 4 bytes
-			dw    __dos_term, LOAD_ADDRESS / 16 ; 14
+			dw    __dos_term, 0 ; 14
 		.cbrk_addr:		 		; 4 bytes  
-			dw 		__dos_cbrk, LOAD_ADDRESS / 16 ; 18
+			dw 		__dos_cbrk, 0 ; 18
 		.cerr_addr:    		; 4 bytes
-			dw		__dos_cerr, LOAD_ADDRESS / 16 ; 22
+			dw		__dos_cerr, 0 ; 22
 		.parent_psp_seg:	; 2 bytes
 			dw		0                    	; 24
 		.file_tab:				; 20 bytes
@@ -28,7 +28,7 @@
 		.max_files:				; 2 bytes
 			dw		20                  	; 52
 		.file_tab_ptr:		; 4 bytes
-			dw		__PSP.file_tab, LOAD_ADDRESS / 16	; 56
+			dw		__PSP.file_tab, 0	; 56
 		.prev_psp_ptr:    ; 4 bytes
 			dw		0xffff, 0xffff       	; 60
 		; reserved        ; 4 bytes

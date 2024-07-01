@@ -2,9 +2,13 @@
     use16
 
     LOAD_ADDRESS 	equ 0x7c00
+		INT21H_TABLE	equ (LOAD_ADDRESS - (0x80*4))
+		STACK_BASE		equ 0x0500
+		STACK_TOP			equ (INT21H_TABLE - STACK_BASE) 
 		MZ_SEGMENT		equ gs
 	
     org     LOAD_ADDRESS
+
     jmp     preamble
 
 		include	"strings.asi"
@@ -20,24 +24,24 @@
 		mov     fs, 	ax
 		mov     gs, 	ax
 	
-		mov     ax, 	0x0500
+		mov     ax, 	STACK_BASE/16
 		mov     ss, 	ax
-		mov     sp, 	0x7700		
+		mov     sp,   STACK_TOP
 
 		call		coninit
 		call		dosinit
 		jmp			execute_mz
 
 	__selfcheck_fail:		
-		mov			si, 	strings.corrupted
-		call		putstr
+		mov			si, 	0		
 
 	__halt:
 		mov			si,		cs
 		mov			ds,		si
-		and			bx,		3
-		shl			bx,		1
-		mov			si, 	[cs:strings.error_tbl+bx]
+		and			si,		bx
+		and			si, 	7
+		shl			si,		2
+		add			si, 	strings.eindex
 		call		putstr
 		cli
 		hlt
