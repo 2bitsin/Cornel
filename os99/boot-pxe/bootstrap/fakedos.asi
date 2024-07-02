@@ -120,8 +120,9 @@
 		mov			si,		ax
 		shr			si,		8
 		shl			si,		2
-		mov			ax, 	ss		
-		mov			bx, 	sp
+
+		mov			dx, 	ss		
+		mov			ax, 	sp
 		
 		call		far [cs:INT21H_TABLE + si]
 
