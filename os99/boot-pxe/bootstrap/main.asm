@@ -5,7 +5,7 @@
 	
     org     LOAD_ADDRESS
 
-    
+    cli
 
 		mov		 	ax, 	cs
 		mov 		ds,   ax
