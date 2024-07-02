@@ -68,3 +68,4 @@ void init_dos_helper()
   v_table[0x44] = &dos_fun_44;
   v_table[0x63] = &dos_fun_63;
 }
+
