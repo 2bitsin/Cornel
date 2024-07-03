@@ -24,7 +24,6 @@ int main(int argc, char** argv)
   printf("Hello %s [%04x]!\n", s_name, (uint16_t)s_name);
   free(s_name);
 
-  __debugbreak();
   return 0;
 }
 
