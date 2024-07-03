@@ -8,8 +8,8 @@
 #include "x86/asm.h"
 #include "pxe/pxe.h"
 
-static PXE_bootph_type __far s_bootph_reply;
-static size_t __far s_size;
+static PXE_bootph_type s_bootph_reply;
+static size_t s_size;
 
 int main(int, char**) 
 {       

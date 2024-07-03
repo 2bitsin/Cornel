@@ -76,7 +76,7 @@ PXE_status PXE_init()
 
 PXE_status PXE_get_cached_info(PXENV_packet_type packet_type, PXE_bootph_type far* info_buff, size_t far* info_size)
 {
-  static PXENV_get_cached_info_type __far v_params;
+  static PXENV_get_cached_info_type v_params;
   v_params.PacketType = packet_type;
   v_params.Buffer = info_buff;
   v_params.BufferSize = *info_size;
