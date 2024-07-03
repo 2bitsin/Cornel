@@ -42,7 +42,7 @@
 		loop		.fill_tbl
 
 	; Setup functions 0x30 and 0x4a
-		
+		mov			[cs:INT21H_TABLE + 0x02*4], word __dos_fun_02
 		mov			[cs:INT21H_TABLE + 0x30*4], word __dos_fun_30
 	  mov			[cs:INT21H_TABLE + 0x40*4], word __dos_fun_40
 		mov			[cs:INT21H_TABLE + 0x44*4], word __dos_fun_44
@@ -65,6 +65,19 @@
 		mov			[cs:0x21*4 + 0], word __dos_21h
 		mov			[cs:0x21*4 + 2], word 0
 	  ret
+; -----------------------------
+; DOS write character to stdout
+; -----------------------------
+
+	__dos_fun_02:
+		mov			ax,		INTR_DX
+		mov			ah,		0xe
+		xor			bx,		bx
+		int			0x10
+		mov			ax,		INTR_DX
+		mov 		INTR_AX, ax
+		and			INTR_FLAGS, 0xfffe
+		retf
 
 ; ---------------------------
 ; DOS write to file or device
@@ -248,7 +261,7 @@
 ; DOS stubs
 ; ---------------------------
 
-	__dos_21h:
+	__dos_21h:		
 		push 		word 0x21
 		jmp			__dos_intr
 
