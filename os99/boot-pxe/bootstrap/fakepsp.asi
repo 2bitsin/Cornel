@@ -49,18 +49,17 @@
 		; unused				  ; 9 bytes
 			times 9 db 0								; 92		
 		.first_fcb:				; 16 bytes
-			times 16 db 0								; 108
+			db 0, "FAKE-DOS","BIN", 0,0,0,0; 108
 		.second_fcb:			; 16 bytes
-			times 16 db 0								; 124
+			db 0, "FAKE-DOS","BIN", 0,0,0,0; 124
 		.G_last_fd: 	    ; 2 bytes
 			dw		0											; 126
     ; unused          ; 2 bytes   
       dw    0                     ; 128
 		.cmdline_size:		; 1 bytes
-			db		16										; 129
-		.cmdline_str:			; 127 bytes
-			db 		"A:\BOOT-PXE.SYS",0xd,0
-			times 110 db 0xd						; 256
+			db		0											; 129
+		.cmdline_str:			; 127 bytes			
+			times 127 db 0xd						; 256
 		.end:
   assert ((__PSP mod 16) = 0)
 	assert ((__PSP.end - __PSP) = 256)

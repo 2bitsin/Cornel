@@ -22,8 +22,6 @@
 		shl			ax, 	6
 		mov			[__PSP.mem_top_seg], ax  
 
-		
-
 ; Point to INT21H patch table (assume CS = 0)
 		mov			[cs:0xFF*4 + 0], word 0
 		mov			[cs:0xFF*4 + 2], word INT21H_TABLE/16
@@ -44,8 +42,12 @@
 		loop		.fill_tbl
 
 	; Setup functions 0x30 and 0x4a
-		mov			[cs:INT21H_TABLE + 0x30*4], word __dos_ver
-		mov			[cs:INT21H_TABLE + 0x4A*4], word __dos_sbrk			
+		
+		mov			[cs:INT21H_TABLE + 0x30*4], word __dos_fun_30
+	  mov			[cs:INT21H_TABLE + 0x40*4], word __dos_fun_40
+		mov			[cs:INT21H_TABLE + 0x44*4], word __dos_fun_44
+		mov			[cs:INT21H_TABLE + 0x4A*4], word __dos_fun_4a
+		mov			[cs:INT21H_TABLE + 0x63*4], word __dos_fun_63
 
 	; Setup IVT entries 0x20..0x2F
 		mov			cx,		0x10
@@ -64,10 +66,64 @@
 	  ret
 
 ; ---------------------------
-; DOS Get Version
+; DOS write to file or device
 ; ---------------------------
 
-	__dos_sbrk:	
+	__dos_fun_40:
+		mov			bx,		INTR_BX
+		cmp			bx,		1
+		jnz			.invalid
+		mov			ds, 	INTR_DS
+		mov			si, 	INTR_DX
+		mov			cx,		INTR_CX
+		cld
+	.prn:
+		xor			bx,		bx
+		lodsb
+		mov			ah, 	0xe
+		int			0x10
+		loop		.prn
+		mov			ax,		INTR_CX
+		mov			INTR_AX, ax
+		and			INTR_FLAGS, 0xfffe 
+		retf
+	.invalid:
+		mov			INTR_AX, 0x6
+		or			INTR_FLAGS, 1
+		retf
+
+; ---------------------------
+; DOS get device information
+; ---------------------------
+
+	__dos_fun_44:
+		mov			ax,		INTR_AX
+		or			al,		al
+		mov			si,		3
+		jnz			__halt
+		mov			bx,		INTR_BX
+		dec     bx
+		cmp			bx, 	1
+		ja			.invalid
+		add			bx,		bx
+		mov			ax,		[cs:.flags + bx]
+		mov			INTR_DX, ax
+		mov			INTR_AX, ax
+		and			INTR_FLAGS, 0xfffe
+		retf
+	.invalid:
+		or			INTR_FLAGS, 1
+		mov			ax,		0x6
+		retf
+	.flags:	
+		dw			0x82
+		dw 			0x81
+
+; ---------------------------
+; DOS resize memory block
+; ---------------------------
+
+	__dos_fun_4a:	
 		or			INTR_FLAGS, 1
 		mov			INTR_AX, 0x9
 		xor			INTR_ES, __PSP/16
@@ -84,10 +140,10 @@
 		retf
 
 ; ---------------------------
-; DOS Get Version
+; DOS get version
 ; ---------------------------
 
-	__dos_ver:		
+	__dos_fun_30:		
 		mov			bx, 	0xfd2b
 		mov 		ax,		INTR_AX
 		or			al, 	al
@@ -99,9 +155,22 @@
 		and			INTR_FLAGS, 0xfffe
 		retf
 
+; -------------------------------
+; DOS get lead byte table address
+; -------------------------------
+
+	__dos_fun_63:
+		mov			INTR_DS, cs		
+		mov			INTR_SI, .dbcs
+		and			INTR_FLAGS, 0xfffe
+		retf
+	.dbcs:
+		dd			0
+
 ; ---------------------------
 ; DOS interrupt entry point
 ; ---------------------------
+
 	__dos_intr:
 		push 		ds
 		push 		es
@@ -111,6 +180,7 @@
 
 		mov			bp,		sp
 		cmp			INTR_INTNUM, 0x21
+		mov			si,		2
 		jnz			__halt
 
 		test		ah,		0x80
@@ -131,32 +201,40 @@
 		pop			fs
 		pop			es
 		pop			ds
-		add			sp,		2
-		
+		add			sp,		2		
 		iret
 
 	__dos_term:
 		xchg		bx,		bx
 		int 		0x22
 		retf
+
 	__dos_cbrk:
 		xchg		bx,		bx
 		int 		0x23
 		retf	
+
 	__dos_cerr:
 		xchg		bx,		bx
 		int 		0x24
 		retf	
+
 	__dos_not_impl:
-		xchg 		bx,		bx
+		popa	
+		pop			gs
+		pop			fs
+		pop			es
+		pop			ds
+		add			sp,		2
+		xor			bx,		bx
 		cli
 		hlt
 
 ; ---------------------------
 ; DOS stubs
 ; ---------------------------
+
 	__dos_21h:
-		xchg		bx,		bx
 		push 		word 0x21
 		jmp			__dos_intr
 

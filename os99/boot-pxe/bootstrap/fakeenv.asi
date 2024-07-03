@@ -3,4 +3,9 @@
 ; --------------------------
     align 	16
   __PSP_env:
-      db    "PATH=",0,"PROMPT=$P$G",0,"COMSPEC=A:\\COMMAND.COM",0,0
+      db "PATH=A:\", 0
+      db "PROMPT=$P$G", 0
+      db "COMSPEC=A:\FAKE-DOS.BIN", 0
+      db 0
+      dw 1
+      db "A:\FAKE-DOS.BIN",0

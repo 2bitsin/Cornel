@@ -3,13 +3,19 @@
 #include <stddef.h>
 
 #include "doshelp.h"
+#include "asm.h"
+
+extern  char    **environ;
 
 int main(int argc, char** argv) 
 {       
-  (void)argc;
-  (void)argv;
-  init_dos_helper();
-  printf("Hello %s!\n", "World");
+  int i ;
+  for(i = 0; i < argc; ++i) {
+    printf("ARG[%i] = \"%s\"\n", i, argv[i]);
+  }
+  for(i = 0; environ[i]!=0; ++i) {
+    printf("ENV[%i] = \"%s\"\n", i, environ[i]);
+  }
   return 0;
 }
 
