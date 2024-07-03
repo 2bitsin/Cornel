@@ -1,4 +1,9 @@
 ; --------------------------
+;  Dummy ENV
+; --------------------------
+    align 	16
+  __PSP_env:
+; --------------------------
 ;  Dummy PSP
 ; --------------------------
 		align 	256
@@ -22,7 +27,7 @@
 		.file_tab:				; 20 bytes
 			times 20 db 0              	; 44
 		.env_seg:					; 2 bytes
-			dw 		__PSP_env / 16       	; 46
+			dw 		.fake_env / 16       	; 46
 		.temp_ss_sp:			; 4 bytes
 			dd		0                    	; 50
 		.max_files:				; 2 bytes
@@ -59,7 +64,19 @@
 		.cmdline_size:		; 1 bytes
 			db		0											; 129
 		.cmdline_str:			; 127 bytes			
-			times 127 db 0xd						; 256
+			db		0
+		.anykey:
+			db 		"Press any key to reboot...",13,10,0
+			align 16
+		.fake_env:
+      db "PATH=A:\", 0
+      db "PROMPT=$P$G", 0
+      db "COMSPEC=A:\FAKE-DOS.BIN", 0
+      db 0
+      dw 1
+      db "A:\FAKE-DOS.BIN",0
+		.pad:
+			times 128 - (.pad - .cmdline_size) db 0
 		.end:
   assert ((__PSP mod 16) = 0)
 	assert ((__PSP.end - __PSP) = 256)

@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <stdlib.h>
 
-#include "doshelp.h"
 #include "asm.h"
 
 extern  char    **environ;
@@ -12,6 +12,7 @@ int main(int argc, char** argv)
 {       
   int i ;
   char* s_name;
+  
   for(i = 0; i < argc; ++i) {
     printf("ARG[%i] = \"%s\"\n", i, argv[i]);
   }
@@ -23,7 +24,7 @@ int main(int argc, char** argv)
   printf("Hello %s [%04x]!\n", s_name, (uint16_t)s_name);
   free(s_name);
 
-
+  __debugbreak();
   return 0;
 }
 

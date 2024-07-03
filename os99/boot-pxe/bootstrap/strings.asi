@@ -1,12 +1,6 @@
 	strings:
-		.version:
-			db 		"BOOT-PXE v0.1", 13, 10, 0		
 		.eindex:
 			db		"E00", 0
 			db		"E01", 0
 			db		"E02", 0
 			db		"E03", 0
-			db		"E04", 0
-			db		"E05", 0
-			db		"E06", 0
-			db		"E07", 0

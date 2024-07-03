@@ -30,7 +30,7 @@
 		mov			si,		cs
 		mov			ds,		si
 		and			si,		bx
-		and			si, 	7
+		and			si, 	3
 		shl			si,		2
 		add			si, 	strings.eindex
 		call		putstr
@@ -40,9 +40,9 @@
 		include "console.asi"
 		include "mzhead.asi"
 		include "execmz.asi"
-		include "fakedos.asi"		
+		include "fakedos.asi"
+		include "reboot.asi"		
 		include	"strings.asi"
-		include "fakeenv.asi"
 		include "fakepsp.asi"
 		align		16
 	__payload:

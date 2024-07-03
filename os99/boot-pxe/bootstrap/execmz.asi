@@ -88,4 +88,5 @@
 		mov			ax, 	MZ_INITIALIP
 		push		ax
 		mov			ax,		0xffff
+		sti
 		retf		
