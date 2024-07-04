@@ -80,10 +80,12 @@ enum PXE_status
   loader_undi_start                 = 0xCAu,
   loader_bc_start                   = 0xCBu,
 
-  pxe_not_available                 = -1,
-  pxenv_bad_checksum                = -2,
-  pxenv_bad_signature               = -3,  
-  version_not_supported             = -4  
+  pxe_not_available                 = 0xffffu,
+  pxenv_bad_checksum                = 0xfffeu,
+  pxenv_bad_signature               = 0xfffdu,  
+  version_not_supported             = 0xfffcu,
+  pxenv_bad_length                  = 0xfffbu,
+  invalid_parameter                 = 0xfffau
 };
 
 enum PXENV_packet_type
@@ -103,6 +105,11 @@ enum PXE_consts
 {
   bootp_bcast = 0x00008000ul,
   vm_rfc1048  = 0x63825363ul
+};
+
+enum PXE_command
+{
+  PXENV_GET_CACHED_INFO = 0x0071u
 };
 
 struct SEGOFFS16
@@ -179,45 +186,45 @@ typedef uint8_t MAC_ADDR[16];
 
 union IP4 
 {
-  uint32_t  value_u32;
-  uint8_t   value_u8[4];
+  uint32_t  v_u32;
+  uint8_t   v_u8[4];
 };
 
 struct PXE_bootph_type
 { 
-  uint8_t opcode; // PXE_bootp_opcode
+  uint8_t Opcode; // PXE_bootp_opcode
   uint8_t Hardware;
   uint8_t Hardlen;
   uint8_t Gatehops;
 
-  uint32_t ident;
+  uint32_t Ident;
 
-  uint16_t seconds;
+  uint16_t Seconds;
   uint16_t Flags; // bootp_bcast ?
 
-  IP4 cip;
-  IP4 yip;
-  IP4 sip;
-  IP4 gip;
+  IP4 Cip;
+  IP4 Yip;
+  IP4 Sip;
+  IP4 Gip;
 
   MAC_ADDR CAddr;
 
-  uint8_t Sname[64];
-  uint8_t bootfile[128];
+  char Sname[64];
+  char Bootfile[128];
   union
   {
     uint8_t d[1264u];
     struct
     {
-      uint32_t magic; // vm_rfc1048    
-      uint32_t flags;
+      uint32_t Magic; // vm_rfc1048    
+      uint32_t Flags;
       uint8_t pad[56];
-    } v;
-  } vendor;
+    };
+  } Vendor;
 };
 
 #pragma pack(__pop)
 
 PXE_status PXE_init();
+PXE_status PXE_call_api(uint16_t, void far*);
 void PXE_print_info();
-PXE_status PXE_get_cached_info(PXENV_packet_type packet_type, PXE_bootph_type far* info_buff, size_t far* info_size);
