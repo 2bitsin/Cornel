@@ -23,37 +23,51 @@ a20test:
     
 a20enable:
     cli
-    call  .wait
-    mov   al,     0xAD
-    out   0x64,   al
-    call  .wait
-    mov   al,     0xD0
-    out   0x64,   al
-    call  .wait2
-    in    al,     0x60
-    push  eax
-    call  .wait
-    mov   al,     0xD1
-    out   0x64,   al
-    call  .wait
-    pop   eax
-    or    al,     2
-    out   0x60,   al
-    call  .wait
-    mov   al,     0xAE
-    out   0x64,   al
-    call  .wait
+    call    .wait
+    mov     al,     0xAD
+    out     0x64,   al
+    call    .wait
+    mov     al,     0xD0
+    out     0x64,   al
+    call    .wait2
+    in      al,     0x60
+    push    ax
+    call    .wait
+    mov     al,     0xD1
+    out     0x64,   al
+    call    .wait
+    pop     ax
+    or      al,     2
+    out     0x60,   al
+    call    .wait
+    mov     al,     0xAE
+    out     0x64,   al
+    call    .wait
     sti
     ret
 
   .wait:
-    in      al,   0x64
-    test    al,   2
+    in      al,     0x64
+    test    al,     2
     jnz     .wait
     ret
 
   .wait2:
-    in      al,   0x64
-    test    al,   1
+    in      al,     0x64
+    test    al,     1
     jz      .wait2
+    ret
+
+  a20init:
+    push    ax
+		call		a20test
+		or			ax,			ax
+		jz		  .a20good
+		call		a20enable	
+		call		a20test
+		or			ax,			ax
+		mov			si,			4
+		jnz			__halt
+	.a20good:
+    pop     ax
     ret

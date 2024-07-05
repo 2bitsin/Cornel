@@ -1,0 +1,32 @@
+    cli
+		mov		 	ax, 		cs
+		mov 		ds,   	ax
+		mov     es, 		ax
+
+		xor			ax, 		ax
+		mov     fs, 		ax
+		mov     gs, 		ax
+
+		mov     ax, 		STACK_BASE/16
+		mov     ss, 		ax
+		mov     sp,   	STACK_TOP
+
+		call		coninit
+		call		dosinit
+		call 		flatinit
+		call		a20init	
+		jmp			execute_mz
+
+	__selfcheck_fail:		
+		mov			si, 		CORRUPTED_MZ_HEADER
+	
+	__halt:	
+		mov			si,			cs
+		mov			ds,			si
+		and			si,			bx
+		and			si, 		7
+		shl			si,			2
+		add			si, 		__PSP.errstr
+		call		putstr
+		cli
+		hlt

@@ -11,7 +11,7 @@ EXECUTABLE_PATH=$TEMPORARY_PATH/boot-pxe/boot-pxe.exe
 
 mkdir -p $TEMPORARY_PATH
 
-fasm bootwat/main.asm $PREABLE_PATH
+fasm bootwat/bootwat.asm $PREABLE_PATH
 
 cmake -B $TEMPORARY_PATH/boot-pxe         \
   -G "Watcom WMake"                       \
