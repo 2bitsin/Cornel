@@ -1,0 +1,10 @@
+align 16
+__GDTBL:  
+  .begin:
+    dq 0x0000000000000000 ; 0x0000 = null
+  .data32:
+    dq 0x00cf92000000ffff ; 0x0010 = 32bit data/stack
+  .end:
+__GDREG:
+    dw __GDTBL.end - __GDTBL.begin - 1
+    dd __GDTBL

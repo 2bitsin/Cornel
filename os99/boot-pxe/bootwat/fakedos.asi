@@ -113,7 +113,7 @@
 	__dos_fun_44:
 		mov			ax,		INTR_AX
 		or			al,		al
-		mov			si,		3
+		mov			si,		UNSUPPORTED_DOS44FN
 		jnz			__halt
 		mov			bx,		INTR_BX
 		dec     bx
@@ -207,11 +207,11 @@
 
 		mov			bp,		sp
 		cmp			INTR_INTNUM, 0x21
-		mov			si,		2
+		mov			si,		NOT_SUPPORTED_INTRQ
 		jnz			__halt
 
 		test		ah,		0x80
-		mov			si,		1
+		mov			si,		INT21H_OUT_OF_RANGE
 		jnz			__halt
 
 		mov			si,		ax

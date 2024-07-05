@@ -69,12 +69,21 @@
 			db 		"Press any key to reboot...",13,10,0
 			align 16
 		.fake_env:
-      db "PATH=A:\", 0
-      db "PROMPT=$P$G", 0
-      db "COMSPEC=A:\FAKE-DOS.BIN", 0
-      db 0
-      dw 1
-      db "A:\FAKE-DOS.BIN",0
+      db 		"PATH=A:\", 0
+      db 		"PROMPT=$P$G", 0
+      db 		"COMSPEC=A:\FAKE-DOS.BIN", 0
+      db 		0
+      dw 		1
+      db 		"A:\FAKE-DOS.BIN",0
+		.errstr:
+			db		"E00", 0
+			db		"E01", 0
+			db		"E02", 0
+			db		"E03", 0		
+			db    "E04", 0
+			db    "E05", 0
+			db    "E06", 0
+			db    "E07", 0
 		.pad:
 			times 128 - (.pad - .cmdline_size) db 0
 		.end:

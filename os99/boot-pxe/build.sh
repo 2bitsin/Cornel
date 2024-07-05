@@ -4,14 +4,14 @@ set -e
 
 # local variables
 TEMPORARY_PATH=$WORKSPACE_ROOT/build/boot-pxe
-PREABLE_PATH=$TEMPORARY_PATH/preamble.bin
+PREABLE_PATH=$TEMPORARY_PATH/bootwat.bin
 TARGET_PATH=$WORKSPACE_ROOT/boot-pxe.sys
 CONFIG_PATH=$WORKSPACE_ROOT/config.ini
 EXECUTABLE_PATH=$TEMPORARY_PATH/boot-pxe/boot-pxe.exe
 
 mkdir -p $TEMPORARY_PATH
 
-fasm bootstrap/main.asm $PREABLE_PATH
+fasm bootwat/main.asm $PREABLE_PATH
 
 cmake -B $TEMPORARY_PATH/boot-pxe         \
   -G "Watcom WMake"                       \

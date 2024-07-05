@@ -1,0 +1,32 @@
+
+flatinit:
+    cli
+    push  ds
+    push  es
+    push  fs
+    push  gs    
+    push  bp
+    push  eax
+    mov   bp,     ss
+    lgdt  [cs:__GDREG]
+    mov   eax,    cr0
+    or    eax,    1    
+    mov   cr0,    eax
+    mov   ax,     __GDTBL.data32 - __GDTBL.begin
+    mov   ds,     ax
+    mov   es,     ax
+    mov   fs,     ax
+    mov   gs,     ax
+    mov   ss,     ax
+    mov   eax,    cr0
+    xor   eax,    1
+    mov   cr0,    eax
+    mov   ss,     bp    
+    pop   eax
+    pop   bp
+    pop   gs
+    pop   fs
+    pop   es
+    pop   ds
+    sti
+    ret

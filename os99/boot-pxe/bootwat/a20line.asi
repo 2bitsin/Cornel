@@ -1,0 +1,59 @@
+a20test:
+    push  fs
+    push  gs    
+    xor   ax,     ax
+    mov   fs,     ax
+    not   ax
+    mov   gs,     ax   
+
+    push  word [fs:0x200] 
+    mov   [fs:0x200], word 0x5555
+
+    push  word [gs:0x210]
+    mov   [gs:0x210], word 0xAAAA
+
+    mov   ax,     [fs:0x200]
+    and   ax,     [gs:0x210] ; ax = 0 if A20 is enabled, 0x5555 if disabled
+
+    pop   word [gs:0x210]
+    pop   word [fs:0x200]
+    pop   gs
+    pop   fs
+    ret
+    
+a20enable:
+    cli
+    call  .wait
+    mov   al,     0xAD
+    out   0x64,   al
+    call  .wait
+    mov   al,     0xD0
+    out   0x64,   al
+    call  .wait2
+    in    al,     0x60
+    push  eax
+    call  .wait
+    mov   al,     0xD1
+    out   0x64,   al
+    call  .wait
+    pop   eax
+    or    al,     2
+    out   0x60,   al
+    call  .wait
+    mov   al,     0xAE
+    out   0x64,   al
+    call  .wait
+    sti
+    ret
+
+  .wait:
+    in      al,   0x64
+    test    al,   2
+    jnz     .wait
+    ret
+
+  .wait2:
+    in      al,   0x64
+    test    al,   1
+    jz      .wait2
+    ret
