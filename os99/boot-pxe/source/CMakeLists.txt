@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.22.0)
-project(boot-pxe)
+project(boot-pxe LANGUAGES C CXX ASM)
 add_executable(boot-pxe 
   core/error.cpp
+  x86/s_bios.s
+  x86/bios.cpp
   pxe/pxe.cpp
   main.cpp)
 target_include_directories(boot-pxe PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

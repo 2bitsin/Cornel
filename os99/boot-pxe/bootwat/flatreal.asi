@@ -21,6 +21,16 @@ flatinit:
     mov   eax,    cr0
     xor   eax,    1
     mov   cr0,    eax
+
+    xor   ax,     ax  
+    mov   ds,     ax
+    mov   ax,     0xFFFF
+    mov   es,     ax
+    mov   ax,     [es:0]
+    xor   ax,     [ds:0xFFFF0]
+    mov   si,     FLAT_REAL_MODE_FAIL  
+    jnz   __halt
+
     mov   ss,     bp    
     pop   eax
     pop   bp

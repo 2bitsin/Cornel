@@ -66,7 +66,7 @@ a20enable:
 		call		a20enable	
 		call		a20test
 		or			ax,			ax
-		mov			si,			4
+		mov			si,			A20_FAILED_ENABLING
 		jnz			__halt
 	.a20good:
     pop     ax
