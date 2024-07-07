@@ -12,4 +12,4 @@
   };
 #pragma pack(__pop)
 
-uint16_t BIOS_query_memmap(memmap_entry far* v_buff, uint32_t *v_size, uint32_t *v_next);
+uint16_t __watcall BIOS_query_memmap(memmap_entry far* v_buff, uint32_t *v_size, uint32_t *v_next);

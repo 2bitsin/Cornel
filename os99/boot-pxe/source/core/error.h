@@ -6,7 +6,8 @@
 enum error_code_type
 {
   OUT_OF_MEMORY             = 0x00u,
-  PXE_FAILED_TO_INITIALIZE  = 0x01u
+  PXE_FAILED_TO_INITIALIZE  = 0x01u,
+  CANT_READ_MEMORY_MAP      = 0x02u,
 };
 typedef uint16_t extended_error_code_type;
 

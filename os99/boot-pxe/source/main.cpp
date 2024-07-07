@@ -6,18 +6,43 @@
 #include <malloc.h>
 
 #include "core/error.h"
+#include "x86/bios.h"
 #include "x86/asm.h"
 #include "pxe/pxe.h"
 
 int main(int, char**) 
 {     
   uint16_t v_status = 0;  
+  uint32_t v_size = 0;
+  uint32_t v_next = 0;  
+
+  memmap_entry v_entry;
+  v_next = 0;
+  __debugbreak();
+next_entry:
+  v_size = sizeof(memmap_entry);
+  v_status = BIOS_query_memmap(&v_entry, &v_size, &v_next);
+  if (v_status != 0) {
+    halt_with_error(CANT_READ_MEMORY_MAP, v_status);
+    return -1;
+  }
+  printf("BASE=%08X%08X SIZE=%08X%08X TYPE=%08X NEXT=%08X\n", 
+    (uint32_t)(v_entry.base >> 32), 
+    (uint32_t)(v_entry.base & 0xFFFFFFFFu),
+    (uint32_t)(v_entry.size >> 32), 
+    (uint32_t)(v_entry.size & 0xFFFFFFFFu),
+    v_entry.type, v_next);
+  if (v_next != 0) {
+    goto next_entry;
+  }
+
+  puts("------");
   puts("BOOT-PXE v0.1 (BUILD: " __TIME__ " " __DATE__ ")");
   v_status = PXE_init();
   if (v_status != success) {
     halt_with_error(PXE_FAILED_TO_INITIALIZE, v_status);
     return -1;
-  }
+  }  
   PXE_print_info();
       
   return 0;

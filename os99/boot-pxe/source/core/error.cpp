@@ -9,6 +9,7 @@ char const far* error_code_to_string(error_code_type error_code, extended_error_
   {
     X(0x00, OUT_OF_MEMORY);
     X(0x01, PXE_FAILED_TO_INITIALIZE);
+    X(0x02, CANT_READ_MEMORY_MAP);
     default: return "UNDEFINED_ERROR_CODE";
   }
 #undef X
