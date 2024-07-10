@@ -6,6 +6,7 @@
 		include	"errorid.asi"	
 		include "main.asi"
 		include "console.asi"
+		include "serial.asi"
 		include "mzhead.asi"
 		include "execmz.asi"
 		include "fakedos.asi"

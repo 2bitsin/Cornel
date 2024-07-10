@@ -12,6 +12,7 @@
 		mov     sp,   	STACK_TOP
 
 		call		coninit
+		call		serinit
 		call		dosinit
 		call 		flatinit
 		call		a20init	

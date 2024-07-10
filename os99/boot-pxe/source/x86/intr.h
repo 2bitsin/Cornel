@@ -42,13 +42,18 @@ typedef struct
 
 #pragma pack(__pop)
 
-inline pfvoid_t get_ivt_entry(uint8_t v_index) 
-{
-  return ((pfvoid_t far*)0x0u)[v_index];
-}
+#include <dos
 
-inline void set_ivt_entry(uint8_t v_index, pfvoid_t v_value) 
-{
-  ((pfvoid_t far*)0x0u)[v_index] = v_value;
-}
+typedef void (__watcall far* dos_callback_type)(int_regs_t far*);
 
+typedef void far* pfvoid_t;
+
+inline bool set_dos_callback(uint8_t function, 
+  dos_callback_type callback) 
+{  
+  if(function >= 0x80) 
+    return false;
+  pfvoid_t far* IVT = (pfvoid_t far*)0;
+  pfvoid_t far* DVT = (pfvoid_t far*)IVT[0xff];
+  DVT[function] = callback;  
+}

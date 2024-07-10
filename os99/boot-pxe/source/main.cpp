@@ -12,13 +12,12 @@
 
 int main(int, char**) 
 {     
-#if 0
-  uint16_t v_status = 0;  
-  
+  uint16_t v_status = 0;    
   puts("BOOT-PXE v0.1 (BUILD: " __TIME__ " " __DATE__ ")");
   v_status = PXE_init();
   if (v_status != success) {
-    halt_with_error(PXE_FAILED_TO_INITIALIZE, v_status);
+    halt_with_error(make_combined_error(
+      PXE_FAILED_TO_INITIALIZE, v_status));
     return -1;
   }  
   PXE_print_info();
@@ -26,17 +25,18 @@ int main(int, char**)
   uint32_t v_size = 0;
   uint32_t v_next = 0;  
 
-  memmap_entry v_entry;
+  memmap_item v_entry;
   v_next = 0;
   
   puts("------");
   printf("%-16s | %-16s | %-8s | %-8s\n", "BASE", "SIZE", "TYPE", "NEXT");
   puts("-----------------+------------------+----------+----------");
 next_entry:
-  v_size = sizeof(memmap_entry);
+  v_size = sizeof(memmap_item);
   v_status = BIOS_query_memmap(&v_entry, &v_size, &v_next);
   if (v_status != 0) {
-    halt_with_error(CANT_READ_MEMORY_MAP, v_status);
+    halt_with_error(make_combined_error(
+      CANT_READ_MEMORY_MAP, v_status));
     return -1;
   }
   printf("%08lX%08lX | %08lX%08lX | %08lX | %08lX\n", 
@@ -48,7 +48,7 @@ next_entry:
   if (v_next != 0) {
     goto next_entry;
   }
-#endif
+
   return 0;
 }
 

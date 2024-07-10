@@ -42,3 +42,15 @@ _done_:
   pop     es
   ret  
 }}
+
+uint16_t __watcall BIOS_serial_puts (uint8_t port_number, char const far* string) {
+  uint16_t index;
+  for(index = 0; string[index]; index += 1u)
+    BIOS_serial_putc(port_number, string[index]);
+  return index;
+}
+
+uint16_t __watcall BIOS_serial_addr(uint8_t port_number) {
+  static uint16_t far* _port_addr = (uint16_t far*)0ul;
+  return _port_addr[port_number & 3u];
+}

@@ -1,0 +1,51 @@
+
+serinit:    
+    push    ax
+    push    ds
+    push    si
+    push    cx
+    push    dx
+
+    xor     ax,   ax
+    mov     ds,   ax
+    mov     si,   0x0
+    mov     cx,   0x4
+    cld
+
+  .test:
+    lodsw     
+    or      ax,   ax
+    jnz     .done
+    inc     word [cs:.port]
+    loop    .test
+
+  .done:
+    cmp     word [cs:.port], 0x4
+    jae     .noser
+    mov     dx,   [cs:.port]
+    mov     ax,   0x00e3
+    int     0x14    
+
+  .noser:
+    pop     dx
+    pop     cx
+    pop     si
+    pop     ds
+    pop     ax
+    ret  
+
+  .port:
+    dw      0x0
+
+serwrite:
+    push    ax
+    cmp     word [cs:serinit.port], 0x4
+    jae     .nowrite
+    push    dx    
+    mov     dx,   [cs:serinit.port]
+    mov     ah,   0x1
+    int     0x14
+    pop     dx
+  .nowrite:
+    pop     ax
+    ret

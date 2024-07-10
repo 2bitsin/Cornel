@@ -96,6 +96,7 @@
 		lodsb
 		mov			ah, 	0xe
 		int			0x10
+		call		serwrite
 		loop		.prn
 		mov			ax,		INTR_CX
 		mov			INTR_AX, ax
@@ -115,9 +116,8 @@
 		or			al,		al
 		mov			si,		UNSUPPORTED_DOS44FN
 		jnz			__halt
-		mov			bx,		INTR_BX
-		dec     bx
-		cmp			bx, 	1
+		mov			bx,		INTR_BX		
+		cmp			bx, 	2
 		ja			.invalid
 		add			bx,		bx
 		mov			ax,		[cs:.flags + bx]
@@ -130,8 +130,9 @@
 		mov			ax,		0x6
 		retf
 	.flags:	
+		dw			0x81
 		dw			0x82
-		dw 			0x81
+		dw 			0x82
 
 ; ---------------------------
 ; DOS resize memory block
