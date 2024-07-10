@@ -4,6 +4,7 @@ project(boot-pxe LANGUAGES C CXX ASM)
 add_executable(
   boot-pxe 
   core/error.cpp 
+  core/sysinfo.cpp
   x86/bios.cpp 
   pxe/pxe.cpp 
   main.cpp)
