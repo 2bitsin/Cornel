@@ -5,6 +5,7 @@ add_executable(
   boot-pxe 
   core/error.cpp 
   core/sysinfo.cpp
+  x86/flatmem.cpp
   x86/bios.cpp 
   pxe/pxe.cpp 
   main.cpp)

@@ -21,9 +21,6 @@ int main(int, char**)
   v_status = SYSINFO_acquire();
   if (v_status != NO_ERROR_SUCCESS)
     halt_with_error(v_status);
-  __debugbreak();
-  flat_copy(0x00100000, to_linear(test), 12);
-
   return 0;
 }
 
