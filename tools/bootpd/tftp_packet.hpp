@@ -10,7 +10,7 @@
 
 struct tftp_packet
 {
-	enum error_code_type : std::uint16_t
+	enum error_category_type : std::uint16_t
 	{
 		undefined,
 		file_not_found,
@@ -22,7 +22,7 @@ struct tftp_packet
 		no_such_user		
 	};
 
-	static auto error_code_to_string(error_code_type value) noexcept -> std::string; 
+	static auto error_code_to_string(error_category_type value) noexcept -> std::string; 
 
 	using dictionary_type = std::unordered_map<std::string, std::string>;
 
@@ -51,7 +51,7 @@ struct tftp_packet
 
 	struct type_error
 	{
-		error_code_type error_code;
+		error_category_type error_code;
 		std::string error_string;
 	};
 
@@ -87,16 +87,16 @@ struct tftp_packet
 	auto set_wrq(std::string_view filename, std::string_view xfermode, dictionary_type options) -> tftp_packet&;
 	auto set_data(std::uint16_t block_id, std::span<const std::byte> data) -> tftp_packet&;
 	auto set_ack(std::uint16_t block_id) -> tftp_packet&;
-	auto set_error(error_code_type error_code, std::string_view error_string) -> tftp_packet&;
-  auto set_error(error_code_type error_code) -> tftp_packet&;
+	auto set_error(error_category_type error_code, std::string_view error_string) -> tftp_packet&;
+  auto set_error(error_category_type error_code) -> tftp_packet&;
 	auto set_oack(dictionary_type options) -> tftp_packet&;
 
 	static auto make_rrq(std::string_view filename, std::string_view xfermode, dictionary_type options)->tftp_packet;
 	static auto make_wrq(std::string_view filename, std::string_view xfermode, dictionary_type options)->tftp_packet;
 	static auto make_data(std::uint16_t block_id, std::span<const std::byte> data)->tftp_packet;
 	static auto make_ack(std::uint16_t block_id)->tftp_packet;
-	static auto make_error(error_code_type error_code, std::string_view error_string)->tftp_packet;
-	static auto make_error(error_code_type error_code)->tftp_packet;
+	static auto make_error(error_category_type error_code, std::string_view error_string)->tftp_packet;
+	static auto make_error(error_category_type error_code)->tftp_packet;
 	static auto make_oack(dictionary_type options)->tftp_packet;
 
 	auto serdes_size_hint() const noexcept -> std::size_t;	

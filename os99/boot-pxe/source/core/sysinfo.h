@@ -18,10 +18,22 @@
 
   struct system_info
   {
-    uint8_t _reseved0[7];
-    uint8_t memory_map_size;
-    memmap_item memory_map[NUMBER_OF_MEMMAP_ITEMS];    
+    struct
+    {
+      uint8_t server_address[4];
+      uint8_t gateway_address[4];
+      uint8_t client_address[4];    
+      char server_name[64];
+      char boot_file[128];
+      uint8_t client_mac[6];
+    } dhcp_info;
+    struct
+    {
+      uint16_t size;  
+      memmap_item data[NUMBER_OF_MEMMAP_ITEMS];    
+    } memory_map;
   };
 #pragma pack(__pop)
 
-combined_error_type SYSINFO_acquire();
+error_type SYSINFO_acquire();
+system_info far *SYSINFO_info();

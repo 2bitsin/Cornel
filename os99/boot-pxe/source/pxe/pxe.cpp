@@ -4,12 +4,10 @@
 #include <stdio.h>
 #include <i86.h>
 
-#include "x86/asm.h"
+#include "x86/debug.h"
 
 static PXENVplus far *s_PXENVplus;
 static PXEbang far *s_PXEbang;
-static PXE_bootph_type far *s_cached_reply_ptr;
-static size_t s_cached_reply_len;
 
 bool PXE_checksum(void far *data, size_t size)
 {
@@ -22,7 +20,7 @@ bool PXE_checksum(void far *data, size_t size)
 
 void PXE_print_dhcp(PXE_bootph_type const far *packet)
 {
-#if 1
+#if 0
   puts(" --- PXE Cached Info ---");
   printf("Opcode ........... : %d\n",   packet->Opcode);
   printf("Hardware ......... : %d\n",   packet->Hardware);
@@ -32,25 +30,25 @@ void PXE_print_dhcp(PXE_bootph_type const far *packet)
   printf("Seconds .......... : %d\n",   packet->Seconds);
   printf("Flags ............ : %02X\n", packet->Flags);
   printf("Client IP ........ : %d.%d.%d.%d\n", 
-         packet->Cip.v_u8[0],
-         packet->Cip.v_u8[1],
-         packet->Cip.v_u8[2],
-         packet->Cip.v_u8[3]);
+         packet->Cip[0],
+         packet->Cip[1],
+         packet->Cip[2],
+         packet->Cip[3]);
   printf("Your IP .......... : %d.%d.%d.%d\n", 
-         packet->Yip.v_u8[0],
-         packet->Yip.v_u8[1],
-         packet->Yip.v_u8[2],
-         packet->Yip.v_u8[3]);
+         packet->Yip[0],
+         packet->Yip[1],
+         packet->Yip[2],
+         packet->Yip[3]);
   printf("Server IP ........ : %d.%d.%d.%d\n", 
-         packet->Sip.v_u8[0],
-         packet->Sip.v_u8[1],
-         packet->Sip.v_u8[2],
-         packet->Sip.v_u8[3]);
+         packet->Sip[0],
+         packet->Sip[1],
+         packet->Sip[2],
+         packet->Sip[3]);
   printf("Gateway IP ....... : %d.%d.%d.%d\n", 
-         packet->Gip.v_u8[0],
-         packet->Gip.v_u8[1],
-         packet->Gip.v_u8[2],
-         packet->Gip.v_u8[3]);
+         packet->Gip[0],
+         packet->Gip[1],
+         packet->Gip[2],
+         packet->Gip[3]);
   printf("Client MAC ....... : "
          "%02X:%02X:%02X:%02X:%02X:%02X\n",
          packet->CAddr[0],
@@ -107,7 +105,9 @@ void PXE_print_info()
   printf("UNDICode ......... : %04X:%08X:%04X\n", s_PXEbang->UNDICode.segment_address, s_PXEbang->UNDICode.physical_address, s_PXEbang->UNDICode.segment_length);
   printf("UNDICodeWrite .... : %04X:%08X:%04X\n", s_PXEbang->UNDICodeWrite.segment_address, s_PXEbang->UNDICodeWrite.physical_address, s_PXEbang->UNDICodeWrite.segment_length);
 #endif
+#if 0
   PXE_print_dhcp(s_cached_reply_ptr);
+#endif
 }
 
 PXE_status PXE_init()
@@ -116,27 +116,24 @@ PXE_status PXE_init()
   s_PXENVplus = NULL;
   uint16_t status = 0;
   REGPACK r;
-
   r.w.ax = 0x5650;
+  __debugbreak_num(1);
   intr(0x1A, &r);
+  __debugbreak_num(2);
   if (r.w.ax != 0x564E || (r.w.flags & 1))
     return pxe_not_available;
   s_PXENVplus = (PXENVplus far *)MK_FP(r.w.es, r.w.bx);
+  __debugbreak_num(3);
   if (!PXE_checksum(s_PXENVplus, s_PXENVplus->Length))
     return pxenv_bad_checksum;
+  __debugbreak_num(4);
   if (_fmemcmp(s_PXENVplus->Signature, "PXENV+", 6) != 0)
     return pxenv_bad_signature;
+  __debugbreak_num(5);
   if (s_PXENVplus->Version < 0x0201)
     return version_not_supported;
+  __debugbreak_num(6);
   s_PXEbang = s_PXENVplus->PXEPtr;
-  PXENV_get_cached_info_type gci;
-  _fmemset(&gci, 0, sizeof(PXENV_get_cached_info_type));
-  gci.PacketType = cached_reply;
-  status = PXE_call_api(PXENV_GET_CACHED_INFO, &gci);
-  if (status != success || gci.Status != success)
-    return (PXE_status)status;  
-  s_cached_reply_ptr = (PXE_bootph_type far *)gci.Buffer;
-  s_cached_reply_len = gci.BufferSize;   
   return success;
 }
 
@@ -148,4 +145,18 @@ PXE_status PXE_call_api(uint16_t v_command, void far *v_params)
     return invalid_parameter;
   s_PXEbang->EntryPointSP(v_command, v_params);
   return (PXE_status)((uint16_t far *)v_params)[0];
+}
+
+PXE_status PXE_get_cached_info(PXENV_packet_type type, uint16_t* length, PXE_bootph_type_pfar* packet)
+{
+  uint16_t status = 0;
+  PXENV_get_cached_info_type gci;
+  _fmemset(&gci, 0, sizeof(PXENV_get_cached_info_type));
+  gci.PacketType = type;
+  status = PXE_call_api(PXENV_GET_CACHED_INFO, &gci);
+  if (status != success || gci.Status != success)
+    return (PXE_status)status;  
+  if (packet) *packet = (PXE_bootph_type far *)gci.Buffer;
+  if (length) *length = gci.BufferSize;   
+  return success;
 }

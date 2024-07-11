@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <type_traits>
 
-auto tftp_packet::error_code_to_string(error_code_type value) noexcept
+auto tftp_packet::error_code_to_string(error_category_type value) noexcept
 	-> std::string
 {
 	using namespace std::string_literals;
@@ -290,13 +290,13 @@ auto tftp_packet::set_ack(std::uint16_t block_id) -> tftp_packet&
 	return *this;
 }
 
-auto tftp_packet::set_error(error_code_type error_code, std::string_view error_string) -> tftp_packet&
+auto tftp_packet::set_error(error_category_type error_code, std::string_view error_string) -> tftp_packet&
 {
 	m_value = type_error(error_code, std::string(error_string));
 	return *this;
 }
 
-auto tftp_packet::set_error(error_code_type error_code) -> tftp_packet&
+auto tftp_packet::set_error(error_category_type error_code) -> tftp_packet&
 {
 	return set_error(error_code, error_code_to_string(error_code));	
 }
@@ -368,12 +368,12 @@ auto tftp_packet::make_ack(std::uint16_t block_id) -> tftp_packet
   return tftp_packet{}.set_ack(block_id);
 }
 
-auto tftp_packet::make_error(error_code_type error_code, std::string_view error_string) -> tftp_packet 
+auto tftp_packet::make_error(error_category_type error_code, std::string_view error_string) -> tftp_packet 
 {
   return tftp_packet{}.set_error(error_code, error_string);
 }
 
-auto tftp_packet::make_error(error_code_type error_code) -> tftp_packet 
+auto tftp_packet::make_error(error_category_type error_code) -> tftp_packet 
 {
   return tftp_packet{}.set_error(error_code);
 }

@@ -183,12 +183,7 @@ struct PXENV_get_cached_info_type
 };
 
 typedef uint8_t MAC_ADDR[16];
-
-union IP4 
-{
-  uint32_t  v_u32;
-  uint8_t   v_u8[4];
-};
+typedef uint8_t IP4[4];
 
 struct PXE_bootph_type
 { 
@@ -227,4 +222,8 @@ struct PXE_bootph_type
 
 PXE_status PXE_init();
 PXE_status PXE_call_api(uint16_t, void far*);
+void PXE_print_dhcp(PXE_bootph_type const far *packet);
 void PXE_print_info();
+
+typedef PXE_bootph_type const far* PXE_bootph_type_pfar;
+PXE_status PXE_get_cached_info(PXENV_packet_type type, uint16_t* length, PXE_bootph_type_pfar* packet);

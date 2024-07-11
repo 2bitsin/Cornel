@@ -64,6 +64,8 @@
 	; Setup IVT entry for INT 0x21 
 		mov			[cs:0x21*4 + 0], word __dos_21h
 		mov			[cs:0x21*4 + 2], word 0
+		mov			[cs:0x03*4 + 0], word __int3
+		mov			[cs:0x03*4 + 2], word 0
 	  ret
 ; -----------------------------
 ; DOS write character to stdout
@@ -231,6 +233,11 @@
 		pop			ds
 		add			sp,		2		
 		iret
+
+	__int3:
+		xchg		bx,		bx
+		mov			si,   INT3_INVOKED_ERROR
+		jmp			__halt
 
 	__dos_term:
 		xchg		bx,		bx
