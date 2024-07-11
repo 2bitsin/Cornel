@@ -117,22 +117,16 @@ PXE_status PXE_init()
   uint16_t status = 0;
   REGPACK r;
   r.w.ax = 0x5650;
-  __debugbreak_num(1);
   intr(0x1A, &r);
-  __debugbreak_num(2);
   if (r.w.ax != 0x564E || (r.w.flags & 1))
     return pxe_not_available;
   s_PXENVplus = (PXENVplus far *)MK_FP(r.w.es, r.w.bx);
-  __debugbreak_num(3);
   if (!PXE_checksum(s_PXENVplus, s_PXENVplus->Length))
     return pxenv_bad_checksum;
-  __debugbreak_num(4);
   if (_fmemcmp(s_PXENVplus->Signature, "PXENV+", 6) != 0)
     return pxenv_bad_signature;
-  __debugbreak_num(5);
   if (s_PXENVplus->Version < 0x0201)
     return version_not_supported;
-  __debugbreak_num(6);
   s_PXEbang = s_PXENVplus->PXEPtr;
   return success;
 }

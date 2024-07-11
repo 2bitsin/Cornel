@@ -56,11 +56,9 @@ static inline error_type SYSINFO_acquire_dhcp_info()
 error_type SYSINFO_acquire()
 {
   error_type status = NO_ERROR_SUCCESS;
-  puts("Getting memory map...");
   status = SYSINFO_acquire_memory_map();
   if (status != NO_ERROR_SUCCESS)
     return status;
-  puts("Getting DHCP info...");
   status = SYSINFO_acquire_dhcp_info();
   if (status != NO_ERROR_SUCCESS)
     return status;

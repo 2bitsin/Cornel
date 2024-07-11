@@ -16,8 +16,7 @@ flatinit:
     mov   ds,     ax
     mov   es,     ax
     mov   fs,     ax
-    mov   gs,     ax
-    mov   ss,     ax
+    mov   gs,     ax    
     mov   eax,    cr0
     xor   eax,    1
     mov   cr0,    eax
