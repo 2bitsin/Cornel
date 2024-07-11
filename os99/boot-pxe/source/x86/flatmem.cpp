@@ -5,9 +5,27 @@ uint32_t __declspec(naked) flat_fill(
   uint8_t   fill_with, 
   uint32_t  bytes_to_fill) 
 {__asm{  
-  pushad
-
-  popad
+  push      bp
+  mov       bp,     sp
+  push      es
+  push      ax
+  pushf
+  push      edi
+  push      ecx
+  xor       ax,     ax
+  mov       es,     ax
+  mov       edi,    [bp+4]
+  mov       al,     [bp+8]
+  mov       ecx,    [bp+10]
+  cld
+  db        0x67
+  rep       stosb
+  pop       ecx
+  pop       edi
+  popf
+  pop       ax
+  pop       es
+  pop       bp
   ret
 }}
 
@@ -17,17 +35,21 @@ uint32_t __declspec(naked) flat_copy(
   uint32_t  source_address, 
   uint32_t  bytes_to_copy)
 {__asm{
-  pushad
+  push      bp
   mov       bp,     sp
   pushf
   push      ds
   push      es
+  push      eax
+  push      edi
+  push      esi
+  push      ecx
   xor       cx,     cx
   mov       ds,     cx
   mov       es,     cx
-  mov       ecx,    [bp+42]
-  mov       esi,    [bp+38]
-  mov       edi,    [bp+34]
+  mov       ecx,    [bp+12]
+  mov       esi,    [bp+8]
+  mov       edi,    [bp+4]
   cmp       edi,    esi
   jz        _done_
   ja        _bkwd_
@@ -44,10 +66,14 @@ _bkwd_:
   db        0x67
   rep       movsb
 _done_:
-  popf
+  pop       ecx
+  pop       esi
+  pop       edi
+  pop       eax
   pop       es
   pop       ds
-  popad
+  popf
+  pop       bp  
   ret
 }} 
 
