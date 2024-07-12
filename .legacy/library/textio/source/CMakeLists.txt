@@ -1,0 +1,5 @@
+add_library(textio textio.cpp)
+target_include_directories(textio PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+#target_compile_definitions(textio PUBLIC _CONTAINER_DEBUG_LEVEL=0 _ITERATOR_DEBUG_LEVEL=0)
+set_target_properties(textio PROPERTIES CXX_STANDARD 23)
+target_link_libraries(textio PUBLIC meta)
