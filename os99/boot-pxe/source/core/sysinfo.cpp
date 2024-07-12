@@ -57,21 +57,19 @@ static inline error_type SYSINFO_probe_serial()
 {
   static uint16_t far* port_addr = (uint16_t far*)0x400u;
   int i = 0;
-
   while (!port_addr[i]) i+=1u;
-
-  if (i < 4)
-  {
+  if (i < 4) {
     info()->serial.port = i;
     info()->serial.conf = 0xe3;
-  }
-  
+  }  
   return NO_ERROR_SUCCESS;
 }
 
 error_type SYSINFO_acquire()
 {
   error_type status = NO_ERROR_SUCCESS;
+  _fmemset(info(), 0, sizeof(*info()));
+  _fmemcpy(info()->signature, "SYSNFO", 6);
   status = SYSINFO_acquire_memory_map();
   if (status != NO_ERROR_SUCCESS)
     return status;

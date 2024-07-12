@@ -9,8 +9,6 @@ export BUILD_TYPE=Release
 rm -rf $WORKSPACE_ROOT
 mkdir -p $WORKSPACE_ROOT
 
-echo "WORKSPACE_ROOT=" $WORKSPACE_ROOT
-
 # Build the os99 docker images
 pushd ./docker
   source ./build.sh

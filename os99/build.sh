@@ -1,4 +1,3 @@
-echo "WORKSPACE_ROOT=" $WORKSPACE_ROOT
 docker run -it                                           \
   -v $PROJECT_ROOT:/os99                                 \
   -e PROJECT_ROOT=/os99                                  \
@@ -8,3 +7,5 @@ docker run -it                                           \
   -w /os99/os99/boot-pxe                                 \
   os99-ia16                                              \
   bash -c -l ./build.sh
+
+dd if=/dev/urandom of=$PROJECT_ROOT/$WORKSPACE_ROOT/os99core.img bs=1M count=64

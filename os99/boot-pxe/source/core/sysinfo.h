@@ -18,6 +18,12 @@
 
   struct system_info
   {
+    char signature[6];
+    struct
+    {
+      uint16_t size;  
+      memmap_item data[NUMBER_OF_MEMMAP_ITEMS];    
+    } memory_map;
     struct
     {
       uint8_t server_address[4];
@@ -29,14 +35,11 @@
     } dhcp_info;
     struct
     {
-      uint16_t size;  
-      memmap_item data[NUMBER_OF_MEMMAP_ITEMS];    
-    } memory_map;
-    struct
-    {
       int8_t  port;
       uint8_t conf; // according to INT 0x14
     } serial;
+    uint32_t image_addr;
+    uint32_t image_size;
   };
 
 typedef char __assert_sysinfo_size__ [sizeof(system_info) <= 1024] ;

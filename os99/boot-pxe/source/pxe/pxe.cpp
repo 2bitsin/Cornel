@@ -126,8 +126,12 @@ PXE_status PXE_init()
   if (_fmemcmp(s_PXENVplus->Signature, "PXENV+", 6) != 0)
     return pxenv_bad_signature;
   if (s_PXENVplus->Version < 0x0201)
-    return version_not_supported;
+    return version_not_supported;  
   s_PXEbang = s_PXENVplus->PXEPtr;
+  printf("StatusCallout=%04X:%04X\n", 
+    s_PXEbang->StatusCallout.seg,
+    s_PXEbang->StatusCallout.off);
+  _fmemset(&s_PXEbang->StatusCallout, 0, sizeof(s_PXEbang->StatusCallout));
   return success;
 }
 
@@ -174,5 +178,33 @@ PXE_status PXE_query_size(char const far* file_name, uint32_t *size)
     return status;
   }
   *size = args.FileSize;
+  return success;
+}
+
+PXE_status PXE_download(char const far *file_name, uint32_t target_address, uint32_t* target_size) 
+{
+  TFTP_read_file_type args;
+  PXE_bootph_type_pfar packet;
+  PXE_status status;
+  uint16_t length;
+  status = PXE_get_cached_info(cached_reply, &length, &packet);
+  if (status != success || !packet) {
+    return status;
+  }
+  _fmemset(&args, 0, sizeof(args));
+  _fmemcpy(args.ServerIPAddress, packet->Sip, sizeof(packet->Sip));
+  _fmemcpy(args.GatewayIPAddress, packet->Gip, sizeof(packet->Gip));
+  _fstrncpy(args.FileName, file_name, sizeof(args.FileName));
+  args.Buffer = target_address;
+  args.BufferSize = *target_size;
+  args.TFTPClntPort = 69;
+  args.TFTPSrvPort = 69;
+  args.TFTPOpenTimeOut = 10;
+  args.TFTPReopenDelay = 10;
+  status = PXE_call_api(TFTP_READ_FILE, &args);
+  if (status != success) {
+    return status;
+  }
+  *target_size = args.BufferSize;
   return success;
 }

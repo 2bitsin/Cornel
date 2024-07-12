@@ -25,6 +25,5 @@ cmake --build   $TEMPORARY_PATH/boot-pxe --config $BUILD_TYPE
 cmake --install $TEMPORARY_PATH/boot-pxe 
 
 cat $PREABLE_PATH $EXECUTABLE_PATH >$TARGET_PATH
-readlink -f $TARGET_PATH
 cp ./config.ini $CONFIG_PATH
 

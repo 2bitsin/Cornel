@@ -19,6 +19,7 @@ char const far *error_code_to_string(error_type error_value)
     X(0x06u, ACQUIRE_PXE_DHCP_INFO_FAILED);
     X(0x07u, NOT_ENOUGH_EXTENDED_MEMORY);
     X(0x08u, CORE_IMAGE_BAD_OR_NOT_FOUND);
+    X(0x09u, PXE_DOWNLOAD_FAILED);
   default:
     return "UNDEFINED_ERROR_CODE";
   }
