@@ -5,18 +5,20 @@
 char const far *error_code_to_string(error_type error_value)
 {
 
+  switch (category_from_error(error_value))
+  {
 #define X(y, x) \
   case x:       \
     return #x
-  switch (category_from_error(error_value))
-  {
-    X(NO_ERROR_SUCCESS, 0x00u);
-    X(OUT_OF_MEMORY, 0x01u);
-    X(PXE_FAILED_TO_INITIALIZE, 0x02u);
-    X(CANT_READ_MEMORY_MAP, 0x03u);
-    X(ACQUIRE_BIOS_MEMMAP_FAILED, 0x04u);
-    X(ACQUIRE_BIOS_MEMMAP_OVERFLOW, 0x05u);
-    X(ACQUIRE_PXE_DHCP_INFO_FAILED, 0x06u);
+    X(0x00u, NO_ERROR_SUCCESS);
+    X(0x01u, OUT_OF_MEMORY);
+    X(0x02u, PXE_FAILED_TO_INITIALIZE);
+    X(0x03u, CANT_READ_MEMORY_MAP);
+    X(0x04u, ACQUIRE_BIOS_MEMMAP_FAILED);
+    X(0x05u, ACQUIRE_BIOS_MEMMAP_OVERFLOW);
+    X(0x06u, ACQUIRE_PXE_DHCP_INFO_FAILED);
+    X(0x07u, NOT_ENOUGH_EXTENDED_MEMORY);
+    X(0x08u, CORE_IMAGE_BAD_OR_NOT_FOUND);
   default:
     return "UNDEFINED_ERROR_CODE";
   }

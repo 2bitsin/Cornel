@@ -32,8 +32,17 @@
       uint16_t size;  
       memmap_item data[NUMBER_OF_MEMMAP_ITEMS];    
     } memory_map;
+    struct
+    {
+      int8_t  port;
+      uint8_t conf; // according to INT 0x14
+    } serial;
   };
+
+typedef char __assert_sysinfo_size__ [sizeof(system_info) <= 1024] ;
+
 #pragma pack(__pop)
 
 error_type SYSINFO_acquire();
-system_info far *SYSINFO_info();
+system_info far* SYSINFO_info();
+

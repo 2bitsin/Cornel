@@ -53,6 +53,22 @@ static inline error_type SYSINFO_acquire_dhcp_info()
   return make_error(NO_ERROR_SUCCESS);
 }
 
+static inline error_type SYSINFO_probe_serial() 
+{
+  static uint16_t far* port_addr = (uint16_t far*)0x400u;
+  int i = 0;
+
+  while (!port_addr[i]) i+=1u;
+
+  if (i < 4)
+  {
+    info()->serial.port = i;
+    info()->serial.conf = 0xe3;
+  }
+  
+  return NO_ERROR_SUCCESS;
+}
+
 error_type SYSINFO_acquire()
 {
   error_type status = NO_ERROR_SUCCESS;
@@ -60,6 +76,9 @@ error_type SYSINFO_acquire()
   if (status != NO_ERROR_SUCCESS)
     return status;
   status = SYSINFO_acquire_dhcp_info();
+  if (status != NO_ERROR_SUCCESS)
+    return status;
+  status = SYSINFO_probe_serial();
   if (status != NO_ERROR_SUCCESS)
     return status;
   return status;

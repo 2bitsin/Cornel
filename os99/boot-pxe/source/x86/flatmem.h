@@ -32,8 +32,8 @@ static inline void far* from_linear(uint32_t linear)
   return p.fpm;  
 }
 
-uint32_t __cdecl flat_fill(uint32_t target_address, uint8_t fill_with, uint32_t bytes_to_fill);
-uint32_t __cdecl flat_copy(uint32_t target_address, uint32_t source_address, uint32_t bytes_to_copy);
+void __cdecl flat_fill(uint32_t target_address, uint8_t fill_with, uint32_t bytes_to_fill);
+void __cdecl flat_copy(uint32_t target_address, uint32_t source_address, uint32_t bytes_to_copy);
 
 
 

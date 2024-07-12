@@ -109,7 +109,8 @@ enum PXE_consts
 
 enum PXE_command
 {
-  PXENV_GET_CACHED_INFO = 0x0071u
+  PXENV_GET_CACHED_INFO = 0x0071u,
+  TFTP_GET_FILE_SIZE    = 0x0025u
 };
 
 struct SEGOFFS16
@@ -173,15 +174,6 @@ struct PXENVplus
   PXEbang far* PXEPtr;
 };
 
-struct PXENV_get_cached_info_type
-{
-  uint16_t Status;
-  uint16_t PacketType;
-  uint16_t BufferSize;
-  void far* Buffer;
-  uint16_t BufferLimit;
-};
-
 typedef uint8_t MAC_ADDR[16];
 typedef uint8_t IP4[4];
 
@@ -218,6 +210,24 @@ struct PXE_bootph_type
   } Vendor;
 };
 
+struct PXENV_get_cached_info_type
+{
+  uint16_t Status;
+  uint16_t PacketType;
+  uint16_t BufferSize;
+  void far* Buffer;
+  uint16_t BufferLimit;
+};
+
+struct TFTP_get_file_size_type 
+{
+  uint16_t Status;
+  IP4 ServerIPAddress;
+  IP4 GatewayIPAddress;
+  char FileName[128];
+  uint32_t FileSize;
+};
+
 #pragma pack(__pop)
 
 PXE_status PXE_init();
@@ -227,3 +237,5 @@ void PXE_print_info();
 
 typedef PXE_bootph_type const far* PXE_bootph_type_pfar;
 PXE_status PXE_get_cached_info(PXENV_packet_type type, uint16_t* length, PXE_bootph_type_pfar* packet);
+PXE_status PXE_query_size(char const far* file_name, uint32_t *size);
+PXE_status PXE_download(char const far* file_name, uint32_t target_address, uint32_t target_size);

@@ -144,13 +144,35 @@ PXE_status PXE_call_api(uint16_t v_command, void far *v_params)
 PXE_status PXE_get_cached_info(PXENV_packet_type type, uint16_t* length, PXE_bootph_type_pfar* packet)
 {
   uint16_t status = 0;
-  PXENV_get_cached_info_type gci;
-  _fmemset(&gci, 0, sizeof(PXENV_get_cached_info_type));
-  gci.PacketType = type;
-  status = PXE_call_api(PXENV_GET_CACHED_INFO, &gci);
-  if (status != success || gci.Status != success)
+  PXENV_get_cached_info_type args;
+  _fmemset(&args, 0, sizeof(args));
+  args.PacketType = type;
+  status = PXE_call_api(PXENV_GET_CACHED_INFO, &args);
+  if (status != success || args.Status != success)
     return (PXE_status)status;  
-  if (packet) *packet = (PXE_bootph_type far *)gci.Buffer;
-  if (length) *length = gci.BufferSize;   
+  if (packet) *packet = (PXE_bootph_type far *)args.Buffer;
+  if (length) *length = args.BufferSize;   
+  return success;
+}
+
+PXE_status PXE_query_size(char const far* file_name, uint32_t *size) 
+{
+  TFTP_get_file_size_type args;
+  PXE_bootph_type_pfar packet;
+  PXE_status status;
+  uint16_t length;
+  status = PXE_get_cached_info(cached_reply, &length, &packet);
+  if (status != success || !packet) {
+    return status;
+  }
+  _fmemset(&args, 0, sizeof(args));
+  _fmemcpy(args.ServerIPAddress, packet->Sip, sizeof(packet->Sip));
+  _fmemcpy(args.GatewayIPAddress, packet->Gip, sizeof(packet->Gip));
+  _fstrncpy(args.FileName, file_name, sizeof(args.FileName));
+  status = PXE_call_api(TFTP_GET_FILE_SIZE, &args);
+  if (status != success) {
+    return status;
+  }
+  *size = args.FileSize;
   return success;
 }

@@ -12,6 +12,8 @@ enum error_category_type
   ACQUIRE_BIOS_MEMMAP_FAILED    = 0x04u,
   ACQUIRE_BIOS_MEMMAP_OVERFLOW  = 0x05u,
   ACQUIRE_PXE_DHCP_INFO_FAILED  = 0x06u,
+  NOT_ENOUGH_EXTENDED_MEMORY    = 0x07u,
+  CORE_IMAGE_BAD_OR_NOT_FOUND   = 0x08u  
 };
 
 typedef uint16_t error_code_type;
