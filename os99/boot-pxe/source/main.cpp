@@ -78,7 +78,7 @@ int main(int, char**)
       v_status));
   }
   printf("Successfully downloaded %s.\n", CORE_IMAGE_FILE_NAME);
-  __debugbreak();
+  
   return 0;
 }
 
