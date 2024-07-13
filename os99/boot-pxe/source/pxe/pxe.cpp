@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <i86.h>
 
+#include "core/utils.h" 
 #include "x86/debug.h"
+#include "x86/flatmem.h"
 
 static PXENVplus far *s_PXENVplus;
 static PXEbang far *s_PXEbang;
@@ -128,10 +130,6 @@ PXE_status PXE_init()
   if (s_PXENVplus->Version < 0x0201)
     return version_not_supported;  
   s_PXEbang = s_PXENVplus->PXEPtr;
-  printf("StatusCallout=%04X:%04X\n", 
-    s_PXEbang->StatusCallout.seg,
-    s_PXEbang->StatusCallout.off);
-  _fmemset(&s_PXEbang->StatusCallout, 0, sizeof(s_PXEbang->StatusCallout));
   return success;
 }
 
@@ -166,45 +164,152 @@ PXE_status PXE_query_size(char const far* file_name, uint32_t *size)
   PXE_status status;
   uint16_t length;
   status = PXE_get_cached_info(cached_reply, &length, &packet);
-  if (status != success || !packet) {
-    return status;
-  }
+  if (status != success || !packet)
+    return status;  
   _fmemset(&args, 0, sizeof(args));
   _fmemcpy(args.ServerIPAddress, packet->Sip, sizeof(packet->Sip));
   _fmemcpy(args.GatewayIPAddress, packet->Gip, sizeof(packet->Gip));
   _fstrncpy(args.FileName, file_name, sizeof(args.FileName));
   status = PXE_call_api(TFTP_GET_FILE_SIZE, &args);
-  if (status != success) {
-    return status;
-  }
+  if (status != success)
+    return status;  
   *size = args.FileSize;
   return success;
 }
 
-PXE_status PXE_download(char const far *file_name, uint32_t target_address, uint32_t* target_size) 
+PXE_status PXE_download(
+  char const far *file_name, 
+  uint32_t target_address, 
+  uint32_t target_size, 
+  uint32_t* actual_size) 
 {
   TFTP_read_file_type args;
   PXE_bootph_type_pfar packet;
   PXE_status status;
   uint16_t length;
   status = PXE_get_cached_info(cached_reply, &length, &packet);
-  if (status != success || !packet) {
+  if (status != success || !packet)
     return status;
-  }
   _fmemset(&args, 0, sizeof(args));
   _fmemcpy(args.ServerIPAddress, packet->Sip, sizeof(packet->Sip));
   _fmemcpy(args.GatewayIPAddress, packet->Gip, sizeof(packet->Gip));
   _fstrncpy(args.FileName, file_name, sizeof(args.FileName));
   args.Buffer = target_address;
-  args.BufferSize = *target_size;
-  args.TFTPClntPort = 69;
-  args.TFTPSrvPort = 69;
+  args.BufferSize = target_size;
+  args.TFTPClntPort = byte_swap_u16(69);
+  args.TFTPSrvPort = byte_swap_u16(69);
   args.TFTPOpenTimeOut = 10;
   args.TFTPReopenDelay = 10;
   status = PXE_call_api(TFTP_READ_FILE, &args);
+  if (status != success)
+    return status;  
+  if (actual_size != NULL)
+    *actual_size = args.BufferSize;
+  return success;
+}
+
+PXE_status PXE_tftp_open(char const far* file_name, uint16_t packet_size_i, uint16_t far* packet_size_o, uint16_t port) 
+{
+  PXE_status status;
+  PXE_bootph_type_pfar packet;
+  TFTP_open_type args;  
+  uint16_t length;
+  status = PXE_get_cached_info(cached_reply, &length, &packet);
+  if (status != success || !packet)
+    return status;
+  _fmemset(&args, 0, sizeof(args));
+  _fmemcpy(args.ServerIPAddress,  packet->Sip, sizeof(packet->Sip));
+  _fmemcpy(args.GatewayIPAddress, packet->Gip, sizeof(packet->Gip));  
+  _fstrncpy(args.FileName, file_name, sizeof(args.FileName));  
+  args.PacketSize = packet_size_i;
+  args.TFTPPort = byte_swap_u16(port);
+  status = PXE_call_api(PXENV_TFTP_OPEN, &args);
+  if (status != success)
+    return status;  
+  if (*packet_size_o)
+    *packet_size_o = args.PacketSize;
+  return status;
+}
+
+PXE_status PXE_tftp_close() 
+{
+  TFTP_close_type args;
+  _fmemset(&args, 0, sizeof(args));
+  return PXE_call_api(PXENV_TFTP_CLOSE, &args);
+}
+
+PXE_status PXE_tftp_read(void far* buffer, uint16_t far* buffer_size, uint16_t far* packet_number) {
+  PXE_status status = success;
+  TFTP_read_type args;
+  _fmemset(&args, 0, sizeof(args));
+  args.Buffer.seg = FP_SEG(buffer);  
+  args.Buffer.off = FP_OFF(buffer);
+  status = PXE_call_api(PXENV_TFTP_READ, &args);
   if (status != success) {
     return status;
   }
-  *target_size = args.BufferSize;
-  return success;
+  if (packet_number)
+    *packet_number = args.PacketNumber;
+  if (buffer_size)
+    *buffer_size = args.BufferSize; 
+  return status;
+}
+
+PXE_status PXE_download_with_status(
+  char const far *file_name, 
+  uint32_t target_address, 
+  uint32_t target_size, 
+  uint32_t* actual_size,
+  uint32_t size_hint,
+  TFTP_download_update_func update_func)
+{
+  PXE_status status = success;
+  if (update_func == NULL)
+    return PXE_download(file_name, target_address, target_size, actual_size);
+  if (size_hint == 0) {
+    status = PXE_query_size(file_name, &size_hint);
+    if (status != status)
+      return status;    
+    if (size_hint == 0)
+      return cant_download_empty;
+    if (size_hint > target_size)
+      return buffer_not_large_enough;
+  }
+  
+  static uint8_t buffer[4096];  
+  uint32_t total_received_bytes = 0;
+  uint16_t packet_size = 0;
+  uint16_t received_bytes = 0;
+  uint16_t packet_curr = 0;
+  uint16_t packet_last = 0;
+
+  status = PXE_tftp_open(file_name, sizeof(buffer), &packet_size, 69);
+  if (status != success)
+    return status;
+  while(total_received_bytes < size_hint)
+  { 
+    status = PXE_tftp_read(buffer, &received_bytes, &packet_curr);    
+    if (status != success)
+      return status;
+    if (packet_curr != packet_last+1) 
+      return unexpected_packet_number;
+    if (received_bytes < 1)
+      return unexpected_packet_length;
+    if (total_received_bytes + received_bytes > target_size)
+      return buffer_not_large_enough;
+    flat_copy(target_address + total_received_bytes, to_linear(buffer), received_bytes);
+    total_received_bytes += received_bytes;
+    packet_last = packet_curr;
+    if (NULL == update_func)
+      continue;
+    status = update_func(file_name, size_hint, total_received_bytes);
+    if (status != success)
+      return status;
+  }
+  status = PXE_tftp_close();
+  if (status != success)
+    return status;
+  if (NULL != actual_size) 
+    *actual_size = total_received_bytes;
+  return status;
 }

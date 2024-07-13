@@ -81,7 +81,8 @@
     "charconv": "cpp",
     "shared_mutex": "cpp",
     "version": "cpp",
-    "format": "cpp"
+    "format": "cpp",
+    "source_location": "cpp"
   },
   "C_Cpp.errorSquiggles": "Disabled"
 }

@@ -85,7 +85,11 @@ enum PXE_status
   pxenv_bad_signature = 0xfffdu,
   version_not_supported = 0xfffcu,
   pxenv_bad_length = 0xfffbu,
-  invalid_parameter = 0xfffau
+  invalid_parameter = 0xfffau,
+  cant_download_empty = 0xfff9u,
+  unexpected_packet_length = 0xfff8u,
+  unexpected_packet_number = 0xfff7u,
+  buffer_not_large_enough = 0xfff6u
 };
 
 enum PXENV_packet_type
@@ -110,14 +114,17 @@ enum PXE_consts
 enum PXE_command
 {
   PXENV_GET_CACHED_INFO = 0x0071u,
+  PXENV_TFTP_OPEN       = 0x0020u,
+  PXENV_TFTP_CLOSE      = 0x0021u,
+  PXENV_TFTP_READ       = 0x0022u,
   TFTP_READ_FILE        = 0x0023u,
   TFTP_GET_FILE_SIZE    = 0x0025u
 };
 
-struct SEGOFFS16
+struct SEGOFF16
 {
-  uint16_t seg;
   uint16_t off;
+  uint16_t seg;
 };
 
 struct SEGDESC
@@ -136,11 +143,11 @@ struct PXEbang
   uint8_t StructCksum;
   uint8_t StructRev;
   uint8_t _reserved_0;
-  SEGOFFS16 UNDIROMID;
-  SEGOFFS16 BaseROMID;
+  SEGOFF16 UNDIROMID;
+  SEGOFF16 BaseROMID;
   EntryPointSP_type EntryPointSP;
-  SEGOFFS16 EntryPointESP;
-  SEGOFFS16 StatusCallout;
+  SEGOFF16 EntryPointESP;
+  SEGOFF16 StatusCallout;
   uint8_t _reserved_1;
   uint8_t SegDescCnt;
   uint16_t FirstSelector;
@@ -159,7 +166,7 @@ struct PXENVplus
   uint16_t Version;
   uint8_t Length;
   uint8_t Checksum;
-  SEGOFFS16 RMEntry;
+  SEGOFF16 RMEntry;
   uint32_t PMOffset;
   uint16_t PMSelector;
   uint16_t StackSeg;
@@ -244,14 +251,44 @@ struct TFTP_read_file_type
   uint16_t TFTPReopenDelay;
 };
 
+struct TFTP_open_type
+{
+  uint16_t Status;
+  IP4 ServerIPAddress;
+  IP4 GatewayIPAddress;
+  char FileName[128];
+  uint16_t TFTPPort;
+  uint16_t PacketSize;
+};
+
+struct TFTP_close_type
+{
+  uint16_t Status;
+};
+
+struct TFTP_read_type
+{
+  uint16_t Status;
+  uint16_t PacketNumber;
+  uint16_t BufferSize;
+  SEGOFF16 Buffer;
+};
+
+typedef PXE_bootph_type const far *PXE_bootph_type_pfar;
+typedef PXE_status (__watcall *TFTP_download_update_func)(char const far* file_name, uint32_t target_size, uint32_t current_size);
+
 #pragma pack(__pop)
 
-PXE_status PXE_init();
-PXE_status PXE_call_api(uint16_t, void far *);
 void PXE_print_dhcp(PXE_bootph_type const far *packet);
 void PXE_print_info();
 
-typedef PXE_bootph_type const far *PXE_bootph_type_pfar;
+PXE_status PXE_init();
+PXE_status PXE_call_api(uint16_t, void far *);
 PXE_status PXE_get_cached_info(PXENV_packet_type type, uint16_t *length, PXE_bootph_type_pfar *packet);
-PXE_status PXE_query_size(char const far *file_name, uint32_t *size);
-PXE_status PXE_download(char const far *file_name, uint32_t target_address, uint32_t* target_size);
+PXE_status PXE_query_size(char const far* file_name, uint32_t *size);
+PXE_status PXE_tftp_open(char const far* file_name, uint16_t packet_size_i, uint16_t far* packet_size_o, uint16_t port = 69);
+PXE_status PXE_tftp_read(void far* buffer, uint16_t far* buffer_size, uint16_t far* packet_number);
+PXE_status PXE_tftp_close();
+PXE_status PXE_download(char const far* file_name, uint32_t target_address, uint32_t target_size, uint32_t* actual_size = NULL);
+PXE_status PXE_download_with_status(char const far* file_name, uint32_t target_address, uint32_t target_size, 
+  uint32_t* actual_size = NULL, uint32_t size_hint = 0, TFTP_download_update_func update_func=NULL);
