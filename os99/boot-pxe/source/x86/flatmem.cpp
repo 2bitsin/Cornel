@@ -24,6 +24,53 @@ void __declspec(naked) flat_fill(
   ret
 }}
 
+void __declspec(naked) flat_fill_w(
+  uint32_t target_address, 
+  uint16_t fill_with, 
+  uint32_t words_to_fill)
+{__asm{
+  push      bp
+  mov       bp,     sp
+  pushf
+  push      edi
+  xor       ax,     ax
+  mov       es,     ax
+  mov       edi,    [bp+4]
+  mov       ax,     [bp+8]
+  mov       ecx,    [bp+10]
+  cld
+  db        0x67
+  rep       stosw
+  pop       edi
+  popf
+  pop       bp
+  ret
+}}
+
+void __declspec(naked) flat_fill_d(
+  uint32_t target_address, 
+  uint32_t fill_with, 
+  uint32_t words_to_fill)
+{__asm{
+  push      bp
+  mov       bp,     sp
+  pushf
+  push      edi
+  xor       ax,     ax
+  mov       es,     ax
+  mov       edi,    [bp+4]
+  mov       eax,    [bp+8]
+  mov       ecx,    [bp+12]
+  cld
+  db        0x67
+  rep       stosw
+  pop       edi
+  popf
+  pop       bp
+  ret
+}}
+
+
 
 void __declspec(naked) flat_copy(
   uint32_t  target_address, 

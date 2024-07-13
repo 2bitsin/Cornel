@@ -225,7 +225,7 @@ PXE_status PXE_tftp_open(char const far* file_name, uint16_t packet_size_i, uint
   args.TFTPPort = byte_swap_u16(port);
   status = PXE_call_api(PXENV_TFTP_OPEN, &args);
   if (status != success)
-    return status;  
+    return status;    
   if (*packet_size_o)
     *packet_size_o = args.PacketSize;
   return status;
@@ -276,13 +276,12 @@ PXE_status PXE_download_with_status(
       return buffer_not_large_enough;
   }
   
-  static uint8_t buffer[4096];  
+  static uint8_t buffer[1456];  
   uint32_t total_received_bytes = 0;
   uint16_t packet_size = 0;
   uint16_t received_bytes = 0;
   uint16_t packet_curr = 0;
   uint16_t packet_last = 0;
-
   status = PXE_tftp_open(file_name, sizeof(buffer), &packet_size, 69);
   if (status != success)
     return status;
