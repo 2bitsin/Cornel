@@ -1,0 +1,15 @@
+ENTRY(core_main)
+OUTPUT_FORMAT(pei-i386)
+SECTIONS
+{
+  . = 0x100000;
+  .text : {
+    *(.text)
+  }
+  .data : {
+    *(.data)
+  }
+  .bss : {
+    *(.bss)
+  }
+}
