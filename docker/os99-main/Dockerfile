@@ -4,4 +4,5 @@ RUN \
   apt upgrade -y && \
   apt install -y \
     gcc g++ cmake ninja-build \
-    gcc-multilib g++-multilib 
+    gcc-multilib g++-multilib \
+    dosfstools mtools

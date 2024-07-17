@@ -18,4 +18,3 @@ docker run -it                                           \
   os99-main                                              \
   bash -c -l ./build.sh
 
-#dd if=/dev/urandom of=$PROJECT_ROOT/$WORKSPACE_ROOT/os99core.img bs=1M count=64

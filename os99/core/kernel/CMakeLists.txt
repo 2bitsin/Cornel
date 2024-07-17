@@ -10,4 +10,4 @@ target_link_options(os99core PRIVATE "-T${OS99CORE_LINKER_SCRIPT}" "-Wl,-Map=${O
 target_link_options(os99core PRIVATE "${OS99CORE_LINK_OPTIONS}")
 target_compile_options(os99core PRIVATE "${OS99CORE_COMPILE_OPTIONS}")
 set_target_properties(os99core PROPERTIES SUFFIX ".exe")
-install(TARGETS os99core DESTINATION ${CMAKE_INSTALL_PREFIX}/core)
+install(TARGETS os99core DESTINATION ${CMAKE_INSTALL_PREFIX}/image/core)
