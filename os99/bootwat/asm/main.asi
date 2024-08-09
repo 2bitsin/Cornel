@@ -1,4 +1,4 @@
-    cli
+		cli
 		mov		 	ax, 		cs
 		mov 		ds,   	ax
 		mov     es, 		ax
@@ -16,7 +16,8 @@
 		call		dosinit
 		call 		flatinit
 		call		a20init	
-		jmp			execute_mz
+		lss			sp,			[__stack]
+		call		dword [ __entry]
 
 	__selfcheck_fail:		
 		mov			si, 		CORRUPTED_MZ_HEADER

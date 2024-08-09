@@ -2,7 +2,7 @@
 
 export PROJECT_ROOT=`pwd`
 export BUILD_ROOT=build
-export WORKSPACE_ROOT=workspace/install
+export WORKSPACE_ROOT=workspace
 export BUILD_TYPE=Release
 #export BUILD_TYPE=Debug
 

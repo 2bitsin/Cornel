@@ -1,0 +1,47 @@
+a20test:
+    push    fs
+    push    gs    
+    xor     ax,     ax
+    mov     fs,     ax
+    not     ax
+    mov     gs,     ax   
+
+    push    word [fs:0x200] 
+    mov     [fs:0x200], word 0x5555
+
+    push    word [gs:0x210]
+    mov     [gs:0x210], word 0xAAAA
+
+    mov     ax,     [fs:0x200]
+    and     ax,     [gs:0x210] ; ax = 0 if A20 is enabled, 0x5555 if disabled
+
+    pop     word [gs:0x210]
+    pop     word [fs:0x200]
+    pop     gs
+    pop     fs
+    ret
+    
+  a20enable:
+    push    ax
+    push    si
+    mov     ax,     0x2401
+    int     0x15
+    mov     si,     A20_FAILED_ENABLING
+    jc      __halt
+    pop     si
+    pop     ax
+    ret
+
+  a20init:
+    push    ax
+		call		a20test
+		or			ax,			ax
+		jz		  .a20good
+		call		a20enable	
+		call		a20test
+		or			ax,			ax
+		mov			si,			A20_FAILED_ENABLING
+		jnz			__halt
+	.a20good:
+    pop     ax
+    ret

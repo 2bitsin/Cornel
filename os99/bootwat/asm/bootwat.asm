@@ -2,13 +2,17 @@
     use16
     
 		include "config.asi"
-		org     LOAD_ADDRESS		
 		include	"errorid.asi"	
+				
+		jmp			short __start
+		align		2
+	__stack:	dd			0
+	__entry:  dd			0
+	__start:
+
 		include "main.asi"
 		include "console.asi"
 		include "serial.asi"
-		include "mzhead.asi"
-		include "execmz.asi"
 		include "fakedos.asi"
 		include "reboot.asi"		
 		include "a20line.asi"
