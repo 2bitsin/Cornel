@@ -205,7 +205,7 @@ int main(int argc, char** argv) try
   auto exec_bin = load(exec_path);
 
   ProgramData program;
-  auto const load_base = LOAD_ADDRESS / 16 + (stub_bin.size() + 15) / 16 - 0x10u;
+  auto const load_base = LOAD_ADDRESS / 16 + (stub_bin.size() + 15) / 16;
   prepare_exec(program, exec_bin, load_base);
   std::println("load  address : {:04x}:{:04x}", load_base, 0);
   std::println("entry address : {:04x}:{:04x}", program.entry.seg, program.entry.off);
