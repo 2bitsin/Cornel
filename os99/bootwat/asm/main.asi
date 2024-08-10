@@ -17,7 +17,12 @@
 		call 		flatinit
 		call		a20init	
 		lss			sp,			[__stack]
-		call		dword [ __entry]
+		push		word [__entry + 2]
+		push		word [__entry + 0]
+		mov			ax,			__PSP / 16
+		mov			ds,			ax
+		mov			es,			ax
+		retf
 
 	__selfcheck_fail:		
 		mov			si, 		CORRUPTED_MZ_HEADER

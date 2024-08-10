@@ -208,6 +208,8 @@
 		push		gs		
 		pusha
 
+		xchg		bx,		bx
+
 		mov			bp,		sp
 		cmp			INTR_INTNUM, 0x21
 		mov			si,		NOT_SUPPORTED_INTRQ

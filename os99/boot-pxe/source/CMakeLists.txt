@@ -9,4 +9,4 @@ add_executable(
 target_compile_options(boot-pxe PRIVATE -3)
 target_include_directories(boot-pxe PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_options(boot-pxe PRIVATE option stack=48k)
-install(TARGETS boot-pxe DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS boot-pxe DESTINATION bin)

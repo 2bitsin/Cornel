@@ -158,7 +158,9 @@ static auto prepare_exec(ProgramData& program, std::span<std::byte> binary, uint
     }
     auto& target = *std::bit_cast<uint16_t*>(
       target_s.data());
-    target = load_base;
+    std::println("relocating {:08x} : {:04x} -> {:04x}",
+      linear, target, target + load_base);
+    target += load_base;
   }
   program.stack.seg = header.initial_ss + load_base;
   program.stack.off = header.initial_sp;
@@ -181,7 +183,7 @@ int main(int argc, char** argv) try
   vector<path> args{ argv, argv + argc };
 
 
-  if (args.size() < 1) {
+  if (args.size() < 3) {
     std::println("usage: {} <exe path> <out path>\n",
       args[0].filename().string());
     return -1;
