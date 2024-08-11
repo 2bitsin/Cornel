@@ -14,7 +14,6 @@
 		include "console.asi"
 		include "serial.asi"
 		include "fakedos.asi"
-		include "reboot.asi"		
 		include "a20line.asi"
 		include	"flatreal.asi"
 		include "desctbl.asi"

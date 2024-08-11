@@ -1,5 +1,5 @@
 INSTALL_PATH=$WORKSPACE_ROOT/install
-CONFIG_PATH=$INSTALL_PATH/config.ini
+CONFIG_PATH=$WORKSPACE_ROOT/config.ini
 
 pushd bootwat
   ./build.sh

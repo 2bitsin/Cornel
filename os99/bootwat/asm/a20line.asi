@@ -22,14 +22,13 @@ a20test:
     ret
     
   a20enable:
-    push    ax
-    push    si
-    mov     ax,     0x2401
-    int     0x15
-    mov     si,     A20_FAILED_ENABLING
-    jc      __halt
-    pop     si
-    pop     ax
+    in      al,     0x92
+    test    al,     2
+    jnz     .x
+    or      al,     2
+    and     al,     0xfe
+    out     0x92,   al
+  .x:    
     ret
 
   a20init:

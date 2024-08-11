@@ -16,24 +16,29 @@
 		call		dosinit
 		call 		flatinit
 		call		a20init	
-		lss			sp,			[__stack]
-		push		word [__entry + 2]
-		push		word [__entry + 0]
 		mov			ax,			__PSP / 16
 		mov			ds,			ax
 		mov			es,			ax
-		retf
+		lss			sp,			[cs:__stack]
+		call		dword [cs:__entry]
 
-	__selfcheck_fail:		
-		mov			si, 		CORRUPTED_MZ_HEADER
-	
+		mov			si,			PROGRAM_TERMINATED
 	__halt:	
-		mov			si,			cs
-		mov			ds,			si
-		and			si,			bx
+		push		cs
+		pop			ds		
 		and			si, 		7
 		shl			si,			2
 		add			si, 		__PSP.errstr
 		call		putstr
+		mov			al,			13
+		call		putchar
+		mov			al,			10
+		call		putchar
+		mov			si,			__PSP.anykey
+		call		putstr
+		xor			ax,			ax
+		int			0x16
+		mov 		al, 		0xfe
+		out 		0x64, 	al	
 		cli
 		hlt

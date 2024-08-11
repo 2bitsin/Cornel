@@ -189,13 +189,8 @@
 ; -------------------------------
 
 	__dos_fun_4c:
-		mov			si,		cs
-		mov			ds,		si
-		mov			si,		__PSP.anykey
-		call		putstr
-		xor			ax,		ax
-		int			0x16
-		jmp     reboot_via_8042
+		mov			si,			PROGRAM_TERMINATED
+		jmp 		__halt
 
 ; ---------------------------
 ; DOS interrupt entry point

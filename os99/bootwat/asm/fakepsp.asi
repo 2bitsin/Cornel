@@ -68,14 +68,14 @@
 		.anykey:
 			db 		"Press any key to reboot...",13,10,0
 		.errstr:
-			db		"E00", 0
-			db		"E01", 0
-			db		"E02", 0
-			db		"E03", 0		
-			db    "E04", 0
-			db    "E05", 0
-			db    "E06", 0
-			db    "E07", 0
+			db		"EXI", 0	
+			db		"BAF", 0
+			db		"NOI", 0
+			db		"INI", 0		
+			db    "A20", 0
+			db    "FRM", 0
+			db    "DBG", 0
+			db    "UEC", 0
 			align 16
 		.fake_env:
       db 		"PATH=A:\", 0

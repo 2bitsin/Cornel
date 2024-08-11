@@ -1,0 +1,3 @@
+[submodule "bootpd"]
+	path = bootpd
+	url = https://github.com/2bitsin/bootpd
